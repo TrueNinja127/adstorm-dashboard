@@ -135,11 +135,11 @@ export function BrandsContent({ showHeaderAndFeatured = true, scrollContainer = 
                         <p className="font-display font-semibold text-foreground truncate">
                           {brand.title}
                         </p>
-                        <p className="mt-0.5">
+                        <div className="mt-0.5">
                           <Badge variant="secondary" className="text-[10px] font-medium">
                             {brand.category}
                           </Badge>
-                        </p>
+                        </div>
                         <div className="mt-2 flex items-center gap-2">
                           <span
                             className={cn(
@@ -286,11 +286,11 @@ export function BrandsContent({ showHeaderAndFeatured = true, scrollContainer = 
                       <p className="font-display font-semibold text-foreground truncate">
                         {brand.title}
                       </p>
-                      <p className="mt-0.5">
+                      <div className="mt-0.5">
                         <Badge variant="secondary" className="text-[10px] font-medium">
                           {brand.category}
                         </Badge>
-                      </p>
+                      </div>
                       <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
                         {brand.description}
                       </p>
