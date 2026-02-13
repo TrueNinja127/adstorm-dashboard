@@ -106,7 +106,7 @@ export function Sidebar() {
       <div className="flex items-center justify-center px-4 py-6">
         {collapsed ? (
           <Image
-            src="/images/logo.png"
+            src="/logo.png"
             alt="ADStorm"
             width={32}
             height={32}

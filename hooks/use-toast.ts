@@ -7,6 +7,7 @@ import type { ToastActionElement, ToastProps } from '@/components/ui/toast'
 
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
+const TOAST_DURATION_MS = 5000
 
 type ToasterToast = ToastProps & {
   id: string
@@ -54,6 +55,7 @@ interface State {
 }
 
 const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
+const dismissTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
 
 const addToRemoveQueue = (toastId: string) => {
   if (toastTimeouts.has(toastId)) {
@@ -147,7 +149,14 @@ function toast({ ...props }: Toast) {
       type: 'UPDATE_TOAST',
       toast: { ...props, id },
     })
-  const dismiss = () => dispatch({ type: 'DISMISS_TOAST', toastId: id })
+  const dismiss = () => {
+    const t = dismissTimeouts.get(id)
+    if (t) {
+      clearTimeout(t)
+      dismissTimeouts.delete(id)
+    }
+    dispatch({ type: 'DISMISS_TOAST', toastId: id })
+  }
 
   dispatch({
     type: 'ADD_TOAST',
@@ -160,6 +169,12 @@ function toast({ ...props }: Toast) {
       },
     },
   })
+
+  const autoDismissId = setTimeout(() => {
+    dismissTimeouts.delete(id)
+    dismiss()
+  }, TOAST_DURATION_MS)
+  dismissTimeouts.set(id, autoDismissId)
 
   return {
     id: id,

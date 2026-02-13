@@ -52,7 +52,7 @@ const notifications: Notification[] = [
     id: 1,
     icon: Megaphone,
     accentColor: "text-[hsl(var(--primary))]",
-    accentBg: "bg-[hsl(var(--primary)/.08)]",
+    accentBg: "bg-orange-500/10",
     borderAccent: "border-l-[hsl(var(--primary))]",
     category: "campaigns",
     title: "Campaign \"Summer Sale\" is live",
@@ -66,7 +66,7 @@ const notifications: Notification[] = [
     id: 2,
     icon: TrendingUp,
     accentColor: "text-emerald-400",
-    accentBg: "bg-emerald-400/8",
+    accentBg: "bg-emerald-500/10",
     borderAccent: "border-l-emerald-400",
     category: "campaigns",
     title: "Impressions milestone reached",
@@ -80,7 +80,7 @@ const notifications: Notification[] = [
     id: 3,
     icon: AlertCircle,
     accentColor: "text-amber-400",
-    accentBg: "bg-amber-400/8",
+    accentBg: "bg-amber-500/10",
     borderAccent: "border-l-amber-400",
     category: "billing",
     title: "Low balance warning",
@@ -94,7 +94,7 @@ const notifications: Notification[] = [
     id: 4,
     icon: CheckCircle2,
     accentColor: "text-sky-400",
-    accentBg: "bg-sky-400/8",
+    accentBg: "bg-sky-400/10",
     borderAccent: "border-l-sky-400",
     category: "campaigns",
     title: "Ad review completed",
@@ -120,7 +120,7 @@ const notifications: Notification[] = [
     id: 6,
     icon: Zap,
     accentColor: "text-violet-400",
-    accentBg: "bg-violet-400/8",
+    accentBg: "bg-violet-400/10",
     borderAccent: "border-l-violet-400",
     category: "system",
     title: "New AI targeting available",
@@ -156,6 +156,11 @@ export function Header() {
 
   function markAllRead() {
     setNotifList((prev) => prev.map((n) => ({ ...n, unread: false })))
+    toast({
+      variant: "success",
+      title: "Success!",
+      description: "All notifications have been marked as read.",
+    })
   }
 
   function dismissNotif(id: number) {
@@ -279,9 +284,7 @@ export function Header() {
                   filtered.map((notif, idx) => (
                     <div
                       key={notif.id}
-                      className={`group relative mb-1.5 rounded-xl border-l-[3px] p-3 transition-all duration-200 hover:bg-secondary/60 ${
-                        notif.borderAccent
-                      } ${notif.unread ? "bg-secondary/30" : "bg-transparent"}`}
+                      className={`group relative mb-1.5 rounded-xl p-3 transition-all duration-200 hover:bg-secondary/60  ${notif.unread ? "bg-secondary/30" : "bg-transparent"}`}
                       style={{ animationDelay: `${idx * 50}ms` }}
                     >
                       {/* Dismiss button */}
@@ -325,12 +328,6 @@ export function Header() {
                             <span className="text-[10px] font-medium text-muted-foreground/50">
                               {notif.timeLabel}
                             </span>
-                            {notif.action && (
-                              <button className="flex items-center gap-1 text-[11px] font-semibold text-primary transition-colors hover:text-primary/80">
-                                {notif.action}
-                                <ArrowRight className="h-3 w-3" />
-                              </button>
-                            )}
                           </div>
                         </div>
                       </div>

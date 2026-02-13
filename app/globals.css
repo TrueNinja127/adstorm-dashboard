@@ -271,3 +271,179 @@
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(228 8% 28%);
 }
+
+/* ===== Custom Toast (blob style) ===== */
+.toast-blob {
+  --toast-tr: all 0.5s ease 0s;
+  --toast-ch1: #05478a;
+  --toast-ch2: #0070e0;
+  --toast-cs1: #005e38;
+  --toast-cs2: #03a65a;
+  --toast-cw1: #c24914;
+  --toast-cw2: #fc8621;
+  --toast-ce1: #851d41;
+  --toast-ce2: #db3056;
+  background-color: #232b2b;
+  color: #f5f5f5;
+  padding: 0.5rem 1.75rem 0.5rem 4rem;
+  text-align: left;
+  border-radius: 1.25rem;
+  position: relative;
+  font-weight: 300;
+  margin: 0.5rem 0;
+  min-width: 18rem;
+  max-width: 20rem;
+  width: 100%;
+  transition: var(--toast-tr);
+  opacity: 1;
+  border: none;
+  overflow: visible;
+}
+
+.toast-blob::before {
+  content: "";
+  position: absolute;
+  width: 4rem;
+  height: 4.25rem;
+  --drop: radial-gradient(circle at 64% 51%, var(--toast-clr) 0.35rem, #fff0 calc(0.35rem + 1px)),
+    radial-gradient(circle at 100% 100%, #fff0 0.65rem, var(--toast-clr) calc(0.65rem + 1px) 0.9rem, #fff0 calc(0.9rem + 1px) 100%),
+    radial-gradient(circle at 0% 0%, #fff0 0.65rem, var(--toast-clr) calc(0.65rem + 1px) 0.9rem, #fff0 calc(0.9rem + 1px) 100%),
+    radial-gradient(circle at 0% 120%, var(--toast-clr) 2.75rem, #fff0 calc(2.75rem + 1px));
+  background:
+    radial-gradient(circle at 22% 2.5rem, var(--toast-clr) 0.5rem, #fff0 calc(0.5rem + 1px)),
+    radial-gradient(circle at 95% 1.25rem, var(--toast-clr) 0.05rem, #fff0 calc(0.05rem + 1px)),
+    radial-gradient(circle at 80% 1.5rem, var(--toast-clr) 0.12rem, #fff0 calc(0.12rem + 1px)),
+    radial-gradient(circle at 80% 50%, var(--toast-clr) 0.25rem, #fff0 calc(0.25rem + 1px)),
+    radial-gradient(circle at 43% 1.5rem, var(--toast-clr) 0.05rem, #fff0 calc(0.05rem + 1px)),
+    radial-gradient(circle at 40% 0.65rem, var(--toast-clr) 0.08rem, #fff0 calc(0.08rem + 1px)),
+    radial-gradient(circle at 20% 1rem, var(--toast-clr) 0.18rem, #fff0 calc(0.18rem + 1px)),
+    var(--drop),
+    #f000;
+  background-repeat: no-repeat;
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 1.2rem 1.2rem, 1.2rem 1.2rem, 100% 100%, 100% 100%;
+  background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, calc(100% - 1.25rem) 1.9rem, calc(100% - 1.25rem) 2rem, 0 0, 0 0;
+  bottom: 0;
+  left: 0;
+  z-index: 0;
+  border-radius: 0 0 0 1.25rem;
+  pointer-events: none;
+}
+
+.toast-blob::after {
+  content: var(--toast-char);
+  position: absolute;
+  width: 2.25rem;
+  height: 2.25rem;
+  background: var(--toast-clr);
+  top: -1.125rem;
+  left: 1.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  font-weight: bold;
+  box-sizing: border-box;
+  pointer-events: none;
+  line-height: 1;
+}
+
+.toast-blob--help {
+  background: var(--toast-ch2);
+  --toast-clr: var(--toast-ch1);
+}
+.toast-blob--help::after { --toast-char: "?"; }
+
+.toast-blob--success {
+  background: var(--toast-cs2);
+  --toast-clr: var(--toast-cs1);
+}
+.toast-blob--success::before {
+  --drop: radial-gradient(circle at 65% 63%, var(--toast-clr) 0.3rem, #fff0 calc(0.3rem + 1px)),
+    radial-gradient(circle at 70% 125%, #fff0 0.7rem, var(--toast-clr) calc(0.7rem + 1px) 0.9rem, #fff0 calc(0.9rem + 1px) 100%),
+    radial-gradient(circle at 30% -25%, #fff0 0.7rem, var(--toast-clr) calc(0.7rem + 1px) 0.9rem, #fff0 calc(0.9rem + 1px) 100%),
+    radial-gradient(circle at 20% 120%, var(--toast-clr) 2.25rem, #fff0 calc(2.25rem + 1px));
+  background-position: 0 0.25rem, -0.15rem 2.2rem, 0 0.25rem, -1.35rem -1rem, -0.5rem 0, -0.65rem 0.25rem, 0 1rem, 0.8rem 0.25rem, calc(100% - 0.5rem) 2.35rem, calc(100% - 0.5rem) 2.5rem, 0 0, 0 0;
+}
+.toast-blob--success::after {
+  --toast-char: "✓";
+  font-size: 1.1rem;
+  padding-bottom: 0.1rem;
+}
+
+.toast-blob--warning {
+  background: var(--toast-cw2);
+  --toast-clr: var(--toast-cw1);
+}
+.toast-blob--warning::before {
+  --drop: radial-gradient(circle at 65% 63%, var(--toast-clr) 0.3rem, #fff0 calc(0.3rem + 1px)),
+    radial-gradient(circle at 129% 36%, #fff0 0.7rem, var(--toast-clr) calc(0.7rem + 1px) 0.9rem, #fff0 calc(0.9rem + 1px) 100%),
+    radial-gradient(circle at -27% 25%, #fff0 0.7rem, var(--toast-clr) calc(0.7rem + 1px) 0.9rem, #fff0 calc(0.9rem + 1px) 100%),
+    radial-gradient(circle at 20% 120%, var(--toast-clr) 2.25rem, #fff0 calc(2.25rem + 1px));
+  background-position: 1.2rem 0.4rem, -0.8rem 0.8rem, -1.35rem 0.5rem, -2.35rem -1.3rem, -0.35rem -0.35rem, 2rem 2.8rem, 0 -0.35rem, 0.8rem 0.25rem, calc(100% - 2.6rem) 1.85rem, calc(100% - 2.5rem) 1.85rem, 0 0, 0 0;
+}
+.toast-blob--warning::after { --toast-char: "!"; font-size: 1.2rem; }
+
+.toast-blob--error {
+  background: var(--toast-ce2);
+  --toast-clr: var(--toast-ce1);
+}
+.toast-blob--error::before {
+  --drop: radial-gradient(circle at 65% 63%, var(--toast-clr) 0.3rem, #fff0 calc(0.3rem + 1px)),
+    radial-gradient(circle at 129% 36%, #fff0 0.7rem, var(--toast-clr) calc(0.7rem + 1px) 0.9rem, #fff0 calc(0.9rem + 1px) 100%),
+    radial-gradient(circle at -27% 25%, #fff0 0.7rem, var(--toast-clr) calc(0.7rem + 1px) 0.9rem, #fff0 calc(0.9rem + 1px) 100%),
+    radial-gradient(circle at 20% 120%, var(--toast-clr) 2.25rem, #fff0 calc(2.25rem + 1px));
+  background-position: 1.15rem 0.5rem, -0.5rem 0.8rem, -0.9rem 0.35rem, -2.35rem -1.65rem, -0.25rem 0, 1.35rem 0.85rem, 0.55rem 1.05rem, 0.35rem 1.1rem, calc(100% - 2rem) 2.15rem, calc(100% - 1.85rem) 2rem, 0 0, 0 0;
+}
+.toast-blob--error::after {
+  --toast-char: "×";
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.toast-blob .toast-blob__title {
+  font-size: 0.9375rem;
+  margin: 0;
+  line-height: 1.25;
+  font-weight: 600;
+  position: relative;
+  z-index: 1;
+  color: #f5f5f5;
+}
+
+.toast-blob .toast-blob__description {
+  position: relative;
+  font-size: 0.8125rem;
+  z-index: 1;
+  margin: 0.125rem 0 0;
+  line-height: 1.35;
+  color: rgba(245, 245, 245, 0.95);
+}
+
+.toast-blob .toast-blob__close {
+  position: absolute;
+  width: 1.125rem;
+  height: 1.125rem;
+  right: 0.625rem;
+  top: 0.5rem;
+  cursor: pointer;
+  border-radius: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f5f5f5;
+  opacity: 0.7;
+  transition: var(--toast-tr);
+  z-index: 2;
+  background: transparent;
+  border: none;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+}
+
+.toast-blob .toast-blob__close:hover {
+  background: #f5f5f5;
+  color: var(--toast-clr);
+  opacity: 1;
+}

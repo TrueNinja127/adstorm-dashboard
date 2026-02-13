@@ -101,20 +101,37 @@ function MiniSparkline({ data, positive }: { data: number[]; positive: boolean }
   const height = 28
   const padding = 2
 
-  const points = data
-    .map((v, i) => {
-      const x = padding + (i / (data.length - 1)) * (width - padding * 2)
-      const y = height - padding - ((v - min) / range) * (height - padding * 2)
-      return `${x},${y}`
-    })
-    .join(" ")
+  const points = data.map((v, i) => {
+    const x = padding + (i / (data.length - 1)) * (width - padding * 2)
+    const y = height - padding - ((v - min) / range) * (height - padding * 2)
+    return { x, y }
+  })
+
+  // Build smooth path using cubic Bezier with tension (Catmull-Rom style)
+  const tension = 0.3
+  const smoothPathD = (() => {
+    if (points.length < 2) return ""
+    const d: string[] = [`M ${points[0].x} ${points[0].y}`]
+    for (let i = 0; i < points.length - 1; i++) {
+      const p0 = points[Math.max(0, i - 1)]
+      const p1 = points[i]
+      const p2 = points[i + 1]
+      const p3 = points[Math.min(points.length - 1, i + 2)]
+      const cp1x = p1.x + (p2.x - p0.x) * tension
+      const cp1y = p1.y + (p2.y - p0.y) * tension
+      const cp2x = p2.x - (p3.x - p1.x) * tension
+      const cp2y = p2.y - (p3.y - p1.y) * tension
+      d.push(`C ${cp1x} ${cp1y} ${cp2x} ${cp2y} ${p2.x} ${p2.y}`)
+    }
+    return d.join(" ")
+  })()
 
   const color = positive ? "hsl(160, 60%, 45%)" : "hsl(0, 65%, 55%)"
 
   return (
     <svg width={width} height={height} className="flex-shrink-0">
-      <polyline
-        points={points}
+      <path
+        d={smoothPathD}
         fill="none"
         stroke={color}
         strokeWidth="1.5"
@@ -128,7 +145,7 @@ function MiniSparkline({ data, positive }: { data: number[]; positive: boolean }
 export function CategoryCards() {
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="mx-auto max-w-[1100px] px-8 py-8">
+      <div className="px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8 animate-fade-in-up">
           <h1 className="font-display text-xl font-bold tracking-tight text-foreground">
@@ -210,7 +227,7 @@ export function CategoryCards() {
         </div>
 
         {/* Marketplace Cards */}
-        <div className="grid grid-cols-2 gap-4 pb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pb-8">
           {categories.map((category, i) => (
             <div
               key={category.title}
