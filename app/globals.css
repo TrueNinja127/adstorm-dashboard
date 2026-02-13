@@ -447,3 +447,363 @@
   color: var(--toast-clr);
   opacity: 1;
 }
+
+/* ===== Hero Carousel (full-page card stack) ===== */
+.hero-carousel-root {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: hsl(var(--background));
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.hero-carousel-embedded.hero-carousel-root {
+  width: 100%;
+  height: 100%;
+}
+
+.hero-carousel-embedded .hero-indicator {
+  position: absolute;
+}
+
+.hero-indicator {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 5px;
+  z-index: 60;
+  background-color: hsl(var(--primary));
+}
+
+.hero-nav {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 36px;
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 14px;
+}
+
+.hero-nav-left,
+.hero-nav-right {
+  display: inline-flex;
+  align-items: center;
+}
+
+.hero-nav-left {
+  gap: 10px;
+}
+
+.hero-nav-right {
+  gap: 24px;
+}
+
+.hero-nav-right a {
+  color: inherit;
+  text-decoration: none;
+  opacity: 0.9;
+}
+
+.hero-nav-right a:hover {
+  opacity: 1;
+}
+
+.hero-nav-active {
+  position: relative;
+}
+
+.hero-nav-active::after {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 99px;
+  background-color: hsl(var(--primary));
+}
+
+.hero-nav-logo {
+  color: inherit;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.hero-nav-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+}
+
+.hero-demo {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.hero-card {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-position: center;
+  background-size: cover;
+  box-shadow: 6px 6px 10px 2px rgba(0, 0, 0, 0.6);
+}
+
+.hero-card-content {
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: rgba(255, 255, 255, 0.92);
+  padding: 0 0 14px 16px;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hero-content-start {
+  width: 32px;
+  height: 4px;
+  border-radius: 99px;
+  background-color: rgba(255, 255, 255, 0.92);
+  flex-shrink: 0;
+}
+
+.hero-content-place {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1.35;
+  text-transform: uppercase;
+  opacity: 0.95;
+}
+
+.hero-content-title-1,
+.hero-content-title-2 {
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1.15;
+  letter-spacing: 0.04em;
+  font-family: var(--font-exo-2), system-ui, sans-serif;
+  text-transform: uppercase;
+}
+
+.hero-details {
+  z-index: 22;
+  position: absolute;
+  top: 240px;
+  left: 60px;
+  pointer-events: auto;
+}
+
+.hero-detail-place-box {
+  height: 46px;
+  overflow: hidden;
+}
+
+.hero-detail-place {
+  position: relative;
+  padding-top: 16px;
+  font-size: 20px;
+}
+
+.hero-detail-place-box .hero-detail-place::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 30px;
+  height: 4px;
+  border-radius: 99px;
+  background-color: white;
+}
+
+.hero-detail-title-1,
+.hero-detail-title-2 {
+  font-weight: 600;
+  font-size: 72px;
+  line-height: 1;
+  font-family: var(--font-exo-2), system-ui, sans-serif;
+}
+
+.hero-detail-title-box-1,
+.hero-detail-title-box-2 {
+  margin-top: 2px;
+  height: 100px;
+  overflow: hidden;
+}
+
+.hero-detail-desc {
+  margin-top: 16px;
+  width: 500px;
+  max-width: min(500px, calc(100vw - 120px));
+  font-size: 14px;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+.hero-detail-cta {
+  width: 500px;
+  max-width: min(500px, calc(100vw - 120px));
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.hero-bookmark {
+  border: none;
+  background-color: hsl(var(--primary));
+  width: 36px;
+  height: 36px;
+  border-radius: 99px;
+  color: hsl(var(--primary-foreground));
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.hero-bookmark:hover {
+  opacity: 0.9;
+}
+
+.hero-discover {
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  background-color: transparent;
+  height: 36px;
+  border-radius: 99px;
+  color: #fff;
+  padding: 4px 24px;
+  font-size: 12px;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.hero-discover:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.hero-pagination {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: inline-flex;
+  align-items: center;
+  z-index: 60;
+}
+
+.hero-arrow {
+  z-index: 60;
+  width: 50px;
+  height: 50px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.33);
+  display: grid;
+  place-items: center;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.hero-arrow:hover {
+  color: rgba(255, 255, 255, 0.95);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.hero-arrow-right {
+  margin-left: 20px;
+}
+
+.hero-progress-container {
+  margin-left: 24px;
+  z-index: 60;
+  width: 500px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+}
+
+.hero-progress-background {
+  width: 500px;
+  height: 3px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.hero-progress-foreground {
+  height: 3px;
+  background-color: hsl(var(--primary));
+  border-radius: 99px;
+  transition: width 0.3s ease;
+}
+
+.hero-slide-numbers {
+  width: 50px;
+  height: 50px;
+  overflow: hidden;
+  position: relative;
+  margin-left: 8px;
+}
+
+.hero-slide-item {
+  width: 50px;
+  height: 50px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
+}
+
+.hero-cover {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: hsl(var(--background));
+  z-index: 100;
+}
+
+.hero-carousel-embedded .hero-cover {
+  width: 100%;
+  height: 100%;
+}
+
+.hero-carousel-embedded .hero-progress-container,
+.hero-carousel-embedded .hero-progress-background {
+  width: 280px;
+}
+
+.hero-carousel-embedded .hero-details {
+  top: 120px;
+  left: 40px;
+}
+
+.hero-carousel-embedded .hero-detail-desc,
+.hero-carousel-embedded .hero-detail-cta {
+  max-width: min(400px, calc(100vw - 120px));
+}

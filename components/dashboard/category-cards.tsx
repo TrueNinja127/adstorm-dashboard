@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import Link from "next/link"
 import {
   ArrowRight,
   TrendingUp,
@@ -228,61 +229,70 @@ export function CategoryCards() {
 
         {/* Marketplace Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pb-8">
-          {categories.map((category, i) => (
-            <div
-              key={category.title}
-              className={`animate-fade-in-up ${cardDelays[i]} group relative overflow-hidden rounded-2xl bg-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/25`}
-            >
-              {/* Image */}
-              <div className="relative h-40 w-full overflow-hidden">
-                <Image
-                  src={category.image}
-                  alt={category.title}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--card))] via-[hsl(var(--card)/.5)] to-transparent" />
+          {categories.map((category, i) => {
+            const cardClass = `animate-fade-in-up ${cardDelays[i]} group relative overflow-hidden rounded-2xl bg-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/25 block`
+            const content = (
+              <>
+                {/* Image */}
+                <div className="relative h-40 w-full overflow-hidden">
+                  <Image
+                    src={category.image}
+                    alt={category.title}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--card))] via-[hsl(var(--card)/.5)] to-transparent" />
 
-                {/* Tag */}
-                <div className="absolute left-4 top-4">
-                  <span className="rounded-lg bg-[hsl(var(--primary))] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#0a0a0a]">
-                    {category.tag}
-                  </span>
+                  {/* Tag */}
+                  <div className="absolute left-4 top-4">
+                    <span className="rounded-lg bg-[hsl(var(--primary))] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#0a0a0a]">
+                      {category.tag}
+                    </span>
+                  </div>
+
+                  {/* Availability */}
+                  {category.count !== null ? (
+                    <div className="absolute bottom-3 left-4 flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_hsl(160,60%,45%,.5)]" />
+                      <span className="text-[11px] font-medium text-foreground/90">
+                        {category.available} of {category.count} available
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="absolute bottom-3 left-4 flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--primary))] shadow-[0_0_6px_hsl(30,93%,54%,.5)]" />
+                      <span className="text-[11px] font-medium text-foreground/90">
+                        AI-Powered
+                      </span>
+                    </div>
+                  )}
                 </div>
 
-                {/* Availability */}
-                {category.count !== null ? (
-                  <div className="absolute bottom-3 left-4 flex items-center gap-1.5">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_hsl(160,60%,45%,.5)]" />
-                    <span className="text-[11px] font-medium text-foreground/90">
-                      {category.available} of {category.count} available
-                    </span>
-                  </div>
-                ) : (
-                  <div className="absolute bottom-3 left-4 flex items-center gap-1.5">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--primary))] shadow-[0_0_6px_hsl(30,93%,54%,.5)]" />
-                    <span className="text-[11px] font-medium text-foreground/90">
-                      AI-Powered
-                    </span>
-                  </div>
-                )}
+                {/* Content */}
+                <div className="p-5">
+                  <h3 className="font-display text-[15px] font-bold text-foreground">
+                    {category.title}
+                  </h3>
+                  <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">
+                    {category.description}
+                  </p>
+                  <span className="btn-gelatine mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-secondary py-2.5 text-[12px] font-semibold text-foreground transition-all duration-200 group-hover:bg-[hsl(var(--primary))] group-hover:text-[#0a0a0a]">
+                    Explore
+                    <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+                  </span>
+                </div>
+              </>
+            )
+            return category.title === "Brands" ? (
+              <Link key={category.title} href="/brands" className={cardClass}>
+                {content}
+              </Link>
+            ) : (
+              <div key={category.title} className={cardClass}>
+                {content}
               </div>
-
-              {/* Content */}
-              <div className="p-5">
-                <h3 className="font-display text-[15px] font-bold text-foreground">
-                  {category.title}
-                </h3>
-                <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">
-                  {category.description}
-                </p>
-                <button className="btn-gelatine mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-secondary py-2.5 text-[12px] font-semibold text-foreground transition-all duration-200 hover:bg-[hsl(var(--primary))] hover:text-[#0a0a0a]">
-                  Explore
-                  <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
-                </button>
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </div>
