@@ -283,8 +283,14 @@ export function CategoryCards() {
                 </div>
               </>
             )
-            return category.title === "Brands" ? (
-              <Link key={category.title} href="/brands" className={cardClass}>
+            const href =
+              category.title === "Brands"
+                ? "/brands"
+                : category.title === "Sites & Locations"
+                  ? "/sites"
+                  : null
+            return href ? (
+              <Link key={category.title} href={href} className={cardClass}>
                 {content}
               </Link>
             ) : (

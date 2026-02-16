@@ -1,0 +1,923 @@
+"use client"
+
+import Image from "next/image"
+import { useState, useMemo } from "react"
+import {
+  Search,
+  MapPin,
+  Globe,
+  ArrowRight,
+  LayoutGrid,
+  List,
+  MapPinned,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
+import { UsStatesMap } from "@/components/dashboard/us-states-map"
+import { cn } from "@/lib/utils"
+
+type ItemType = "site" | "location"
+
+interface SiteOrLocation {
+  id: string
+  type: ItemType
+  name: string
+  /** Domain for sites (e.g. techflow.com), scope for locations (e.g. North America) */
+  subtitle: string
+  category: string
+  region: string
+  available: boolean
+  image: string
+  stateName: string
+  cityName: string
+  channelsCount: number
+  citiesCount: number
+  /** Sites: monthly impressions; Locations: reach estimate */
+  metric: string
+}
+
+/** US states used for region filter and item regions */
+const US_STATES = [
+  "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut",
+  "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa",
+  "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan",
+  "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire",
+  "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio",
+  "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota",
+  "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia",
+  "Wisconsin", "Wyoming",
+] as const
+
+/** Placeholder image for locations (state/geo) */
+const LOCATION_PLACEHOLDER_IMAGE = "https://images.unsplash.com/photo-1524661135-423995f22d0b?w=200&h=200&fit=crop"
+
+const mockItems: SiteOrLocation[] = [
+  {
+    id: "1",
+    type: "site",
+    name: "TechFlow Media",
+    subtitle: "techflow.com",
+    category: "Technology",
+    region: "California",
+    available: true,
+    image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=200&h=200&fit=crop",
+    stateName: "California",
+    cityName: "San Francisco",
+    channelsCount: 12,
+    citiesCount: 4,
+    metric: "2.4M impressions/mo",
+  },
+  {
+    id: "2",
+    type: "site",
+    name: "Lifestyle Daily",
+    subtitle: "lifestyledaily.com",
+    category: "Lifestyle",
+    region: "Florida",
+    available: true,
+    image: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=200&h=200&fit=crop",
+    stateName: "Florida",
+    cityName: "Miami",
+    channelsCount: 8,
+    citiesCount: 3,
+    metric: "1.8M impressions/mo",
+  },
+  {
+    id: "3",
+    type: "location",
+    name: "California",
+    subtitle: "State",
+    category: "Geo",
+    region: "California",
+    available: true,
+    image: LOCATION_PLACEHOLDER_IMAGE,
+    stateName: "California",
+    cityName: "State-wide",
+    channelsCount: 24,
+    citiesCount: 58,
+    metric: "~39M reach",
+  },
+  {
+    id: "4",
+    type: "site",
+    name: "News Daily",
+    subtitle: "newsdaily.com",
+    category: "News",
+    region: "New York",
+    available: true,
+    image: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=200&h=200&fit=crop",
+    stateName: "New York",
+    cityName: "New York City",
+    channelsCount: 18,
+    citiesCount: 6,
+    metric: "3.1M impressions/mo",
+  },
+  {
+    id: "5",
+    type: "location",
+    name: "Texas",
+    subtitle: "State",
+    category: "Geo",
+    region: "Texas",
+    available: true,
+    image: LOCATION_PLACEHOLDER_IMAGE,
+    stateName: "Texas",
+    cityName: "State-wide",
+    channelsCount: 32,
+    citiesCount: 254,
+    metric: "~29M reach",
+  },
+  {
+    id: "6",
+    type: "site",
+    name: "Finance Hub",
+    subtitle: "financehub.com",
+    category: "Finance",
+    region: "New York",
+    available: true,
+    image: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=200&h=200&fit=crop",
+    stateName: "New York",
+    cityName: "New York City",
+    channelsCount: 6,
+    citiesCount: 2,
+    metric: "1.2M impressions/mo",
+  },
+  {
+    id: "7",
+    type: "location",
+    name: "New York",
+    subtitle: "State",
+    category: "Geo",
+    region: "New York",
+    available: false,
+    image: LOCATION_PLACEHOLDER_IMAGE,
+    stateName: "New York",
+    cityName: "State-wide",
+    channelsCount: 28,
+    citiesCount: 62,
+    metric: "~20M reach",
+  },
+  {
+    id: "8",
+    type: "site",
+    name: "Auto World",
+    subtitle: "autoworld.com",
+    category: "Automotive",
+    region: "Michigan",
+    available: true,
+    image: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=200&h=200&fit=crop",
+    stateName: "Michigan",
+    cityName: "Detroit",
+    channelsCount: 5,
+    citiesCount: 3,
+    metric: "890K impressions/mo",
+  },
+  {
+    id: "9",
+    type: "location",
+    name: "Florida",
+    subtitle: "State",
+    category: "Geo",
+    region: "Florida",
+    available: true,
+    image: LOCATION_PLACEHOLDER_IMAGE,
+    stateName: "Florida",
+    cityName: "State-wide",
+    channelsCount: 22,
+    citiesCount: 67,
+    metric: "~22M reach",
+  },
+  {
+    id: "10",
+    type: "site",
+    name: "Travel Channel",
+    subtitle: "travelchannel.com",
+    category: "Travel",
+    region: "Florida",
+    available: true,
+    image: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=200&h=200&fit=crop",
+    stateName: "Florida",
+    cityName: "Orlando",
+    channelsCount: 14,
+    citiesCount: 5,
+    metric: "1.5M impressions/mo",
+  },
+  {
+    id: "11",
+    type: "location",
+    name: "Washington",
+    subtitle: "State",
+    category: "Geo",
+    region: "Washington",
+    available: true,
+    image: LOCATION_PLACEHOLDER_IMAGE,
+    stateName: "Washington",
+    cityName: "State-wide",
+    channelsCount: 16,
+    citiesCount: 39,
+    metric: "~7.6M reach",
+  },
+  {
+    id: "12",
+    type: "site",
+    name: "Fashion Forward",
+    subtitle: "fashionforward.com",
+    category: "Fashion",
+    region: "California",
+    available: false,
+    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&h=200&fit=crop",
+    stateName: "California",
+    cityName: "Los Angeles",
+    channelsCount: 9,
+    citiesCount: 2,
+    metric: "720K impressions/mo",
+  },
+  {
+    id: "13",
+    type: "location",
+    name: "Illinois",
+    subtitle: "State",
+    category: "Geo",
+    region: "Illinois",
+    available: true,
+    image: LOCATION_PLACEHOLDER_IMAGE,
+    stateName: "Illinois",
+    cityName: "State-wide",
+    channelsCount: 20,
+    citiesCount: 102,
+    metric: "~12.6M reach",
+  },
+  {
+    id: "14",
+    type: "site",
+    name: "Sports Arena",
+    subtitle: "sportsarena.com",
+    category: "Sports",
+    region: "Texas",
+    available: true,
+    image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=200&h=200&fit=crop",
+    stateName: "Texas",
+    cityName: "Houston",
+    channelsCount: 7,
+    citiesCount: 4,
+    metric: "1.1M impressions/mo",
+  },
+]
+
+interface SitesContentProps {
+  showHeaderAndFeatured?: boolean
+  scrollContainer?: boolean
+}
+
+type ViewMode = "card" | "list"
+
+export function SitesContent({
+  showHeaderAndFeatured = true,
+  scrollContainer = true,
+}: SitesContentProps) {
+  const [search, setSearch] = useState("")
+  const [typeFilter, setTypeFilter] = useState<string[]>([])
+  const [categoryFilter, setCategoryFilter] = useState<string[]>([])
+  const [regionFilter, setRegionFilter] = useState<string[]>(() => {
+    const set = new Set(mockItems.map((i) => i.region))
+    return Array.from(set).sort()
+  })
+  const [availabilityFilter, setAvailabilityFilter] = useState<string[]>([])
+  const [viewMode, setViewMode] = useState<ViewMode>("card")
+
+  const categories = useMemo(() => {
+    const set = new Set(mockItems.map((i) => i.category))
+    return Array.from(set).sort()
+  }, [])
+
+  const regionCounts = useMemo(() => {
+    const acc: Record<string, number> = {}
+    mockItems.forEach((i) => {
+      acc[i.region] = (acc[i.region] ?? 0) + 1
+    })
+    return acc
+  }, [])
+
+  /** Only states that have at least one site/location (exclude 0 count) */
+  const regions = useMemo(
+    () => Object.keys(regionCounts).sort(),
+    [regionCounts]
+  )
+
+  const filteredItems = useMemo(() => {
+    return mockItems.filter((item) => {
+      const searchLower = search.toLowerCase()
+      const matchesSearch =
+        !search ||
+        item.name.toLowerCase().includes(searchLower) ||
+        item.subtitle.toLowerCase().includes(searchLower) ||
+        item.category.toLowerCase().includes(searchLower) ||
+        item.region.toLowerCase().includes(searchLower)
+      const matchesType =
+        typeFilter.length === 0 || typeFilter.includes(item.type)
+      const matchesCategory =
+        categoryFilter.length === 0 || categoryFilter.includes(item.category)
+      const matchesRegion =
+        regionFilter.length === 0 || regionFilter.includes(item.region)
+      const matchesAvailability =
+        availabilityFilter.length === 0 ||
+        (availabilityFilter.includes("available") && item.available) ||
+        (availabilityFilter.includes("unavailable") && !item.available)
+      return (
+        matchesSearch &&
+        matchesType &&
+        matchesCategory &&
+        matchesRegion &&
+        matchesAvailability
+      )
+    })
+  }, [
+    search,
+    typeFilter,
+    categoryFilter,
+    regionFilter,
+    availabilityFilter,
+  ])
+
+  function resetAllFilters() {
+    setTypeFilter([])
+    setCategoryFilter([])
+    setRegionFilter([])
+    setAvailabilityFilter([])
+  }
+
+  function toggleType(value: ItemType) {
+    setTypeFilter((prev) =>
+      prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value]
+    )
+  }
+
+  function toggleCategory(value: string) {
+    setCategoryFilter((prev) =>
+      prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value]
+    )
+  }
+
+  function toggleRegion(value: string) {
+    setRegionFilter((prev) =>
+      prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value]
+    )
+  }
+
+  function toggleAvailability(value: "available" | "unavailable") {
+    setAvailabilityFilter((prev) =>
+      prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value]
+    )
+  }
+
+  const sitesCount = mockItems.filter((i) => i.type === "site").length
+  const locationsCount = mockItems.filter((i) => i.type === "location").length
+  const availableCount = mockItems.filter((i) => i.available).length
+  const unavailableCount = mockItems.filter((i) => !i.available).length
+
+  const typeCounts = useMemo(() => ({
+    site: mockItems.filter((i) => i.type === "site").length,
+    location: mockItems.filter((i) => i.type === "location").length,
+  }), [])
+
+  const categoryCounts = useMemo(() => {
+    const acc: Record<string, number> = {}
+    mockItems.forEach((i) => {
+      acc[i.category] = (acc[i.category] ?? 0) + 1
+    })
+    return acc
+  }, [])
+
+  const featuredItems = mockItems.filter((i) => i.available).slice(0, 8)
+
+  const inner = (
+    <div className="px-8 py-8">
+      {showHeaderAndFeatured && (
+        <>
+          <div className="mb-8 animate-fade-in-up">
+            <h1 className="font-display text-xl font-bold tracking-tight text-foreground">
+              Sites &amp; Locations
+            </h1>
+            <p className="mt-1 text-[13px] text-muted-foreground">
+              Target specific publisher sites and physical locations for
+              precise geo-based audience reach.
+            </p>
+          </div>
+
+          <div className="mb-8 animate-fade-in-up delay-75">
+            <h2 className="font-display text-[15px] font-bold text-foreground mb-4">
+              Featured
+            </h2>
+            <Carousel
+              opts={{ align: "start", loop: true }}
+              className="w-full"
+            >
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {featuredItems.map((item) => (
+                  <CarouselItem
+                    key={item.id}
+                    className="pl-2 md:pl-4 basis-full sm:basis-[85%] md:basis-[45%] lg:basis-[32%]"
+                  >
+                    <div className="group relative overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/20">
+                      <div className="flex h-40 items-center gap-4 p-5">
+                        <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-secondary">
+                          <Image
+                            src={item.image}
+                            alt={item.name}
+                            fill
+                            className="object-cover"
+                            sizes="80px"
+                          />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-display font-semibold text-foreground truncate">
+                            {item.name}
+                          </p>
+                          <div className="mt-0.5">
+                            <Badge variant="secondary" className="text-[10px] font-medium">
+                              {item.type === "site" ? "Site" : "Location"}
+                            </Badge>
+                          </div>
+                          <p className="mt-1 truncate text-xs text-muted-foreground">
+                            {item.cityName}, {item.stateName}
+                          </p>
+                          <p className="mt-0.5 text-[11px] text-muted-foreground">
+                            {item.channelsCount} channels · {item.citiesCount} cities
+                          </p>
+                          <div className="mt-1.5">
+                            <span className="text-[11px] font-medium text-emerald-400">
+                              Available
+                            </span>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="flex-shrink-0 text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10"
+                        >
+                          <ArrowRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="-left-2 h-9 w-9 rounded-full border-border bg-card text-foreground hover:bg-accent md:-left-4" />
+              <CarouselNext className="-right-2 h-9 w-9 rounded-full border-border bg-card text-foreground hover:bg-accent md:-right-4" />
+            </Carousel>
+          </div>
+        </>
+      )}
+
+      {!showHeaderAndFeatured && (
+        <div className="mb-4 animate-fade-in-up">
+          <h2 className="font-display text-lg font-bold tracking-tight text-foreground">
+            Browse all sites &amp; locations
+          </h2>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">
+            Search and filter publisher sites and geographic locations below.
+          </p>
+        </div>
+      )}
+
+      {/* Top bar: search (left) + view toggles (right) */}
+      <div
+        className={cn(
+          "mb-4 flex flex-wrap items-center justify-between gap-4 animate-fade-in-up",
+          showHeaderAndFeatured ? "delay-100" : ""
+        )}
+      >
+        <div className="relative min-w-[200px] max-w-md flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search for sites or locations..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-10 pl-9 rounded-xl bg-card border-border"
+          />
+        </div>
+        <div className="flex items-center gap-1 rounded-xl border border-border bg-card p-1">
+          <button
+            type="button"
+            onClick={() => setViewMode("card")}
+            className={cn(
+              "flex h-8 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-medium transition-colors",
+              viewMode === "card"
+                ? "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]"
+                : "text-muted-foreground hover:bg-accent hover:text-foreground"
+            )}
+            aria-label="Grid view"
+          >
+            <LayoutGrid className="h-4 w-4" />
+            Grid
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("list")}
+            className={cn(
+              "flex h-8 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-medium transition-colors",
+              viewMode === "list"
+                ? "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]"
+                : "text-muted-foreground hover:bg-accent hover:text-foreground"
+            )}
+            aria-label="List view"
+          >
+            <List className="h-4 w-4" />
+            List
+          </button>
+        </div>
+      </div>
+
+      {/* Main layout: content (left) + filters sidebar (right) */}
+      <div className="flex flex-col gap-4 lg:flex-row">
+        {/* Left: stats + content */}
+        <div className="min-w-0 flex-1 order-2 lg:order-1">
+          <div
+            className={cn(
+              "mb-6 flex flex-wrap items-center gap-4 animate-fade-in-up",
+              showHeaderAndFeatured ? "delay-100" : ""
+            )}
+          >
+            <div className="flex items-center gap-2 rounded-xl bg-card px-4 py-2.5">
+              <Globe className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-foreground">
+                {sitesCount} sites
+              </span>
+            </div>
+            <div className="flex items-center gap-2 rounded-xl bg-card px-4 py-2.5">
+              <MapPinned className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-foreground">
+                {locationsCount} locations
+              </span>
+            </div>
+            <div className="flex items-center gap-2 rounded-xl bg-card px-4 py-2.5">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_6px_hsl(160,60%,45%,.5)]" />
+              <span className="text-sm font-medium text-foreground">
+                {availableCount} available
+              </span>
+            </div>
+          </div>
+
+      {viewMode === "card" && (
+        <div
+          className={`animate-fade-in-up grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 ${showHeaderAndFeatured ? "delay-200" : ""}`}
+        >
+          {filteredItems.length === 0 ? (
+            <div className="col-span-full flex h-48 items-center justify-center rounded-2xl border border-border bg-card text-muted-foreground text-sm">
+              No sites or locations match your filters.
+            </div>
+          ) : (
+            filteredItems.map((item) => (
+              <div
+                key={item.id}
+                className="group rounded-2xl bg-card p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-secondary">
+                    <Image
+                      src={item.image}
+                      alt={item.name}
+                      fill
+                      className="object-cover"
+                      sizes="64px"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-display font-semibold text-foreground truncate">
+                      {item.name}
+                    </p>
+                    <div className="mt-0.5">
+                      <Badge variant="secondary" className="text-[10px] font-medium">
+                        {item.type === "site" ? "Site" : "Location"}
+                      </Badge>
+                    </div>
+                    <p className="mt-1 truncate text-xs text-muted-foreground">
+                      {item.cityName}, {item.stateName}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      {item.channelsCount} channels · {item.citiesCount} cities
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <span
+                        className={cn(
+                          "text-[11px] font-medium",
+                          item.available ? "text-emerald-400" : "text-amber-400"
+                        )}
+                      >
+                        {item.available ? "Available" : "Unavailable"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center justify-between gap-2 border-t border-border pt-4">
+                  <span className="text-xs text-muted-foreground truncate">
+                    {item.metric}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10 hover:text-[hsl(var(--primary))] shrink-0"
+                  >
+                    {item.type === "site" ? "View site" : "View location"}
+                    <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {viewMode === "list" && (
+        <div
+          className={`animate-fade-in-up rounded-2xl border border-border bg-card overflow-hidden ${showHeaderAndFeatured ? "delay-200" : ""}`}
+        >
+          <Table>
+            <TableHeader>
+              <TableRow className="border-border hover:bg-transparent">
+                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                  Name
+                </TableHead>
+                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                  Type
+                </TableHead>
+                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                  State / City
+                </TableHead>
+                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                  Channels
+                </TableHead>
+                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                  Cities
+                </TableHead>
+                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                  Category
+                </TableHead>
+                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                  Metric
+                </TableHead>
+                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                  Status
+                </TableHead>
+                <TableHead className="h-12 px-6 text-right font-display font-semibold text-muted-foreground">
+                  Action
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredItems.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={9}
+                    className="h-32 px-6 text-center text-muted-foreground"
+                  >
+                    No sites or locations match your filters.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredItems.map((item) => (
+                  <TableRow
+                    key={item.id}
+                    className="border-border transition-colors hover:bg-accent/50"
+                  >
+                    <TableCell className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-secondary">
+                          <Image
+                            src={item.image}
+                            alt={item.name}
+                            fill
+                            className="object-cover"
+                            sizes="48px"
+                          />
+                        </div>
+                        <div>
+                          <p className="font-display font-medium text-foreground">
+                            {item.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {item.subtitle}
+                          </p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-6 py-4">
+                      <Badge variant="secondary" className="text-xs font-medium">
+                        {item.type === "site" ? "Site" : "Location"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="px-6 py-4 text-sm text-muted-foreground">
+                      {item.stateName}
+                      <span className="text-muted-foreground/80"> · </span>
+                      {item.cityName}
+                    </TableCell>
+                    <TableCell className="px-6 py-4 text-sm font-medium text-foreground">
+                      {item.channelsCount}
+                    </TableCell>
+                    <TableCell className="px-6 py-4 text-sm font-medium text-foreground">
+                      {item.citiesCount}
+                    </TableCell>
+                    <TableCell className="px-6 py-4">
+                      <Badge variant="outline" className="text-xs font-medium">
+                        {item.category}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="px-6 py-4 text-sm text-muted-foreground">
+                      {item.metric}
+                    </TableCell>
+                    <TableCell className="px-6 py-4">
+                      <span
+                        className={cn(
+                          "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold",
+                          item.available
+                            ? "bg-emerald-500/10 text-emerald-400"
+                            : "bg-amber-500/10 text-amber-400"
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "h-1.5 w-1.5 rounded-full",
+                            item.available ? "bg-emerald-400" : "bg-amber-400"
+                          )}
+                        />
+                        {item.available ? "Available" : "Unavailable"}
+                      </span>
+                    </TableCell>
+                    <TableCell className="px-6 py-4 text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10 hover:text-[hsl(var(--primary))]"
+                      >
+                        Explore
+                        <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+        </div>
+
+        {/* Right: Filters sidebar */}
+        <aside className="w-full flex-shrink-0 animate-fade-in-up order-1 lg:order-2 lg:w-[280px]">
+          <UsStatesMap
+              selectedStateNames={regionFilter}
+              onStateClick={toggleRegion}
+              className="w-full"
+          />
+          <div className="sticky top-8 rounded-2xl bg-card p-5 mt-4">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="font-display text-sm font-bold text-foreground">
+                Filters
+              </h3>
+              <button
+                type="button"
+                onClick={resetAllFilters}
+                className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Reset all
+              </button>
+            </div>
+
+            <div className="space-y-1 border-t border-border pt-4">
+              <Collapsible defaultOpen>
+                <CollapsibleTrigger className="group flex w-full items-center justify-between py-2.5 text-left text-sm font-medium text-foreground hover:text-foreground">
+                  Type
+                  <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground group-data-[state=open]:hidden" />
+                  <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground hidden group-data-[state=open]:inline-block" />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="space-y-2 pb-3">
+                    <label className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground">
+                      <Checkbox
+                        checked={typeFilter.includes("site")}
+                        onCheckedChange={() => toggleType("site")}
+                      />
+                      Site ({typeCounts.site})
+                    </label>
+                    <label className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground">
+                      <Checkbox
+                        checked={typeFilter.includes("location")}
+                        onCheckedChange={() => toggleType("location")}
+                      />
+                      Location ({typeCounts.location})
+                    </label>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+
+              <Collapsible>
+                <CollapsibleTrigger className="group flex w-full items-center justify-between py-2.5 text-left text-sm font-medium text-foreground hover:text-foreground">
+                  Category
+                  <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground group-data-[state=open]:hidden" />
+                  <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground hidden group-data-[state=open]:inline-block" />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="space-y-2 pb-3">
+                    {categories.map((cat) => (
+                      <label
+                        key={cat}
+                        className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground"
+                      >
+                        <Checkbox
+                          checked={categoryFilter.includes(cat)}
+                          onCheckedChange={() => toggleCategory(cat)}
+                        />
+                        {cat} ({categoryCounts[cat] ?? 0})
+                      </label>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+
+              <Collapsible>
+                <CollapsibleTrigger className="group flex w-full items-center justify-between py-2.5 text-left text-sm font-medium text-foreground hover:text-foreground">
+                  State
+                  <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground group-data-[state=open]:hidden" />
+                  <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground hidden group-data-[state=open]:inline-block" />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="space-y-2 pb-3 max-h-[240px] overflow-y-auto">
+                    {regions.map((r) => (
+                      <label
+                        key={r}
+                        className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground"
+                      >
+                        <Checkbox
+                          checked={regionFilter.includes(r)}
+                          onCheckedChange={() => toggleRegion(r)}
+                        />
+                        {r} ({regionCounts[r] ?? 0})
+                      </label>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+
+              <Collapsible>
+                <CollapsibleTrigger className="group flex w-full items-center justify-between py-2.5 text-left text-sm font-medium text-foreground hover:text-foreground">
+                  Availability
+                  <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground group-data-[state=open]:hidden" />
+                  <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground hidden group-data-[state=open]:inline-block" />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="space-y-2 pb-3">
+                    <label className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground">
+                      <Checkbox
+                        checked={availabilityFilter.includes("available")}
+                        onCheckedChange={() => toggleAvailability("available")}
+                      />
+                      Available ({availableCount})
+                    </label>
+                    <label className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground">
+                      <Checkbox
+                        checked={availabilityFilter.includes("unavailable")}
+                        onCheckedChange={() => toggleAvailability("unavailable")}
+                      />
+                      Unavailable ({unavailableCount})
+                    </label>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  )
+
+  if (scrollContainer) {
+    return (
+      <div className="flex-1 min-h-0 overflow-y-auto">{inner}</div>
+    )
+  }
+  return <>{inner}</>
+}

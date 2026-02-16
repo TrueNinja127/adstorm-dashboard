@@ -45,8 +45,8 @@ const navItems: NavItem[] = [
     label: "Marketplace",
     children: [
       { icon: Building2, label: "Brands", href: "/brands" },
-      { icon: MapPin, label: "Sites & Locations" },
-      { icon: Tv, label: "Channels & Genres" },
+      { icon: MapPin, label: "Sites & Locations", href: "/sites" },
+      { icon: Tv, label: "Channels & Genres", href: "/channels-genres" },
     ],
   },
   { icon: Megaphone, label: "Campaigns" },
@@ -61,6 +61,8 @@ function pathnameToLabel(pathname: string): string | null {
   if (pathname === "/") return "Dashboard"
   if (pathname === "/carousel") return "Carousel"
   if (pathname === "/brands") return "Brands"
+  if (pathname === "/sites") return "Sites & Locations"
+  if (pathname === "/channels-genres") return "Channels & Genres"
   return null
 }
 
@@ -74,7 +76,7 @@ export function Sidebar() {
     const label = pathnameToLabel(pathname)
     if (label) {
       setActiveItem(label)
-      if (pathname === "/brands") setMarketplaceOpen(true)
+      if (pathname === "/brands" || pathname === "/sites" || pathname === "/channels-genres") setMarketplaceOpen(true)
     }
   }, [pathname])
 
