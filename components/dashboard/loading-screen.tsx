@@ -52,27 +52,35 @@ export function LoadingScreen({ onComplete }: { onComplete: () => void }) {
         fadeOut ? "opacity-0" : "opacity-100"
       }`}
     >
-      {/* Subtle radial glow behind logo */}
+      {/* Subtle radial glow behind logo (uses primary from theme/color) */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div
           className="h-[400px] w-[400px] rounded-full animate-pulse-glow"
           style={{
             background:
-              "radial-gradient(circle, hsl(30 93% 54% / 0.08) 0%, transparent 70%)",
+              "radial-gradient(circle, hsl(var(--primary) / 0.08) 0%, transparent 70%)",
           }}
         />
       </div>
 
       <div className="relative flex flex-col items-center gap-8">
-        {/* Logo */}
-        <div className="relative">
+        {/* Logo: light mode = logo-dark, dark mode = logo */}
+        <div className="relative h-12 w-[180px]">
+          <Image
+            src="/images/logo-dark.png"
+            alt="ADStorm"
+            width={180}
+            height={48}
+            priority
+            className="relative z-10 block dark:hidden object-contain object-left h-12 w-auto"
+          />
           <Image
             src="/images/logo.png"
             alt="ADStorm"
             width={180}
             height={48}
             priority
-            className="relative z-10"
+            className="relative z-10 hidden dark:block object-contain object-left h-12 w-auto"
           />
         </div>
 

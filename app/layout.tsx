@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
 import { DM_Sans, Exo_2 } from "next/font/google"
 import { Toaster } from "@/components/ui/toaster"
+import { ThemeProvider } from "@/components/theme-provider"
+import { ColorThemeProvider } from "@/contexts/color-theme-context"
 import "./globals.css"
 
 const dmSans = DM_Sans({
@@ -26,10 +28,14 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${dmSans.variable} ${exo2.variable} font-sans antialiased`}>
-        {children}
-        <Toaster />
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+          <ColorThemeProvider>
+            {children}
+            <Toaster />
+          </ColorThemeProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

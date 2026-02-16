@@ -19,9 +19,15 @@ import {
   X,
   ArrowRight,
   Zap,
+  Palette,
+  Sun,
+  Moon,
+  PaintRoller,
 } from "lucide-react"
+import { useTheme } from "next-themes"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useToast } from "@/hooks/use-toast"
+import { ThemesDialog } from "@/components/dashboard/themes-dialog"
 
 const dropdownItems = [
   { label: "My Profile", icon: User },
@@ -140,7 +146,12 @@ const categoryTabs: { label: string; value: NotifCategory }[] = [
 
 export function Header() {
   const { toast } = useToast()
+  const { resolvedTheme, setTheme } = useTheme()
   const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const [isThemesOpen, setIsThemesOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  const isDark = mounted && resolvedTheme === "dark"
   const [isNotifOpen, setIsNotifOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<NotifCategory>("all")
   const [notifList, setNotifList] = useState(notifications)
@@ -213,6 +224,16 @@ export function Header() {
           <Wallet className="h-4 w-4 text-primary" />
           <span className="text-sm font-bold text-foreground">$100.00</span>
         </div>
+
+        {/* Light/Dark mode toggle */}
+        <button
+          type="button"
+          onClick={() => setTheme(isDark ? "light" : "dark")}
+          aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+          className="btn-gelatine flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition-colors hover:text-foreground"
+        >
+          {mounted && isDark ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
+        </button>
 
         {/* Notifications */}
         <div ref={notifRef} className="relative">
@@ -407,6 +428,19 @@ export function Header() {
 
               <div className="mx-2 my-1 h-px bg-border" />
 
+              <button
+                onClick={() => {
+                  setIsProfileOpen(false)
+                  setIsThemesOpen(true)
+                }}
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              >
+                <PaintRoller className="h-4 w-4" />
+                Themes
+              </button>
+
+              <div className="mx-2 my-1 h-px bg-border" />
+
               <div className="py-1">
                 <button
                   onClick={() => setIsProfileOpen(false)}
@@ -420,6 +454,8 @@ export function Header() {
           )}
         </div>
       </div>
+
+      <ThemesDialog open={isThemesOpen} onOpenChange={setIsThemesOpen} />
     </header>
   )
 }

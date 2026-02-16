@@ -2,10 +2,11 @@
 
 import Image from "next/image"
 import { useState, useMemo } from "react"
-import { Search, Building2, ArrowRight, Filter, LayoutGrid, List, Globe, Radio } from "lucide-react"
+import { Search, Building2, ArrowRight, LayoutGrid, List, Globe, Radio, ChevronDown, ChevronUp } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Table,
   TableBody,
@@ -15,12 +16,10 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 import {
   Carousel,
   CarouselContent,
@@ -64,14 +63,25 @@ type ViewMode = "card" | "list"
 
 export function BrandsContent({ showHeaderAndFeatured = true, scrollContainer = true }: BrandsContentProps) {
   const [search, setSearch] = useState("")
-  const [categoryFilter, setCategoryFilter] = useState<string>("all")
-  const [availabilityFilter, setAvailabilityFilter] = useState<string>("all")
+  const [categoryFilter, setCategoryFilter] = useState<string[]>([])
+  const [availabilityFilter, setAvailabilityFilter] = useState<string[]>([])
   const [viewMode, setViewMode] = useState<ViewMode>("card")
 
   const categories = useMemo(() => {
     const set = new Set(mockBrands.map((b) => b.category))
     return Array.from(set).sort()
   }, [])
+
+  const categoryCounts = useMemo(() => {
+    const acc: Record<string, number> = {}
+    mockBrands.forEach((b) => {
+      acc[b.category] = (acc[b.category] ?? 0) + 1
+    })
+    return acc
+  }, [])
+
+  const availableCount = mockBrands.filter((b) => b.available).length
+  const unavailableCount = mockBrands.filter((b) => !b.available).length
 
   const filteredBrands = useMemo(() => {
     return mockBrands.filter((brand) => {
@@ -82,16 +92,31 @@ export function BrandsContent({ showHeaderAndFeatured = true, scrollContainer = 
         brand.description.toLowerCase().includes(searchLower) ||
         brand.category.toLowerCase().includes(searchLower)
       const matchesCategory =
-        categoryFilter === "all" || brand.category === categoryFilter
+        categoryFilter.length === 0 || categoryFilter.includes(brand.category)
       const matchesAvailability =
-        availabilityFilter === "all" ||
-        (availabilityFilter === "available" && brand.available) ||
-        (availabilityFilter === "unavailable" && !brand.available)
+        availabilityFilter.length === 0 ||
+        (availabilityFilter.includes("available") && brand.available) ||
+        (availabilityFilter.includes("unavailable") && !brand.available)
       return matchesSearch && matchesCategory && matchesAvailability
     })
   }, [search, categoryFilter, availabilityFilter])
 
-  const availableCount = mockBrands.filter((b) => b.available).length
+  function resetAllFilters() {
+    setCategoryFilter([])
+    setAvailabilityFilter([])
+  }
+
+  function toggleCategory(value: string) {
+    setCategoryFilter((prev) =>
+      prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value]
+    )
+  }
+
+  function toggleAvailability(value: "available" | "unavailable") {
+    setAvailabilityFilter((prev) =>
+      prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value]
+    )
+  }
 
   const inner = (
       <div className="px-8 py-8">
@@ -184,25 +209,14 @@ export function BrandsContent({ showHeaderAndFeatured = true, scrollContainer = 
           </div>
         )}
 
-        {/* Stats bar */}
-        <div className={`mb-6 flex flex-wrap items-center gap-4 animate-fade-in-up ${showHeaderAndFeatured ? "delay-100" : ""}`}>
-          <div className="flex items-center gap-2 rounded-xl bg-card px-4 py-2.5">
-            <Building2 className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium text-foreground">
-              {mockBrands.length} brands
-            </span>
-          </div>
-          <div className="flex items-center gap-2 rounded-xl bg-card px-4 py-2.5">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_6px_hsl(160,60%,45%,.5)]" />
-            <span className="text-sm font-medium text-foreground">
-              {availableCount} available
-            </span>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className={`mb-6 flex flex-wrap items-center gap-3 animate-fade-in-up ${showHeaderAndFeatured ? "delay-150" : ""}`}>
-          <div className="relative flex-1 min-w-[200px] max-w-sm">
+        {/* Top bar: search (left) + view toggles (right) */}
+        <div
+          className={cn(
+            "mb-4 flex flex-wrap items-center justify-between gap-4 animate-fade-in-up",
+            showHeaderAndFeatured ? "delay-100" : ""
+          )}
+        >
+          <div className="relative min-w-[200px] max-w-md flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search brands..."
@@ -211,49 +225,26 @@ export function BrandsContent({ showHeaderAndFeatured = true, scrollContainer = 
               className="h-10 pl-9 rounded-xl bg-card border-border"
             />
           </div>
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="h-10 w-[160px] rounded-xl bg-card border-border">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All categories</SelectItem>
-              {categories.map((cat) => (
-                <SelectItem key={cat} value={cat}>
-                  {cat}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={availabilityFilter} onValueChange={setAvailabilityFilter}>
-            <SelectTrigger className="h-10 w-[160px] rounded-xl bg-card border-border">
-              <SelectValue placeholder="Availability" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="available">Available</SelectItem>
-              <SelectItem value="unavailable">Unavailable</SelectItem>
-            </SelectContent>
-          </Select>
           <div className="flex items-center gap-1 rounded-xl border border-border bg-card p-1">
             <button
               type="button"
               onClick={() => setViewMode("card")}
               className={cn(
-                "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
+                "flex h-8 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-medium transition-colors",
                 viewMode === "card"
                   ? "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]"
                   : "text-muted-foreground hover:bg-accent hover:text-foreground"
               )}
-              aria-label="Card view"
+              aria-label="Grid view"
             >
               <LayoutGrid className="h-4 w-4" />
+              Grid
             </button>
             <button
               type="button"
               onClick={() => setViewMode("list")}
               className={cn(
-                "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
+                "flex h-8 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-medium transition-colors",
                 viewMode === "list"
                   ? "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]"
                   : "text-muted-foreground hover:bg-accent hover:text-foreground"
@@ -261,9 +252,34 @@ export function BrandsContent({ showHeaderAndFeatured = true, scrollContainer = 
               aria-label="List view"
             >
               <List className="h-4 w-4" />
+              List
             </button>
           </div>
         </div>
+
+        {/* Main layout: content (left) + filters sidebar (right) */}
+        <div className="flex flex-col gap-4 lg:flex-row">
+          {/* Left: stats + content */}
+          <div className="min-w-0 flex-1 order-2 lg:order-1">
+            <div
+              className={cn(
+                "mb-6 flex flex-wrap items-center gap-4 animate-fade-in-up",
+                showHeaderAndFeatured ? "delay-100" : ""
+              )}
+            >
+              <div className="flex items-center gap-2 rounded-xl bg-card px-4 py-2.5">
+                <Building2 className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium text-foreground">
+                  {mockBrands.length} brands
+                </span>
+              </div>
+              <div className="flex items-center gap-2 rounded-xl bg-card px-4 py-2.5">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_6px_hsl(160,60%,45%,.5)]" />
+                <span className="text-sm font-medium text-foreground">
+                  {availableCount} available
+                </span>
+              </div>
+            </div>
 
         {/* Card view */}
         {viewMode === "card" && (
@@ -443,6 +459,78 @@ export function BrandsContent({ showHeaderAndFeatured = true, scrollContainer = 
           </Table>
         </div>
         )}
+          </div>
+
+          {/* Right: Filters sidebar */}
+          <aside className="w-full flex-shrink-0 animate-fade-in-up order-1 lg:order-2 lg:w-[280px]">
+            <div className="sticky top-8 rounded-2xl bg-card p-5">
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="font-display text-sm font-bold text-foreground">
+                  Filters
+                </h3>
+                <button
+                  type="button"
+                  onClick={resetAllFilters}
+                  className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Reset all
+                </button>
+              </div>
+
+              <div className="space-y-1 border-t border-border pt-4">
+                <Collapsible defaultOpen>
+                  <CollapsibleTrigger className="group flex w-full items-center justify-between py-2.5 text-left text-sm font-medium text-foreground hover:text-foreground">
+                    Category
+                    <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground group-data-[state=open]:hidden" />
+                    <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground hidden group-data-[state=open]:inline-block" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="space-y-2 pb-3">
+                      {categories.map((cat) => (
+                        <label
+                          key={cat}
+                          className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground"
+                        >
+                          <Checkbox
+                            checked={categoryFilter.includes(cat)}
+                            onCheckedChange={() => toggleCategory(cat)}
+                          />
+                          {cat} ({categoryCounts[cat] ?? 0})
+                        </label>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+
+                <Collapsible>
+                  <CollapsibleTrigger className="group flex w-full items-center justify-between py-2.5 text-left text-sm font-medium text-foreground hover:text-foreground">
+                    Availability
+                    <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground group-data-[state=open]:hidden" />
+                    <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground hidden group-data-[state=open]:inline-block" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="space-y-2 pb-3">
+                      <label className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground">
+                        <Checkbox
+                          checked={availabilityFilter.includes("available")}
+                          onCheckedChange={() => toggleAvailability("available")}
+                        />
+                        Available ({availableCount})
+                      </label>
+                      <label className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground">
+                        <Checkbox
+                          checked={availabilityFilter.includes("unavailable")}
+                          onCheckedChange={() => toggleAvailability("unavailable")}
+                        />
+                        Unavailable ({unavailableCount})
+                      </label>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
+            </div>
+          </aside>
+        </div>
       </div>
   )
 

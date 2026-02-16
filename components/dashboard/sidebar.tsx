@@ -23,7 +23,9 @@ import {
   Images,
   type LucideIcon,
 } from "lucide-react"
+import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 interface SubItem {
   icon: LucideIcon
@@ -68,9 +70,13 @@ function pathnameToLabel(pathname: string): string | null {
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { resolvedTheme } = useTheme()
   const [activeItem, setActiveItem] = useState("Dashboard")
   const [collapsed, setCollapsed] = useState(false)
   const [marketplaceOpen, setMarketplaceOpen] = useState(false)
+  const isLight = resolvedTheme === "light"
+  const logoSrc = isLight ? "/images/logo-dark.png" : "/images/logo.png"
+  const logoIconSrc = isLight ? "/images/logo-dark.png" : "/logo.png"
 
   useEffect(() => {
     const label = pathnameToLabel(pathname)
@@ -115,7 +121,7 @@ export function Sidebar() {
       {/* Collapse Toggle */}
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="absolute -right-3 top-7 z-50 flex h-6 w-6 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-md transition-colors hover:bg-accent hover:text-foreground"
+        className="absolute -right-3 top-7 z-50 btn-gelatine flex h-6 w-6 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-md transition-colors hover:bg-accent hover:text-foreground"
         aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
         {collapsed ? (
@@ -137,7 +143,7 @@ export function Sidebar() {
           />
         ) : (
           <Image
-            src="/images/logo.png"
+            src={logoSrc}
             alt="ADStorm"
             width={140}
             height={36}
