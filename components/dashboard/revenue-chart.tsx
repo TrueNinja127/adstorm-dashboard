@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useMemo } from "react"
 import {
   AreaChart,
   Area,
@@ -9,22 +10,64 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts"
-import { TrendingUp, ArrowUpRight } from "lucide-react"
+import { TrendingUp, ArrowUpRight, DollarSign, Receipt, TrendingDown, MoreVertical } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
-const revenueData = [
-  { month: "Jan", revenue: 4200, spend: 2800 },
-  { month: "Feb", revenue: 5100, spend: 3200 },
-  { month: "Mar", revenue: 4800, spend: 2900 },
-  { month: "Apr", revenue: 6200, spend: 3600 },
-  { month: "May", revenue: 7400, spend: 4100 },
-  { month: "Jun", revenue: 6900, spend: 3800 },
-  { month: "Jul", revenue: 8100, spend: 4500 },
-  { month: "Aug", revenue: 9200, spend: 4800 },
-  { month: "Sep", revenue: 8700, spend: 4600 },
-  { month: "Oct", revenue: 10400, spend: 5200 },
-  { month: "Nov", revenue: 11200, spend: 5800 },
-  { month: "Dec", revenue: 12800, spend: 6100 },
-]
+type FilterPeriod = "28days" | "month" | "year"
+
+// Generate daily data for the last year
+const generateDailyData = () => {
+  const data: Array<{ date: Date; month: string; day: string; revenue: number; spend: number }> = []
+  const today = new Date()
+  
+  // Monthly totals for reference
+  const monthlyTotals = [
+    { month: "Jan", revenue: 4200, spend: 2800 },
+    { month: "Feb", revenue: 5100, spend: 3200 },
+    { month: "Mar", revenue: 4800, spend: 2900 },
+    { month: "Apr", revenue: 6200, spend: 3600 },
+    { month: "May", revenue: 7400, spend: 4100 },
+    { month: "Jun", revenue: 6900, spend: 3800 },
+    { month: "Jul", revenue: 8100, spend: 4500 },
+    { month: "Aug", revenue: 9200, spend: 4800 },
+    { month: "Sep", revenue: 8700, spend: 4600 },
+    { month: "Oct", revenue: 10400, spend: 5200 },
+    { month: "Nov", revenue: 11200, spend: 5800 },
+    { month: "Dec", revenue: 12800, spend: 6100 },
+  ]
+  
+  // Generate data for the last 365 days
+  for (let i = 364; i >= 0; i--) {
+    const date = new Date(today)
+    date.setDate(date.getDate() - i)
+    
+    const monthIndex = date.getMonth()
+    const monthData = monthlyTotals[monthIndex]
+    const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
+    
+    // Distribute monthly totals across days with some variation
+    const baseDailyRevenue = monthData.revenue / daysInMonth
+    const baseDailySpend = monthData.spend / daysInMonth
+    const variation = 0.7 + Math.random() * 0.6 // 70% to 130% variation
+    
+    data.push({
+      date,
+      month: monthData.month,
+      day: date.getDate().toString(),
+      revenue: Math.round(baseDailyRevenue * variation),
+      spend: Math.round(baseDailySpend * variation),
+    })
+  }
+  
+  return data
+}
+
+const allData = generateDailyData()
 
 function CustomTooltip({
   active,
@@ -62,82 +105,107 @@ function CustomTooltip({
 }
 
 export function RevenueChart() {
+  const [filter, setFilter] = useState<FilterPeriod>("year")
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+
+  const { filteredData, chartData, summary, previousPeriodBalance } = useMemo(() => {
+    const today = new Date()
+    let filtered: typeof allData = []
+    let chartData: Array<{ label: string; revenue: number; spend: number }> = []
+    
+    if (filter === "28days") {
+      const cutoffDate = new Date(today)
+      cutoffDate.setDate(cutoffDate.getDate() - 28)
+      filtered = allData.filter((d) => d.date >= cutoffDate)
+      // Group by day for chart
+      chartData = filtered.map((d) => ({
+        label: `${d.month} ${d.day}`,
+        revenue: d.revenue,
+        spend: d.spend,
+      }))
+    } else if (filter === "month") {
+      const cutoffDate = new Date(today.getFullYear(), today.getMonth(), 1)
+      filtered = allData.filter((d) => d.date >= cutoffDate)
+      // Group by day for chart
+      chartData = filtered.map((d) => ({
+        label: `${d.month} ${d.day}`,
+        revenue: d.revenue,
+        spend: d.spend,
+      }))
+    } else {
+      // Year - group by month
+      filtered = allData
+      const monthlyData: Record<string, { revenue: number; spend: number }> = {}
+      filtered.forEach((d) => {
+        if (!monthlyData[d.month]) {
+          monthlyData[d.month] = { revenue: 0, spend: 0 }
+        }
+        monthlyData[d.month].revenue += d.revenue
+        monthlyData[d.month].spend += d.spend
+      })
+      chartData = Object.entries(monthlyData).map(([month, values]) => ({
+        label: month,
+        revenue: values.revenue,
+        spend: values.spend,
+      }))
+    }
+    
+    const totalRevenue = filtered.reduce((sum, d) => sum + d.revenue, 0)
+    const totalSpend = filtered.reduce((sum, d) => sum + d.spend, 0)
+    const roi = totalSpend > 0 ? ((totalRevenue - totalSpend) / totalSpend) * 100 : 0
+    
+    // Calculate previous period balance for comparison
+    let previousPeriodData: typeof allData = []
+    if (filter === "28days") {
+      const cutoffDate = new Date(today)
+      cutoffDate.setDate(cutoffDate.getDate() - 56) // 28 days before the current period
+      const periodEndDate = new Date(today)
+      periodEndDate.setDate(periodEndDate.getDate() - 28)
+      previousPeriodData = allData.filter((d) => d.date >= cutoffDate && d.date < periodEndDate)
+    } else if (filter === "month") {
+      const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1)
+      const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 1)
+      previousPeriodData = allData.filter((d) => d.date >= lastMonthStart && d.date < lastMonthEnd)
+    } else {
+      // For year, compare with previous year
+      const lastYearStart = new Date(today.getFullYear() - 1, 0, 1)
+      const lastYearEnd = new Date(today.getFullYear(), 0, 1)
+      previousPeriodData = allData.filter((d) => d.date >= lastYearStart && d.date < lastYearEnd)
+    }
+    
+    const previousRevenue = previousPeriodData.reduce((sum, d) => sum + d.revenue, 0)
+    const previousSpend = previousPeriodData.reduce((sum, d) => sum + d.spend, 0)
+    const previousPeriodBalance = previousRevenue - previousSpend
+    
+    return {
+      filteredData: filtered,
+      chartData,
+      summary: {
+        totalRevenue,
+        totalSpend,
+        roi,
+      },
+      previousPeriodBalance,
+    }
+  }, [filter])
+
   return (
     <div className="rounded-2xl bg-card p-5 animate-fade-in-up delay-400">
-      {/* Chart Header */}
-      <div className="mb-5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-            <TrendingUp className="h-4 w-4 text-primary" />
-          </div>
-          <div>
-            <h3 className="font-display text-[14px] font-bold text-foreground">
+      <div className="flex gap-6">
+        {/* Left Section - Chart */}
+        <div className="flex-1 min-w-0">
+          {/* Chart Title */}
+          <div className="mb-3">
+            <h3 className="font-display text-xl font-bold text-foreground">
               Revenue Trends
             </h3>
-            <p className="text-[11px] text-muted-foreground">
-              Revenue vs. ad spend over the past year
-            </p>
           </div>
-        </div>
-        <div className="flex items-center gap-4">
-          {/* Legend */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-primary" />
-              <span className="text-[11px] text-muted-foreground">Revenue</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-sky-400" />
-              <span className="text-[11px] text-muted-foreground">Ad Spend</span>
-            </div>
-          </div>
-          <button className="flex items-center gap-1 text-[12px] font-medium text-primary transition-colors hover:text-primary/80">
-            Details
-            <ArrowUpRight className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      </div>
 
-      {/* Summary Stats */}
-      <div className="mb-5 flex items-center gap-6">
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-            Total Revenue
-          </p>
-          <p className="font-display text-2xl font-bold text-foreground">
-            $95,100
-          </p>
-        </div>
-        <div className="h-8 w-px bg-border" />
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-            Total Spend
-          </p>
-          <p className="font-display text-2xl font-bold text-foreground">
-            $51,400
-          </p>
-        </div>
-        <div className="h-8 w-px bg-border" />
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-            ROI
-          </p>
-          <div className="flex items-baseline gap-1.5">
-            <p className="font-display text-2xl font-bold text-emerald-400">
-              85%
-            </p>
-            <span className="text-[11px] font-semibold text-emerald-400">
-              +12.3%
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Chart */}
-      <div className="h-[260px] w-full">
+          {/* Chart */}
+          <div className="h-[300px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
-            data={revenueData}
+            data={chartData}
             margin={{ top: 8, right: 8, left: -12, bottom: 0 }}
           >
             <defs>
@@ -172,11 +240,12 @@ export function RevenueChart() {
               vertical={false}
             />
             <XAxis
-              dataKey="month"
+              dataKey="label"
               axisLine={false}
               tickLine={false}
               tick={{ fill: "hsl(228, 6%, 44%)", fontSize: 11 }}
               dy={8}
+              interval={filter === "year" ? 0 : "preserveStartEnd"}
             />
             <YAxis
               axisLine={false}
@@ -219,6 +288,114 @@ export function RevenueChart() {
             />
           </AreaChart>
         </ResponsiveContainer>
+      </div>
+        </div>
+
+        {/* Right Section - Summary Stats */}
+        <div className="w-[280px] flex-shrink-0 flex flex-col gap-4">
+          {/* Balance Header with Dropdown */}
+          <div className="relative mb-2">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <p className="font-display text-xl font-bold text-foreground">
+                  ${((summary.totalRevenue - summary.totalSpend) / 1000).toFixed(2)}k
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {filter === "28days" && "Last 28 days balance "}
+                  {filter === "month" && "Last month balance "}
+                  {filter === "year" && "Last year balance "}
+                  ${(previousPeriodBalance / 1000).toFixed(2)}k
+                </p>
+              </div>
+              <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+                <DropdownMenuTrigger asChild>
+                  <button className="p-1.5 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-foreground">
+                    <MoreVertical className="h-5 w-5" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-40">
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setFilter("28days")
+                      setIsDropdownOpen(false)
+                    }}
+                    className={filter === "28days" ? "bg-accent" : ""}
+                  >
+                    Last 28 Days
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setFilter("month")
+                      setIsDropdownOpen(false)
+                    }}
+                    className={filter === "month" ? "bg-accent" : ""}
+                  >
+                    Last Month
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setFilter("year")
+                      setIsDropdownOpen(false)
+                    }}
+                    className={filter === "year" ? "bg-accent" : ""}
+                  >
+                    Last Year
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+
+          {/* Total Revenue */}
+          <div className="flex items-center gap-3 ">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+              <DollarSign className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                Total Revenue
+              </p>
+              <p className="font-display text-xl font-bold text-foreground truncate">
+                ${summary.totalRevenue.toLocaleString()}
+              </p>
+            </div>
+          </div>
+
+          {/* Total Spend */}
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/10">
+              <Receipt className="h-5 w-5 text-sky-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                Total Spend
+              </p>
+              <p className="font-display text-xl font-bold text-foreground truncate">
+                ${summary.totalSpend.toLocaleString()}
+              </p>
+            </div>
+          </div>
+
+          {/* ROI */}
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10">
+              <TrendingUp className="h-5 w-5 text-emerald-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                ROI
+              </p>
+              <p className="font-display text-xl font-bold text-emerald-400 truncate">
+                {summary.roi.toFixed(1)}%
+              </p>
+            </div>
+          </div>
+
+          {/* View Report Button */}
+          <button className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 mt-auto">
+            View Report
+          </button>
+        </div>
       </div>
     </div>
   )

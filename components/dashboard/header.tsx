@@ -192,15 +192,9 @@ export function Header() {
   }, [])
 
   return (
-    <header className="relative z-20 flex h-16 flex-shrink-0 items-center justify-between px-8 animate-fade-in">
+    <header className="relative z-[110] flex h-16 flex-shrink-0 items-center justify-between px-8 animate-fade-in">
       {/* Left: Page Title + Search */}
       <div className="flex items-center gap-5">
-        <div>
-          <h2 className="font-display text-lg font-bold text-foreground">
-            Dashboard
-          </h2>
-        </div>
-
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
