@@ -12,6 +12,10 @@ import {
   MapPinned,
   ChevronDown,
   ChevronUp,
+  Radio,
+  Building2,
+  Wifi,
+  ShoppingCart,
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -525,7 +529,7 @@ export function SitesContent({
             type="button"
             onClick={() => setViewMode("card")}
             className={cn(
-              "flex h-8 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-medium transition-colors",
+              "flex btn-gelatine h-8 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-medium transition-colors",
               viewMode === "card"
                 ? "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]"
                 : "text-muted-foreground hover:bg-accent hover:text-foreground"
@@ -539,7 +543,7 @@ export function SitesContent({
             type="button"
             onClick={() => setViewMode("list")}
             className={cn(
-              "flex h-8 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-medium transition-colors",
+              "flex btn-gelatine h-8 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-medium transition-colors",
               viewMode === "list"
                 ? "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]"
                 : "text-muted-foreground hover:bg-accent hover:text-foreground"
@@ -594,57 +598,60 @@ export function SitesContent({
             filteredItems.map((item) => (
               <div
                 key={item.id}
-                className="group rounded-2xl bg-card p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20"
+                className="group flex flex-col overflow-hidden rounded-2xl bg-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/20"
               >
-                <div className="flex items-start gap-4">
-                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-secondary">
-                    <Image
-                      src={item.image}
-                      alt={item.name}
-                      fill
-                      className="object-cover"
-                      sizes="64px"
-                    />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-display font-semibold text-foreground truncate">
-                      {item.name}
-                    </p>
-                    <div className="mt-0.5">
-                      <Badge variant="secondary" className="text-[10px] font-medium">
-                        {item.type === "site" ? "Site" : "Location"}
-                      </Badge>
-                    </div>
-                    <p className="mt-1 truncate text-xs text-muted-foreground">
-                      {item.cityName}, {item.stateName}
-                    </p>
-                    <p className="mt-0.5 text-[11px] text-muted-foreground">
-                      {item.channelsCount} channels · {item.citiesCount} cities
-                    </p>
-                    <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <span
-                        className={cn(
-                          "text-[11px] font-medium",
-                          item.available ? "text-emerald-400" : "text-amber-400"
-                        )}
-                      >
-                        {item.available ? "Available" : "Unavailable"}
-                      </span>
-                    </div>
+                {/* Top: full-width image with overlay badges */}
+                <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden bg-secondary">
+                  <Image
+                    src={item.image}
+                    alt={item.name}
+                    fill
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                  />
+                  <div className="absolute left-3 top-3">
+                    <span className="rounded-lg bg-background/90 px-2.5 py-1 text-xs font-medium text-foreground backdrop-blur-sm">
+                      {item.type === "site" ? "Site" : "Location"}
+                    </span>
                   </div>
                 </div>
-                <div className="mt-4 flex items-center justify-between gap-2 border-t border-border pt-4">
-                  <span className="text-xs text-muted-foreground truncate">
-                    {item.metric}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10 hover:text-[hsl(var(--primary))] shrink-0"
-                  >
-                    {item.type === "site" ? "View site" : "View location"}
-                    <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                  </Button>
+                {/* Middle: name, verified, location */}
+                <div className="flex flex-1 flex-col p-4">
+                  <h3 className="font-display text-base font-bold tracking-tight text-foreground truncate">
+                    {item.name}
+                  </h3>
+                  <p className="mt-1 flex items-center gap-1.5 truncate text-xs text-muted-foreground">
+                    <MapPin className="h-3.5 w-3.5 shrink-0" />
+                    {item.cityName}, {item.stateName}
+                  </p>
+                  {/* Bottom: features (icons + text), metric, CTA */}
+                  <div className="mt-4 flex flex-wrap items-center gap-3 text-muted-foreground">
+                    <span className="flex items-center gap-1.5 text-xs">
+                      <Radio className="h-3.5 w-3.5" />
+                      {item.channelsCount} Channels
+                    </span>
+                    <span className="flex items-center gap-1.5 text-xs">
+                      <Building2 className="h-3.5 w-3.5" />
+                      {item.citiesCount} Cities
+                    </span>
+                    <span className="flex items-center gap-1.5 text-xs">
+                      <Wifi className="h-3.5 w-3.5" />
+                      {item.available ? "Available" : "Unavailable"}
+                    </span>
+                  </div>
+                  <div className="mt-4 flex items-center justify-between gap-2 border-t border-border pt-4">
+                    <span className="text-sm font-bold text-foreground">
+                      {item.metric}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="shrink-0 btn-gelatine border-[hsl(var(--primary))] text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10 hover:text-[hsl(var(--primary))]"
+                    >
+                      <ShoppingCart className="mr-1.5 h-3.5 w-3.5" />
+                      Buy Ads
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))
@@ -820,6 +827,7 @@ export function SitesContent({
                       <Checkbox
                         checked={typeFilter.includes("site")}
                         onCheckedChange={() => toggleType("site")}
+                        className="btn-gelatine"
                       />
                       Site ({typeCounts.site})
                     </label>
@@ -827,10 +835,11 @@ export function SitesContent({
                       <Checkbox
                         checked={typeFilter.includes("location")}
                         onCheckedChange={() => toggleType("location")}
+                        className="btn-gelatine"
                       />
                       Location ({typeCounts.location})
                     </label>
-                  </div>
+                  </div>  
                 </CollapsibleContent>
               </Collapsible>
 
@@ -850,6 +859,7 @@ export function SitesContent({
                         <Checkbox
                           checked={categoryFilter.includes(cat)}
                           onCheckedChange={() => toggleCategory(cat)}
+                          className="btn-gelatine"
                         />
                         {cat} ({categoryCounts[cat] ?? 0})
                       </label>
@@ -874,6 +884,7 @@ export function SitesContent({
                         <Checkbox
                           checked={regionFilter.includes(r)}
                           onCheckedChange={() => toggleRegion(r)}
+                        className="btn-gelatine"
                         />
                         {r} ({regionCounts[r] ?? 0})
                       </label>
@@ -894,6 +905,7 @@ export function SitesContent({
                       <Checkbox
                         checked={availabilityFilter.includes("available")}
                         onCheckedChange={() => toggleAvailability("available")}
+                        className="btn-gelatine"
                       />
                       Available ({availableCount})
                     </label>

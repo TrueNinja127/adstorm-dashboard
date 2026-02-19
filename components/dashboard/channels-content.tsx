@@ -400,7 +400,7 @@ export function ChannelsContent({
             type="button"
             onClick={() => setViewMode("card")}
             className={cn(
-              "flex h-8 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-medium transition-colors",
+              "flex btn-gelatine h-8 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-medium transition-colors",
               viewMode === "card"
                 ? "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]"
                 : "text-muted-foreground hover:bg-accent hover:text-foreground"
@@ -414,7 +414,7 @@ export function ChannelsContent({
             type="button"
             onClick={() => setViewMode("list")}
             className={cn(
-              "flex h-8 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-medium transition-colors",
+              "flex btn-gelatine h-8 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-medium transition-colors",
               viewMode === "list"
                 ? "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]"
                 : "text-muted-foreground hover:bg-accent hover:text-foreground"
@@ -689,6 +689,7 @@ export function ChannelsContent({
                       <Checkbox
                         checked={typeFilter.includes("channel")}
                         onCheckedChange={() => toggleType("channel")}
+                        className="btn-gelatine"
                       />
                       Channel ({typeCounts.channel})
                     </label>
@@ -696,6 +697,7 @@ export function ChannelsContent({
                       <Checkbox
                         checked={typeFilter.includes("genre")}
                         onCheckedChange={() => toggleType("genre")}
+                        className="btn-gelatine"
                       />
                       Genre ({typeCounts.genre})
                     </label>
@@ -719,6 +721,7 @@ export function ChannelsContent({
                         <Checkbox
                           checked={categoryFilter.includes(cat)}
                           onCheckedChange={() => toggleCategory(cat)}
+                          className="btn-gelatine"
                         />
                         {cat} ({categoryCounts[cat] ?? 0})
                       </label>
@@ -739,6 +742,7 @@ export function ChannelsContent({
                       <Checkbox
                         checked={availabilityFilter.includes("available")}
                         onCheckedChange={() => toggleAvailability("available")}
+                        className="btn-gelatine"
                       />
                       Available ({availableCount})
                     </label>
@@ -746,6 +750,7 @@ export function ChannelsContent({
                       <Checkbox
                         checked={availabilityFilter.includes("unavailable")}
                         onCheckedChange={() => toggleAvailability("unavailable")}
+                        className="btn-gelatine"
                       />
                       Unavailable ({unavailableCount})
                     </label>
