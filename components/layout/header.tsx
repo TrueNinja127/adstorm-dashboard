@@ -32,6 +32,7 @@ import { useTheme } from "next-themes"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useToast } from "@/hooks/use-toast"
 import { ThemesDialog } from "@/components/layout/themes-dialog"
+import { UploadAdDialog } from "@/components/layout/upload-ad-dialog"
 import { useCart } from "@/contexts/cart-context"
 import {
   Sheet,
@@ -99,6 +100,7 @@ export function Header() {
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isThemesOpen, setIsThemesOpen] = useState(false)
+  const [isUploadAdOpen, setIsUploadAdOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
   const isDark = mounted && resolvedTheme === "dark"
@@ -143,7 +145,10 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-3">
-        <button className="btn-gelatine flex h-10 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
+        <button
+          onClick={() => setIsUploadAdOpen(true)}
+          className="btn-gelatine flex h-10 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+        >
           <Upload className="h-4 w-4" />
           Upload AD
         </button>
@@ -304,6 +309,7 @@ export function Header() {
       </div>
 
       <ThemesDialog open={isThemesOpen} onOpenChange={setIsThemesOpen} />
+      <UploadAdDialog open={isUploadAdOpen} onOpenChange={setIsUploadAdOpen} />
 
       {/* Cart drawer */}
       <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>

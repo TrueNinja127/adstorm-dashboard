@@ -375,12 +375,21 @@
   100% { opacity: 1; }
 }
 
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
 .animate-pulse-glow {
   animation: pulse-glow 1.8s ease-in-out infinite;
 }
 
 .animate-spin-slow {
   animation: spin-slow 3s linear infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
 }
 
 /* Minimal scrollbar */
