@@ -45,6 +45,17 @@ import { UsStatesMap } from "./us-states-map"
 import { cn } from "@/lib/utils"
 import type { SiteOrLocationType } from "@/types"
 import { mockSitesAndLocations, US_STATES } from "@/services"
+import { useCart } from "@/contexts/cart-context"
+import { useToast } from "@/hooks/use-toast"
+
+function formatPrice(amount: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount)
+}
 
 const mockItems = mockSitesAndLocations
 
@@ -59,6 +70,8 @@ export function SitesContent({
   showHeaderAndFeatured = true,
   scrollContainer = true,
 }: SitesContentProps) {
+  const { addItem, isInCart } = useCart()
+  const { toast } = useToast()
   const [search, setSearch] = useState("")
   const [typeFilter, setTypeFilter] = useState<string[]>([])
   const [categoryFilter, setCategoryFilter] = useState<string[]>([])
@@ -154,6 +167,23 @@ export function SitesContent({
     )
   }
 
+  function handleAddToCart(item: (typeof mockItems)[0]) {
+    if (isInCart(item.id)) {
+      toast({
+        title: "Already in cart",
+        description: `${item.name} is already in your cart.`,
+        variant: "default",
+      })
+      return
+    }
+    addItem(item)
+    toast({
+      title: "Added to cart",
+      description: `${item.name} has been added to your cart.`,
+      variant: "success",
+    })
+  }
+
   const sitesCount = mockItems.filter((i) => i.type === "site").length
   const locationsCount = mockItems.filter((i) => i.type === "location").length
   const availableCount = mockItems.filter((i) => i.available).length
@@ -234,13 +264,23 @@ export function SitesContent({
                             </span>
                           </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="flex-shrink-0 text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10"
-                        >
-                          <ArrowRight className="h-4 w-4" />
-                        </Button>
+                        <div className="flex flex-shrink-0 items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10"
+                            onClick={() => handleAddToCart(item)}
+                          >
+                            <ShoppingCart className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10"
+                          >
+                            <ArrowRight className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </CarouselItem>
@@ -396,16 +436,20 @@ export function SitesContent({
                     </span>
                   </div>
                   <div className="mt-4 flex items-center justify-between gap-2 border-t border-border pt-4">
-                    <span className="text-sm font-bold text-foreground">
-                      {item.metric}
-                    </span>
+                    <div className="min-w-0">
+                      <p className="text-xs text-muted-foreground">{item.metric}</p>
+                      <p className="text-sm font-bold tabular-nums text-foreground">
+                        {formatPrice(item.price)}
+                      </p>
+                    </div>
                     <Button
                       variant="outline"
                       size="sm"
                       className="shrink-0 btn-gelatine border-[hsl(var(--primary))] text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10 hover:text-[hsl(var(--primary))]"
+                      onClick={() => handleAddToCart(item)}
                     >
                       <ShoppingCart className="mr-1.5 h-3.5 w-3.5" />
-                      Buy Ads
+                      {isInCart(item.id) ? "In cart" : "Add to cart"}
                     </Button>
                   </div>
                 </div>
@@ -444,6 +488,9 @@ export function SitesContent({
                   Metric
                 </TableHead>
                 <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                  Price
+                </TableHead>
+                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
                   Status
                 </TableHead>
                 <TableHead className="h-12 px-6 text-right font-display font-semibold text-muted-foreground">
@@ -455,7 +502,7 @@ export function SitesContent({
               {filteredItems.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={9}
+                    colSpan={10}
                     className="h-32 px-6 text-center text-muted-foreground"
                   >
                     No sites or locations match your filters.
@@ -512,6 +559,9 @@ export function SitesContent({
                     <TableCell className="px-6 py-4 text-sm text-muted-foreground">
                       {item.metric}
                     </TableCell>
+                    <TableCell className="px-6 py-4 font-semibold tabular-nums text-foreground">
+                      {formatPrice(item.price)}
+                    </TableCell>
                     <TableCell className="px-6 py-4">
                       <span
                         className={cn(
@@ -531,14 +581,25 @@ export function SitesContent({
                       </span>
                     </TableCell>
                     <TableCell className="px-6 py-4 text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10 hover:text-[hsl(var(--primary))]"
-                      >
-                        Explore
-                        <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                      </Button>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10 hover:text-[hsl(var(--primary))]"
+                          onClick={() => handleAddToCart(item)}
+                        >
+                          <ShoppingCart className="mr-1 h-3.5 w-3.5" />
+                          {isInCart(item.id) ? "In cart" : "Add to cart"}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-muted-foreground hover:bg-secondary hover:text-foreground"
+                        >
+                          Explore
+                          <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))

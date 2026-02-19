@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { useState, useRef, useEffect } from "react"
 import {
   Bell,
@@ -23,11 +24,23 @@ import {
   Sun,
   Moon,
   PaintRoller,
+  ShoppingCart,
+  Trash2,
+  MapPin,
 } from "lucide-react"
 import { useTheme } from "next-themes"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useToast } from "@/hooks/use-toast"
 import { ThemesDialog } from "@/components/layout/themes-dialog"
+import { useCart } from "@/contexts/cart-context"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 
 const dropdownItems = [
   { label: "My Profile", icon: User },
@@ -69,9 +82,21 @@ const categoryTabs: { label: string; value: NotifCategory }[] = [
   { label: "System", value: "system" },
 ]
 
+function formatPrice(amount: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount)
+}
+
 export function Header() {
   const { toast } = useToast()
   const { resolvedTheme, setTheme } = useTheme()
+  const { items: cartItems, count: cartCount, removeItem, clearCart } = useCart()
+  const cartTotal = cartItems.reduce((sum, item) => sum + (item.price ?? 0), 0)
+  const [isCartOpen, setIsCartOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isThemesOpen, setIsThemesOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -126,6 +151,22 @@ export function Header() {
           <Wallet className="h-4 w-4 text-primary" />
           <span className="text-sm font-bold text-foreground">$100.00</span>
         </div>
+
+        {/* Shopping cart */}
+        <button
+          type="button"
+          onClick={() => setIsCartOpen(true)}
+          aria-label="Open cart"
+          className="btn-gelatine relative flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ShoppingCart className="h-[18px] w-[18px]" />
+          {cartCount > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground ring-2 ring-background">
+              {cartCount > 99 ? "99+" : cartCount}
+            </span>
+          )}
+        </button>
+
         <button
           type="button"
           onClick={() => setTheme(isDark ? "light" : "dark")}
@@ -263,6 +304,164 @@ export function Header() {
       </div>
 
       <ThemesDialog open={isThemesOpen} onOpenChange={setIsThemesOpen} />
+
+      {/* Cart drawer */}
+      <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
+        <SheetContent
+          side="right"
+          className="flex w-full flex-col border-l border-border/60 bg-gradient-to-b from-background to-muted/20 p-0 sm:max-w-[420px]"
+        >
+          <SheetHeader className="shrink-0 space-y-0 border-b border-border/50 bg-card/50 px-6 py-5 backdrop-blur-sm">
+            <div className="flex items-center justify-between pr-8">
+              <SheetTitle className="font-display text-xl font-bold tracking-tight text-foreground">
+                Your cart
+              </SheetTitle>
+              {cartCount > 0 && (
+                <Badge variant="secondary" className="font-semibold tabular-nums">
+                  {cartCount} item{cartCount !== 1 ? "s" : ""}
+                </Badge>
+              )}
+            </div>
+          </SheetHeader>
+
+          <div className="flex flex-1 min-h-0 flex-col">
+            {cartItems.length === 0 ? (
+              <div className="flex flex-1 flex-col items-center justify-center gap-5 px-6 py-16 text-center">
+                <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-muted/50">
+                  <ShoppingCart className="h-10 w-10 text-muted-foreground/50" />
+                </div>
+                <div className="space-y-1">
+                  <p className="font-display text-base font-semibold text-foreground">
+                    Your cart is empty
+                  </p>
+                  <p className="max-w-[240px] text-sm leading-relaxed text-muted-foreground">
+                    Add sites or locations from the Sites &amp; Locations page to get started.
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-xl"
+                  onClick={() => setIsCartOpen(false)}
+                >
+                  Continue browsing
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="flex-1 overflow-y-auto px-4 py-4">
+                  <ul className="space-y-3">
+                    {cartItems.map((item) => (
+                      <li
+                        key={item.id}
+                        className="group flex gap-3 rounded-2xl border border-border/60 bg-card/80 p-3.5 shadow-sm transition-all hover:border-border hover:shadow-md"
+                      >
+                        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-muted ring-1 ring-border/40">
+                          <Image
+                            src={item.image}
+                            alt={item.name}
+                            fill
+                            className="object-cover"
+                            sizes="64px"
+                          />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-foreground truncate text-sm">
+                            {item.name}
+                          </p>
+                          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                            <Badge variant="secondary" className="text-[10px] font-medium">
+                              {item.type === "site" ? "Site" : "Location"}
+                            </Badge>
+                            <span className="flex items-center gap-0.5 text-[11px] text-muted-foreground">
+                              <MapPin className="h-3 w-3" />
+                              {item.cityName}, {item.stateName}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-[11px] text-muted-foreground">
+                            {item.metric}
+                          </p>
+                          <p className="mt-1.5 text-sm font-bold text-foreground tabular-nums">
+                            {formatPrice(item.price)}
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 shrink-0 rounded-lg text-muted-foreground opacity-70 transition-opacity hover:bg-destructive/10 hover:text-destructive hover:opacity-100"
+                          onClick={() => {
+                            removeItem(item.id)
+                            toast({
+                              title: "Removed from cart",
+                              description: `${item.name} has been removed from your cart.`,
+                            })
+                          }}
+                          aria-label={`Remove ${item.name} from cart`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="shrink-0 border-t border-border/50 bg-card/80 px-4 py-4 backdrop-blur-sm">
+                  <div className="space-y-2 rounded-2xl bg-muted/30 p-4">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Subtotal</span>
+                      <span className="font-semibold tabular-nums text-foreground">
+                        {formatPrice(cartTotal)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Tax (est.)</span>
+                      <span className="font-medium tabular-nums text-foreground">
+                        {formatPrice(0)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between border-t border-border/50 pt-3">
+                      <span className="font-display font-semibold text-foreground">
+                        Total
+                      </span>
+                      <span className="font-display text-lg font-bold tabular-nums text-foreground">
+                        {formatPrice(cartTotal)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex flex-col gap-2">
+                    <Button
+                      className="w-full rounded-xl bg-primary py-6 text-base font-semibold shadow-lg transition-all hover:bg-primary/90 hover:shadow-xl"
+                      onClick={() => {
+                        toast({
+                          variant: "success",
+                          title: "Order placed",
+                          description: `Your order of ${formatPrice(cartTotal)} for ${cartCount} item${cartCount !== 1 ? "s" : ""} has been submitted. We'll process it shortly.`,
+                        })
+                        clearCart()
+                        setIsCartOpen(false)
+                      }}
+                    >
+                      <CreditCard className="mr-2 h-5 w-5" />
+                      Buy all — {formatPrice(cartTotal)}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => {
+                        clearCart()
+                        setIsCartOpen(false)
+                      }}
+                    >
+                      Clear cart
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </header>
   )
 }

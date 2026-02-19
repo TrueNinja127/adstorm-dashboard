@@ -3,6 +3,7 @@ import { DM_Sans, Exo_2 } from "next/font/google"
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from "@/components/theme"
 import { ColorThemeProvider } from "@/contexts/color-theme-context"
+import { CartProvider } from "@/contexts/cart-context"
 import "./globals.css"
 
 const dmSans = DM_Sans({
@@ -32,8 +33,10 @@ export default function RootLayout({
       <body className={`${dmSans.variable} ${exo2.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <ColorThemeProvider>
-            {children}
-            <Toaster />
+            <CartProvider>
+              {children}
+              <Toaster />
+            </CartProvider>
           </ColorThemeProvider>
         </ThemeProvider>
       </body>

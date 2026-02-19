@@ -18,4 +18,6 @@ export interface SiteOrLocation {
   channelsCount: number
   citiesCount: number
   metric: string
+  /** Price in USD (e.g. monthly or one-time) */
+  price: number
 }

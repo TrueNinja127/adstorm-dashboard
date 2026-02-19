@@ -230,10 +230,6 @@ export function Sidebar() {
           </button>
         </div>
       )}
-
-      <div className="px-2 pb-4">
-        <ThemeToggle collapsed={collapsed} />
-      </div>
     </aside>
   )
 }
