@@ -1,10 +1,8 @@
 "use client"
 
-import { Sidebar } from "@/components/dashboard/sidebar"
-import { Header } from "@/components/dashboard/header"
+import { Sidebar, Header, Chatbot } from "@/components/layout"
 import { HeroCarousel } from "@/components/carousel/hero-carousel"
-import { ChannelsContent } from "@/components/dashboard/channels-content"
-import { Chatbot } from "@/components/dashboard/chatbot"
+import { ChannelsContent } from "@/components/features/channels"
 
 export default function ChannelsGenresPage() {
   return (

@@ -1,6 +1,4 @@
-import { Sidebar } from "@/components/dashboard/sidebar"
-import { Header } from "@/components/dashboard/header"
-import { Chatbot } from "@/components/dashboard/chatbot"
+import { Sidebar, Header, Chatbot } from "@/components/layout"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export default function ChannelsGenresLoading() {

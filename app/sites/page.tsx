@@ -1,10 +1,8 @@
 "use client"
 
-import { Sidebar } from "@/components/dashboard/sidebar"
-import { Header } from "@/components/dashboard/header"
+import { Sidebar, Header, Chatbot } from "@/components/layout"
 import { HeroCarousel } from "@/components/carousel/hero-carousel"
-import { SitesContent } from "@/components/dashboard/sites-content"
-import { Chatbot } from "@/components/dashboard/chatbot"
+import { SitesContent } from "@/components/features/sites"
 
 export default function SitesPage() {
   return (

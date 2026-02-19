@@ -1,10 +1,8 @@
 "use client"
 
-import { Sidebar } from "@/components/dashboard/sidebar"
-import { Header } from "@/components/dashboard/header"
+import { Sidebar, Header, Chatbot } from "@/components/layout"
 import { HeroCarousel } from "@/components/carousel/hero-carousel"
-import { BrandsContent } from "@/components/dashboard/brands-content"
-import { Chatbot } from "@/components/dashboard/chatbot"
+import { BrandsContent } from "@/components/features/brands"
 
 export default function BrandsPage() {
   return (

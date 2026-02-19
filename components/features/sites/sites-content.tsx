@@ -4,16 +4,18 @@ import Image from "next/image"
 import { useState, useMemo } from "react"
 import {
   Search,
-  Tv,
+  MapPin,
+  Globe,
   ArrowRight,
   LayoutGrid,
   List,
-  Globe,
-  Radio,
-  Music2,
+  MapPinned,
   ChevronDown,
   ChevronUp,
-  type LucideIcon,
+  Radio,
+  Building2,
+  Wifi,
+  ShoppingCart,
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -39,30 +41,31 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
+import { UsStatesMap } from "./us-states-map"
 import { cn } from "@/lib/utils"
-import type { ChannelOrGenreType } from "@/types"
-import { mockChannelsAndGenres } from "@/services"
+import type { SiteOrLocationType } from "@/types"
+import { mockSitesAndLocations, US_STATES } from "@/services"
 
-const mockItems = mockChannelsAndGenres
+const mockItems = mockSitesAndLocations
 
-interface ChannelsContentProps {
+interface SitesContentProps {
   showHeaderAndFeatured?: boolean
   scrollContainer?: boolean
 }
 
 type ViewMode = "card" | "list"
 
-function getTypeIcon(type: ChannelOrGenreType): LucideIcon {
-  return type === "channel" ? Tv : Music2
-}
-
-export function ChannelsContent({
+export function SitesContent({
   showHeaderAndFeatured = true,
   scrollContainer = true,
-}: ChannelsContentProps) {
+}: SitesContentProps) {
   const [search, setSearch] = useState("")
   const [typeFilter, setTypeFilter] = useState<string[]>([])
   const [categoryFilter, setCategoryFilter] = useState<string[]>([])
+  const [regionFilter, setRegionFilter] = useState<string[]>(() => {
+    const set = new Set(mockItems.map((i) => i.region))
+    return Array.from(set).sort()
+  })
   const [availabilityFilter, setAvailabilityFilter] = useState<string[]>([])
   const [viewMode, setViewMode] = useState<ViewMode>("card")
 
@@ -71,24 +74,19 @@ export function ChannelsContent({
     return Array.from(set).sort()
   }, [])
 
-  const typeCounts = useMemo(
-    () => ({
-      channel: mockItems.filter((i) => i.type === "channel").length,
-      genre: mockItems.filter((i) => i.type === "genre").length,
-    }),
-    []
-  )
-
-  const categoryCounts = useMemo(() => {
+  const regionCounts = useMemo(() => {
     const acc: Record<string, number> = {}
     mockItems.forEach((i) => {
-      acc[i.category] = (acc[i.category] ?? 0) + 1
+      acc[i.region] = (acc[i.region] ?? 0) + 1
     })
     return acc
   }, [])
 
-  const availableCount = mockItems.filter((i) => i.available).length
-  const unavailableCount = mockItems.filter((i) => !i.available).length
+  /** Only states that have at least one site/location (exclude 0 count) */
+  const regions = useMemo(
+    () => Object.keys(regionCounts).sort(),
+    [regionCounts]
+  )
 
   const filteredItems = useMemo(() => {
     return mockItems.filter((item) => {
@@ -96,27 +94,43 @@ export function ChannelsContent({
       const matchesSearch =
         !search ||
         item.name.toLowerCase().includes(searchLower) ||
-        item.description.toLowerCase().includes(searchLower) ||
-        item.category.toLowerCase().includes(searchLower)
+        item.subtitle.toLowerCase().includes(searchLower) ||
+        item.category.toLowerCase().includes(searchLower) ||
+        item.region.toLowerCase().includes(searchLower)
       const matchesType =
         typeFilter.length === 0 || typeFilter.includes(item.type)
       const matchesCategory =
         categoryFilter.length === 0 || categoryFilter.includes(item.category)
+      const matchesRegion =
+        regionFilter.length === 0 || regionFilter.includes(item.region)
       const matchesAvailability =
         availabilityFilter.length === 0 ||
         (availabilityFilter.includes("available") && item.available) ||
         (availabilityFilter.includes("unavailable") && !item.available)
-      return matchesSearch && matchesType && matchesCategory && matchesAvailability
+      return (
+        matchesSearch &&
+        matchesType &&
+        matchesCategory &&
+        matchesRegion &&
+        matchesAvailability
+      )
     })
-  }, [search, typeFilter, categoryFilter, availabilityFilter])
+  }, [
+    search,
+    typeFilter,
+    categoryFilter,
+    regionFilter,
+    availabilityFilter,
+  ])
 
   function resetAllFilters() {
     setTypeFilter([])
     setCategoryFilter([])
+    setRegionFilter([])
     setAvailabilityFilter([])
   }
 
-  function toggleType(value: ChannelOrGenreType) {
+  function toggleType(value: SiteOrLocationType) {
     setTypeFilter((prev) =>
       prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value]
     )
@@ -128,11 +142,37 @@ export function ChannelsContent({
     )
   }
 
+  function toggleRegion(value: string) {
+    setRegionFilter((prev) =>
+      prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value]
+    )
+  }
+
   function toggleAvailability(value: "available" | "unavailable") {
     setAvailabilityFilter((prev) =>
       prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value]
     )
   }
+
+  const sitesCount = mockItems.filter((i) => i.type === "site").length
+  const locationsCount = mockItems.filter((i) => i.type === "location").length
+  const availableCount = mockItems.filter((i) => i.available).length
+  const unavailableCount = mockItems.filter((i) => !i.available).length
+
+  const typeCounts = useMemo(() => ({
+    site: mockItems.filter((i) => i.type === "site").length,
+    location: mockItems.filter((i) => i.type === "location").length,
+  }), [])
+
+  const categoryCounts = useMemo(() => {
+    const acc: Record<string, number> = {}
+    mockItems.forEach((i) => {
+      acc[i.category] = (acc[i.category] ?? 0) + 1
+    })
+    return acc
+  }, [])
+
+  const featuredItems = mockItems.filter((i) => i.available).slice(0, 8)
 
   const inner = (
     <div className="px-8 py-8">
@@ -140,11 +180,11 @@ export function ChannelsContent({
         <>
           <div className="mb-8 animate-fade-in-up">
             <h1 className="font-display text-xl font-bold tracking-tight text-foreground">
-              Channels & Genres
+              Sites &amp; Locations
             </h1>
             <p className="mt-1 text-[13px] text-muted-foreground">
-              Browse ad channels and content genres to target the right audiences
-              across CTV, radio, podcast, display, and more.
+              Target specific publisher sites and physical locations for
+              precise geo-based audience reach.
             </p>
           </div>
 
@@ -157,62 +197,54 @@ export function ChannelsContent({
               className="w-full"
             >
               <CarouselContent className="-ml-2 md:-ml-4">
-                {mockItems.slice(0, 8).map((item) => {
-                  const TypeIcon = getTypeIcon(item.type)
-                  return (
-                    <CarouselItem
-                      key={item.id}
-                      className="pl-2 md:pl-4 basis-full sm:basis-[85%] md:basis-[45%] lg:basis-[32%]"
-                    >
-                      <div className="group relative overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/20">
-                        <div className="flex h-40 items-center gap-4 p-5">
-                          <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-secondary">
-                            <Image
-                              src={item.image}
-                              alt={item.name}
-                              fill
-                              className="object-cover"
-                              sizes="80px"
-                            />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="font-display font-semibold text-foreground truncate">
-                              {item.name}
-                            </p>
-                            <div className="mt-0.5">
-                              <Badge variant="secondary" className="text-[10px] font-medium">
-                                {item.category}
-                              </Badge>
-                              <Badge
-                                variant="outline"
-                                className="ml-1 text-[10px] font-medium border-border"
-                              >
-                                {item.type === "channel" ? "Channel" : "Genre"}
-                              </Badge>
-                            </div>
-                            <div className="mt-2 flex items-center gap-2">
-                              <span
-                                className={cn(
-                                  "text-[11px] font-medium",
-                                  item.available ? "text-emerald-400" : "text-amber-400"
-                                )}
-                              >
-                                {item.available ? "Available" : "Unavailable"}
-                              </span>
-                            </div>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="flex-shrink-0 text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10"
-                          >
-                            <ArrowRight className="h-4 w-4" />
-                          </Button>
+                {featuredItems.map((item) => (
+                  <CarouselItem
+                    key={item.id}
+                    className="pl-2 md:pl-4 basis-full sm:basis-[85%] md:basis-[45%] lg:basis-[32%]"
+                  >
+                    <div className="group relative overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/20">
+                      <div className="flex h-40 items-center gap-4 p-5">
+                        <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-secondary">
+                          <Image
+                            src={item.image}
+                            alt={item.name}
+                            fill
+                            className="object-cover"
+                            sizes="80px"
+                          />
                         </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-display font-semibold text-foreground truncate">
+                            {item.name}
+                          </p>
+                          <div className="mt-0.5">
+                            <Badge variant="secondary" className="text-[10px] font-medium">
+                              {item.type === "site" ? "Site" : "Location"}
+                            </Badge>
+                          </div>
+                          <p className="mt-1 truncate text-xs text-muted-foreground">
+                            {item.cityName}, {item.stateName}
+                          </p>
+                          <p className="mt-0.5 text-[11px] text-muted-foreground">
+                            {item.channelsCount} channels · {item.citiesCount} cities
+                          </p>
+                          <div className="mt-1.5">
+                            <span className="text-[11px] font-medium text-emerald-400">
+                              Available
+                            </span>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="flex-shrink-0 text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10"
+                        >
+                          <ArrowRight className="h-4 w-4" />
+                        </Button>
                       </div>
-                    </CarouselItem>
-                  )
-                })}
+                    </div>
+                  </CarouselItem>
+                ))}
               </CarouselContent>
               <CarouselPrevious className="-left-2 h-9 w-9 rounded-full border-border bg-card text-foreground hover:bg-accent md:-left-4" />
               <CarouselNext className="-right-2 h-9 w-9 rounded-full border-border bg-card text-foreground hover:bg-accent md:-right-4" />
@@ -222,12 +254,12 @@ export function ChannelsContent({
       )}
 
       {!showHeaderAndFeatured && (
-        <div className="mb-6 animate-fade-in-up">
+        <div className="mb-4 animate-fade-in-up">
           <h2 className="font-display text-lg font-bold tracking-tight text-foreground">
-            Browse channels & genres
+            Browse all sites &amp; locations
           </h2>
           <p className="mt-0.5 text-[13px] text-muted-foreground">
-            Search and filter by type, category, and availability.
+            Search and filter publisher sites and geographic locations below.
           </p>
         </div>
       )}
@@ -242,7 +274,7 @@ export function ChannelsContent({
         <div className="relative min-w-[200px] max-w-md flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search channels & genres..."
+            placeholder="Search for sites or locations..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="h-10 pl-9 rounded-xl bg-card border-border"
@@ -291,9 +323,15 @@ export function ChannelsContent({
             )}
           >
             <div className="flex items-center gap-2 rounded-xl bg-card px-4 py-2.5">
-              <Tv className="h-4 w-4 text-muted-foreground" />
+              <Globe className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-medium text-foreground">
-                {mockItems.length} total
+                {sitesCount} sites
+              </span>
+            </div>
+            <div className="flex items-center gap-2 rounded-xl bg-card px-4 py-2.5">
+              <MapPinned className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-foreground">
+                {locationsCount} locations
               </span>
             </div>
             <div className="flex items-center gap-2 rounded-xl bg-card px-4 py-2.5">
@@ -306,98 +344,80 @@ export function ChannelsContent({
 
       {viewMode === "card" && (
         <div
-          className={cn(
-            "animate-fade-in-up grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4",
-            showHeaderAndFeatured ? "delay-200" : ""
-          )}
+          className={`animate-fade-in-up grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 ${showHeaderAndFeatured ? "delay-200" : ""}`}
         >
           {filteredItems.length === 0 ? (
             <div className="col-span-full flex h-48 items-center justify-center rounded-2xl border border-border bg-card text-muted-foreground text-sm">
-              No channels or genres match your filters.
+              No sites or locations match your filters.
             </div>
           ) : (
-            filteredItems.map((item) => {
-              const TypeIcon = getTypeIcon(item.type)
-              return (
-                <div
-                  key={item.id}
-                  className="group rounded-2xl bg-card p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-secondary">
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        fill
-                        className="object-cover"
-                        sizes="64px"
-                      />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-display font-semibold text-foreground truncate">
-                        {item.name}
-                      </p>
-                      <div className="mt-0.5 flex flex-wrap gap-1">
-                        <Badge variant="secondary" className="text-[10px] font-medium">
-                          {item.category}
-                        </Badge>
-                        <Badge variant="outline" className="text-[10px] font-medium border-border">
-                          {item.type === "channel" ? "Channel" : "Genre"}
-                        </Badge>
-                      </div>
-                      <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
-                        {item.description}
-                      </p>
-                      <div className="mt-2 flex flex-wrap items-center gap-2">
-                        <span
-                          className={cn(
-                            "text-[11px] font-medium",
-                            item.available ? "text-emerald-400" : "text-amber-400"
-                          )}
-                        >
-                          {item.available ? "Available" : "Unavailable"}
-                        </span>
-                      </div>
-                    </div>
+            filteredItems.map((item) => (
+              <div
+                key={item.id}
+                className="group flex flex-col overflow-hidden rounded-2xl bg-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/20"
+              >
+                {/* Top: full-width image with overlay badges */}
+                <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden bg-secondary">
+                  <Image
+                    src={item.image}
+                    alt={item.name}
+                    fill
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                  />
+                  <div className="absolute left-3 top-3">
+                    <span className="rounded-lg bg-background/90 px-2.5 py-1 text-xs font-medium text-foreground backdrop-blur-sm">
+                      {item.type === "site" ? "Site" : "Location"}
+                    </span>
+                  </div>
+                </div>
+                {/* Middle: name, verified, location */}
+                <div className="flex flex-1 flex-col p-4">
+                  <h3 className="font-display text-base font-bold tracking-tight text-foreground truncate">
+                    {item.name}
+                  </h3>
+                  <p className="mt-1 flex items-center gap-1.5 truncate text-xs text-muted-foreground">
+                    <MapPin className="h-3.5 w-3.5 shrink-0" />
+                    {item.cityName}, {item.stateName}
+                  </p>
+                  {/* Bottom: features (icons + text), metric, CTA */}
+                  <div className="mt-4 flex flex-wrap items-center gap-3 text-muted-foreground">
+                    <span className="flex items-center gap-1.5 text-xs">
+                      <Radio className="h-3.5 w-3.5" />
+                      {item.channelsCount} Channels
+                    </span>
+                    <span className="flex items-center gap-1.5 text-xs">
+                      <Building2 className="h-3.5 w-3.5" />
+                      {item.citiesCount} Cities
+                    </span>
+                    <span className="flex items-center gap-1.5 text-xs">
+                      <Wifi className="h-3.5 w-3.5" />
+                      {item.available ? "Available" : "Unavailable"}
+                    </span>
                   </div>
                   <div className="mt-4 flex items-center justify-between gap-2 border-t border-border pt-4">
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1.5">
-                        <Globe className="h-3.5 w-3.5" />
-                        {item.sitesCount} sites
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        {item.type === "channel" ? (
-                          <Music2 className="h-3.5 w-3.5" />
-                        ) : (
-                          <Radio className="h-3.5 w-3.5" />
-                        )}
-                        {item.secondaryCount}{" "}
-                        {item.type === "channel" ? "genres" : "channels"}
-                      </span>
-                    </div>
+                    <span className="text-sm font-bold text-foreground">
+                      {item.metric}
+                    </span>
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
-                      className="text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10 hover:text-[hsl(var(--primary))] shrink-0"
+                      className="shrink-0 btn-gelatine border-[hsl(var(--primary))] text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10 hover:text-[hsl(var(--primary))]"
                     >
-                      Explore
-                      <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                      <ShoppingCart className="mr-1.5 h-3.5 w-3.5" />
+                      Buy Ads
                     </Button>
                   </div>
                 </div>
-              )
-            })
+              </div>
+            ))
           )}
         </div>
       )}
 
       {viewMode === "list" && (
         <div
-          className={cn(
-            "animate-fade-in-up rounded-2xl border border-border bg-card overflow-hidden",
-            showHeaderAndFeatured ? "delay-200" : ""
-          )}
+          className={`animate-fade-in-up rounded-2xl border border-border bg-card overflow-hidden ${showHeaderAndFeatured ? "delay-200" : ""}`}
         >
           <Table>
             <TableHeader>
@@ -409,13 +429,19 @@ export function ChannelsContent({
                   Type
                 </TableHead>
                 <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                  State / City
+                </TableHead>
+                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                  Channels
+                </TableHead>
+                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                  Cities
+                </TableHead>
+                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
                   Category
                 </TableHead>
                 <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
-                  Description
-                </TableHead>
-                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
-                  Sites
+                  Metric
                 </TableHead>
                 <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
                   Status
@@ -429,10 +455,10 @@ export function ChannelsContent({
               {filteredItems.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={9}
                     className="h-32 px-6 text-center text-muted-foreground"
                   >
-                    No channels or genres match your filters.
+                    No sites or locations match your filters.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -452,29 +478,39 @@ export function ChannelsContent({
                             sizes="48px"
                           />
                         </div>
-                        <p className="font-display font-medium text-foreground">
-                          {item.name}
-                        </p>
+                        <div>
+                          <p className="font-display font-medium text-foreground">
+                            {item.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {item.subtitle}
+                          </p>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell className="px-6 py-4">
-                      <Badge variant="outline" className="text-xs font-medium border-border">
-                        {item.type === "channel" ? "Channel" : "Genre"}
+                      <Badge variant="secondary" className="text-xs font-medium">
+                        {item.type === "site" ? "Site" : "Location"}
                       </Badge>
                     </TableCell>
+                    <TableCell className="px-6 py-4 text-sm text-muted-foreground">
+                      {item.stateName}
+                      <span className="text-muted-foreground/80"> · </span>
+                      {item.cityName}
+                    </TableCell>
+                    <TableCell className="px-6 py-4 text-sm font-medium text-foreground">
+                      {item.channelsCount}
+                    </TableCell>
+                    <TableCell className="px-6 py-4 text-sm font-medium text-foreground">
+                      {item.citiesCount}
+                    </TableCell>
                     <TableCell className="px-6 py-4">
-                      <Badge variant="secondary" className="text-xs font-medium">
+                      <Badge variant="outline" className="text-xs font-medium">
                         {item.category}
                       </Badge>
                     </TableCell>
-                    <TableCell className="max-w-[280px] px-6 py-4 text-sm text-muted-foreground line-clamp-2">
-                      {item.description}
-                    </TableCell>
-                    <TableCell className="px-6 py-4">
-                      <span className="flex items-center gap-2 font-medium text-foreground">
-                        <Globe className="h-4 w-4 text-muted-foreground" />
-                        {item.sitesCount}
-                      </span>
+                    <TableCell className="px-6 py-4 text-sm text-muted-foreground">
+                      {item.metric}
                     </TableCell>
                     <TableCell className="px-6 py-4">
                       <span
@@ -515,7 +551,12 @@ export function ChannelsContent({
 
         {/* Right: Filters sidebar */}
         <aside className="w-full flex-shrink-0 animate-fade-in-up order-1 lg:order-2 lg:w-[280px]">
-          <div className="sticky top-8 rounded-2xl bg-card p-5">
+          <UsStatesMap
+              selectedStateNames={regionFilter}
+              onStateClick={toggleRegion}
+              className="w-full"
+          />
+          <div className="sticky top-8 rounded-2xl bg-card p-5 mt-4">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="font-display text-sm font-bold text-foreground">
                 Filters
@@ -540,21 +581,21 @@ export function ChannelsContent({
                   <div className="space-y-2 pb-3">
                     <label className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground">
                       <Checkbox
-                        checked={typeFilter.includes("channel")}
-                        onCheckedChange={() => toggleType("channel")}
+                        checked={typeFilter.includes("site")}
+                        onCheckedChange={() => toggleType("site")}
                         className="btn-gelatine"
                       />
-                      Channel ({typeCounts.channel})
+                      Site ({typeCounts.site})
                     </label>
                     <label className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground">
                       <Checkbox
-                        checked={typeFilter.includes("genre")}
-                        onCheckedChange={() => toggleType("genre")}
+                        checked={typeFilter.includes("location")}
+                        onCheckedChange={() => toggleType("location")}
                         className="btn-gelatine"
                       />
-                      Genre ({typeCounts.genre})
+                      Location ({typeCounts.location})
                     </label>
-                  </div>
+                  </div>  
                 </CollapsibleContent>
               </Collapsible>
 
@@ -565,7 +606,7 @@ export function ChannelsContent({
                   <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground hidden group-data-[state=open]:inline-block" />
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <div className="space-y-2 pb-3 max-h-[240px] overflow-y-auto">
+                  <div className="space-y-2 pb-3">
                     {categories.map((cat) => (
                       <label
                         key={cat}
@@ -577,6 +618,31 @@ export function ChannelsContent({
                           className="btn-gelatine"
                         />
                         {cat} ({categoryCounts[cat] ?? 0})
+                      </label>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+
+              <Collapsible>
+                <CollapsibleTrigger className="group flex w-full items-center justify-between py-2.5 text-left text-sm font-medium text-foreground hover:text-foreground">
+                  State
+                  <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground group-data-[state=open]:hidden" />
+                  <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground hidden group-data-[state=open]:inline-block" />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="space-y-2 pb-3 max-h-[240px] overflow-y-auto">
+                    {regions.map((r) => (
+                      <label
+                        key={r}
+                        className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground"
+                      >
+                        <Checkbox
+                          checked={regionFilter.includes(r)}
+                          onCheckedChange={() => toggleRegion(r)}
+                        className="btn-gelatine"
+                        />
+                        {r} ({regionCounts[r] ?? 0})
                       </label>
                     ))}
                   </div>
@@ -603,7 +669,6 @@ export function ChannelsContent({
                       <Checkbox
                         checked={availabilityFilter.includes("unavailable")}
                         onCheckedChange={() => toggleAvailability("unavailable")}
-                        className="btn-gelatine"
                       />
                       Unavailable ({unavailableCount})
                     </label>
@@ -618,7 +683,9 @@ export function ChannelsContent({
   )
 
   if (scrollContainer) {
-    return <div className="flex-1 min-h-0 overflow-y-auto">{inner}</div>
+    return (
+      <div className="flex-1 min-h-0 overflow-y-auto">{inner}</div>
+    )
   }
   return <>{inner}</>
 }

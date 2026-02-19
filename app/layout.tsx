@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { DM_Sans, Exo_2 } from "next/font/google"
 import { Toaster } from "@/components/ui/toaster"
-import { ThemeProvider } from "@/components/theme-provider"
+import { ThemeProvider } from "@/components/theme"
 import { ColorThemeProvider } from "@/contexts/color-theme-context"
 import "./globals.css"
 
