@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import {
   Search,
   Tv,
@@ -13,6 +13,8 @@ import {
   Music2,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   type LucideIcon,
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
@@ -39,6 +41,11 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+} from "@/components/ui/pagination"
 import { cn } from "@/lib/utils"
 import type { ChannelOrGenreType } from "@/types"
 import { mockChannelsAndGenres, mockSitesAndLocations, mockBrands } from "@/services"
@@ -51,6 +58,8 @@ interface ChannelsContentProps {
 }
 
 type ViewMode = "card" | "list"
+
+const PAGE_SIZE = 8
 
 function getTypeIcon(type: ChannelOrGenreType): LucideIcon {
   return type === "channel" ? Tv : Music2
@@ -77,6 +86,7 @@ export function ChannelsContent({
   const [categoryFilter, setCategoryFilter] = useState<string[]>([])
   const [availabilityFilter, setAvailabilityFilter] = useState<string[]>([])
   const [viewMode, setViewMode] = useState<ViewMode>("card")
+  const [page, setPage] = useState(1)
 
   const categories = useMemo(() => {
     const set = new Set(mockItems.map((i) => i.category))
@@ -120,6 +130,16 @@ export function ChannelsContent({
         (availabilityFilter.includes("unavailable") && !item.available)
       return matchesSearch && matchesType && matchesCategory && matchesAvailability
     })
+  }, [search, typeFilter, categoryFilter, availabilityFilter])
+
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE))
+  const paginatedItems = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE
+    return filteredItems.slice(start, start + PAGE_SIZE)
+  }, [filteredItems, page])
+
+  useEffect(() => {
+    setPage(1)
   }, [search, typeFilter, categoryFilter, availabilityFilter])
 
   function resetAllFilters() {
@@ -311,7 +331,11 @@ export function ChannelsContent({
             <div className="flex items-center gap-2 rounded-xl bg-card px-4 py-2.5">
               <Tv className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-medium text-foreground">
-                {mockItems.length} total
+                {filteredItems.length === 0
+                  ? "0 items"
+                  : totalPages === 1
+                    ? `${filteredItems.length} items`
+                    : `${(page - 1) * PAGE_SIZE + 1}–${Math.min(page * PAGE_SIZE, filteredItems.length)} of ${filteredItems.length} items`}
               </span>
             </div>
             <div className="flex items-center gap-2 rounded-xl bg-card px-4 py-2.5">
@@ -334,7 +358,7 @@ export function ChannelsContent({
               No channels or genres match your filters.
             </div>
           ) : (
-            filteredItems.map((item) => {
+            paginatedItems.map((item) => {
               const TypeIcon = getTypeIcon(item.type)
               return (
                 <div
@@ -466,7 +490,7 @@ export function ChannelsContent({
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredItems.map((item) => (
+                paginatedItems.map((item) => (
                   <TableRow
                     key={item.id}
                     className="border-border transition-colors hover:bg-accent/50"
@@ -551,6 +575,57 @@ export function ChannelsContent({
           </Table>
         </div>
       )}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-6 flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
+                <p className="text-sm text-muted-foreground order-2 sm:order-1 whitespace-nowrap">Page {page} of {totalPages}</p>
+                <Pagination className="order-1 sm:order-2">
+                  <PaginationContent className="gap-1">
+                    <PaginationItem>
+                      <Button
+                        variant="ghost"
+                        size="default"
+                        className="gap-1 pl-2.5 h-9"
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        disabled={page <= 1}
+                        aria-label="Go to previous page"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        Previous
+                      </Button>
+                    </PaginationItem>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                      <PaginationItem key={p}>
+                        <Button
+                          variant={page === p ? "outline" : "ghost"}
+                          size="icon"
+                          className="h-9 w-9"
+                          onClick={() => setPage(p)}
+                          aria-current={page === p ? "page" : undefined}
+                          aria-label={`Go to page ${p}`}
+                        >
+                          {p}
+                        </Button>
+                      </PaginationItem>
+                    ))}
+                    <PaginationItem>
+                      <Button
+                        variant="ghost"
+                        size="default"
+                        className="gap-1 pr-2.5 h-9"
+                        onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                        disabled={page >= totalPages}
+                        aria-label="Go to next page"
+                      >
+                        Next
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
         </div>
 
         {/* Right: Filters sidebar */}
