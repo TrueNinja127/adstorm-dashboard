@@ -580,25 +580,15 @@ export function SitesContent({
                       {formatPrice(item.price)}
                     </TableCell>
                     <TableCell className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10 hover:text-[hsl(var(--primary))]"
-                          onClick={() => handleAddToCart(item)}
-                        >
-                          <ShoppingCart className="mr-1 h-3.5 w-3.5" />
-                          {isInCart(item.id) ? "In cart" : "Add to cart"}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-muted-foreground hover:bg-secondary hover:text-foreground"
-                        >
-                          Explore
-                          <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                        </Button>
-                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10 hover:text-[hsl(var(--primary))]"
+                        onClick={() => handleAddToCart(item)}
+                      >
+                        <ShoppingCart className="mr-1 h-3.5 w-3.5" />
+                        {isInCart(item.id) ? "In cart" : "Add to cart"}
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))
