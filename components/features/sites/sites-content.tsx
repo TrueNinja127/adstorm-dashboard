@@ -505,9 +505,6 @@ export function SitesContent({
                 <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
                   Price
                 </TableHead>
-                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
-                  Status
-                </TableHead>
                 <TableHead className="h-12 px-6 text-right font-display font-semibold text-muted-foreground">
                   Action
                 </TableHead>
@@ -517,7 +514,7 @@ export function SitesContent({
               {filteredItems.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={11}
+                    colSpan={10}
                     className="h-32 px-6 text-center text-muted-foreground"
                   >
                     No sites or locations match your filters.
@@ -581,24 +578,6 @@ export function SitesContent({
                     </TableCell>
                     <TableCell className="px-6 py-4 font-semibold tabular-nums text-foreground">
                       {formatPrice(item.price)}
-                    </TableCell>
-                    <TableCell className="px-6 py-4">
-                      <span
-                        className={cn(
-                          "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold",
-                          item.available
-                            ? "bg-emerald-500/10 text-emerald-400"
-                            : "bg-amber-500/10 text-amber-400"
-                        )}
-                      >
-                        <span
-                          className={cn(
-                            "h-1.5 w-1.5 rounded-full",
-                            item.available ? "bg-emerald-400" : "bg-amber-400"
-                          )}
-                        />
-                        {item.available ? "Available" : "Unavailable"}
-                      </span>
                     </TableCell>
                     <TableCell className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1">
