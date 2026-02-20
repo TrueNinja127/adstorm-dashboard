@@ -41,7 +41,7 @@ import {
 } from "@/components/ui/carousel"
 import { cn } from "@/lib/utils"
 import type { ChannelOrGenreType } from "@/types"
-import { mockChannelsAndGenres } from "@/services"
+import { mockChannelsAndGenres, mockSitesAndLocations, mockBrands } from "@/services"
 
 const mockItems = mockChannelsAndGenres
 
@@ -54,6 +54,18 @@ type ViewMode = "card" | "list"
 
 function getTypeIcon(type: ChannelOrGenreType): LucideIcon {
   return type === "channel" ? Tv : Music2
+}
+
+function getSiteName(siteId: string): string {
+  const site = mockSitesAndLocations.find((s) => s.id === siteId)
+  return site?.name || "Unknown Site"
+}
+
+function getBrandName(siteId: string): string {
+  const site = mockSitesAndLocations.find((s) => s.id === siteId)
+  if (!site) return "Unknown Brand"
+  const brand = mockBrands.find((b) => b.id === site.brandId)
+  return brand?.title || "Unknown Brand"
 }
 
 export function ChannelsContent({
@@ -190,6 +202,12 @@ export function ChannelsContent({
                                 {item.type === "channel" ? "Channel" : "Genre"}
                               </Badge>
                             </div>
+                            <p className="mt-1 truncate text-xs text-muted-foreground">
+                              Site: {getSiteName(item.siteId)}
+                            </p>
+                            <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                              Brand: {getBrandName(item.siteId)}
+                            </p>
                             <div className="mt-2 flex items-center gap-2">
                               <span
                                 className={cn(
@@ -345,6 +363,12 @@ export function ChannelsContent({
                           {item.type === "channel" ? "Channel" : "Genre"}
                         </Badge>
                       </div>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Site: {getSiteName(item.siteId)}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        Brand: {getBrandName(item.siteId)}
+                      </p>
                       <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
                         {item.description}
                       </p>
@@ -406,6 +430,12 @@ export function ChannelsContent({
                   Name
                 </TableHead>
                 <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                  Site
+                </TableHead>
+                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                  Brand
+                </TableHead>
+                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
                   Type
                 </TableHead>
                 <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
@@ -429,7 +459,7 @@ export function ChannelsContent({
               {filteredItems.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={9}
                     className="h-32 px-6 text-center text-muted-foreground"
                   >
                     No channels or genres match your filters.
@@ -456,6 +486,16 @@ export function ChannelsContent({
                           {item.name}
                         </p>
                       </div>
+                    </TableCell>
+                    <TableCell className="px-6 py-4">
+                      <p className="text-sm font-medium text-foreground">
+                        {getSiteName(item.siteId)}
+                      </p>
+                    </TableCell>
+                    <TableCell className="px-6 py-4">
+                      <p className="text-sm font-medium text-foreground">
+                        {getBrandName(item.siteId)}
+                      </p>
                     </TableCell>
                     <TableCell className="px-6 py-4">
                       <Badge variant="outline" className="text-xs font-medium border-border">

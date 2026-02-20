@@ -14,4 +14,6 @@ export interface ChannelOrGenre {
   sitesCount: number
   secondaryCount: number
   available: boolean
+  /** ID of the parent Site or Location */
+  siteId: string
 }

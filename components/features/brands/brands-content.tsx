@@ -1,8 +1,8 @@
 "use client"
 
 import Image from "next/image"
-import { useState, useMemo } from "react"
-import { Search, Building2, ArrowRight, LayoutGrid, List, Globe, Radio, ChevronDown, ChevronUp, MapPin, Users, ShoppingCart, Calendar, DollarSign, VenusAndMars } from "lucide-react"
+import { useState, useMemo, useEffect } from "react"
+import { Search, Building2, ArrowRight, LayoutGrid, List, Globe, Radio, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, MapPin, Users, ShoppingCart, Calendar, DollarSign, VenusAndMars } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -33,6 +33,11 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+} from "@/components/ui/pagination"
 import { cn } from "@/lib/utils"
 import type { Brand } from "@/types"
 import { mockBrands, mockChildSitesByBrand } from "@/services"
@@ -44,11 +49,14 @@ interface BrandsContentProps {
 
 type ViewMode = "card" | "list"
 
+const PAGE_SIZE = 8
+
 export function BrandsContent({ showHeaderAndFeatured = true, scrollContainer = true }: BrandsContentProps) {
   const [search, setSearch] = useState("")
   const [categoryFilter, setCategoryFilter] = useState<string[]>([])
   const [viewMode, setViewMode] = useState<ViewMode>("card")
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null)
+  const [page, setPage] = useState(1)
 
   const childSites = selectedBrand ? (mockChildSitesByBrand[selectedBrand.id] ?? []) : []
 
@@ -77,6 +85,16 @@ export function BrandsContent({ showHeaderAndFeatured = true, scrollContainer = 
         categoryFilter.length === 0 || categoryFilter.includes(brand.category)
       return matchesSearch && matchesCategory
     })
+  }, [search, categoryFilter])
+
+  const totalPages = Math.max(1, Math.ceil(filteredBrands.length / PAGE_SIZE))
+  const paginatedBrands = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE
+    return filteredBrands.slice(start, start + PAGE_SIZE)
+  }, [filteredBrands, page])
+
+  useEffect(() => {
+    setPage(1)
   }, [search, categoryFilter])
 
   function resetAllFilters() {
@@ -229,7 +247,11 @@ export function BrandsContent({ showHeaderAndFeatured = true, scrollContainer = 
               <div className="flex items-center gap-2 rounded-xl bg-card px-4 py-2.5">
                 <Building2 className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-medium text-foreground">
-                  {mockBrands.length} brands
+                  {filteredBrands.length === 0
+                    ? "0 brands"
+                    : totalPages === 1
+                      ? `${filteredBrands.length} brands`
+                      : `${(page - 1) * PAGE_SIZE + 1}–${Math.min(page * PAGE_SIZE, filteredBrands.length)} of ${filteredBrands.length} brands`}
                 </span>
               </div>
             </div>
@@ -242,10 +264,10 @@ export function BrandsContent({ showHeaderAndFeatured = true, scrollContainer = 
                 No brands match your filters.
               </div>
             ) : (
-              filteredBrands.map((brand) => (
+              paginatedBrands.map((brand) => (
                 <div
                   key={brand.id}
-                  className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/20"
+                  className="group flex flex-col overflow-hidden rounded-2xl bg-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/20"
                 >
                   {/* Top: full-width image with overlay badge */}
                   <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden bg-secondary">
@@ -335,7 +357,7 @@ export function BrandsContent({ showHeaderAndFeatured = true, scrollContainer = 
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredBrands.map((brand) => (
+                paginatedBrands.map((brand) => (
                   <TableRow
                     key={brand.id}
                     className="border-border transition-colors hover:bg-accent/50"
@@ -377,7 +399,7 @@ export function BrandsContent({ showHeaderAndFeatured = true, scrollContainer = 
                         className="text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10 hover:text-[hsl(var(--primary))]"
                         onClick={() => setSelectedBrand(brand)}
                       >
-                        Explore
+                        View Details
                         <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
                       </Button>
                     </TableCell>
@@ -388,6 +410,57 @@ export function BrandsContent({ showHeaderAndFeatured = true, scrollContainer = 
           </Table>
         </div>
         )}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-6 flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
+                <p className="text-sm text-muted-foreground order-2 sm:order-1 whitespace-nowrap">Page {page} of {totalPages}</p>
+                <Pagination className="order-1 sm:order-2">
+                  <PaginationContent className="gap-1">
+                    <PaginationItem>
+                      <Button
+                        variant="ghost"
+                        size="default"
+                        className="gap-1 pl-2.5 h-9"
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        disabled={page <= 1}
+                        aria-label="Go to previous page"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        Previous
+                      </Button>
+                    </PaginationItem>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                      <PaginationItem key={p}>
+                        <Button
+                          variant={page === p ? "outline" : "ghost"}
+                          size="icon"
+                          className="h-9 w-9"
+                          onClick={() => setPage(p)}
+                          aria-current={page === p ? "page" : undefined}
+                          aria-label={`Go to page ${p}`}
+                        >
+                          {p}
+                        </Button>
+                      </PaginationItem>
+                    ))}
+                    <PaginationItem>
+                      <Button
+                        variant="ghost"
+                        size="default"
+                        className="gap-1 pr-2.5 h-9"
+                        onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                        disabled={page >= totalPages}
+                        aria-label="Go to next page"
+                      >
+                        Next
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
           </div>
 
           {/* Right: Filters sidebar */}

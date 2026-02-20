@@ -20,4 +20,6 @@ export interface SiteOrLocation {
   metric: string
   /** Price in USD (e.g. monthly or one-time) */
   price: number
+  /** ID of the parent Brand */
+  brandId: string
 }

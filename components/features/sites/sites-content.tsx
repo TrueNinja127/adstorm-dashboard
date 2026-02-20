@@ -44,7 +44,7 @@ import {
 import { UsStatesMap } from "./us-states-map"
 import { cn } from "@/lib/utils"
 import type { SiteOrLocationType } from "@/types"
-import { mockSitesAndLocations, US_STATES } from "@/services"
+import { mockSitesAndLocations, US_STATES, mockBrands } from "@/services"
 import { useCart } from "@/contexts/cart-context"
 import { useToast } from "@/hooks/use-toast"
 
@@ -65,6 +65,11 @@ interface SitesContentProps {
 }
 
 type ViewMode = "card" | "list"
+
+function getBrandName(brandId: string): string {
+  const brand = mockBrands.find((b) => b.id === brandId)
+  return brand?.title || "Unknown Brand"
+}
 
 export function SitesContent({
   showHeaderAndFeatured = true,
@@ -253,6 +258,9 @@ export function SitesContent({
                             </Badge>
                           </div>
                           <p className="mt-1 truncate text-xs text-muted-foreground">
+                            Brand: {getBrandName(item.brandId)}
+                          </p>
+                          <p className="mt-0.5 truncate text-xs text-muted-foreground">
                             {item.cityName}, {item.stateName}
                           </p>
                           <p className="mt-0.5 text-[11px] text-muted-foreground">
@@ -417,6 +425,10 @@ export function SitesContent({
                     {item.name}
                   </h3>
                   <p className="mt-1 flex items-center gap-1.5 truncate text-xs text-muted-foreground">
+                    <Building2 className="h-3.5 w-3.5 shrink-0" />
+                    Brand: {getBrandName(item.brandId)}
+                  </p>
+                  <p className="mt-1 flex items-center gap-1.5 truncate text-xs text-muted-foreground">
                     <MapPin className="h-3.5 w-3.5 shrink-0" />
                     {item.cityName}, {item.stateName}
                   </p>
@@ -470,6 +482,9 @@ export function SitesContent({
                   Name
                 </TableHead>
                 <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                  Brand
+                </TableHead>
+                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
                   Type
                 </TableHead>
                 <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
@@ -502,7 +517,7 @@ export function SitesContent({
               {filteredItems.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={10}
+                    colSpan={11}
                     className="h-32 px-6 text-center text-muted-foreground"
                   >
                     No sites or locations match your filters.
@@ -534,6 +549,11 @@ export function SitesContent({
                           </p>
                         </div>
                       </div>
+                    </TableCell>
+                    <TableCell className="px-6 py-4">
+                      <p className="text-sm font-medium text-foreground">
+                        {getBrandName(item.brandId)}
+                      </p>
                     </TableCell>
                     <TableCell className="px-6 py-4">
                       <Badge variant="secondary" className="text-xs font-medium">
