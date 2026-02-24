@@ -20,11 +20,15 @@ import {
   Building2,
   MapPin,
   Tv,
+  Sparkles,
   type LucideIcon,
+  Bot,
 } from "lucide-react"
 import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
 import { ThemeToggle } from "@/components/theme"
+import { useChatbot } from "@/contexts/chatbot-context"
+import { useCreateCampaign } from "@/contexts/create-campaign-context"
 
 interface SubItem {
   icon: LucideIcon
@@ -70,6 +74,8 @@ function pathnameToLabel(pathname: string): string | null {
 export function Sidebar() {
   const pathname = usePathname()
   const { resolvedTheme } = useTheme()
+  const { openChatbot } = useChatbot()
+  const { openCreateCampaign } = useCreateCampaign()
   const [activeItem, setActiveItem] = useState("Dashboard")
   const [collapsed, setCollapsed] = useState(false)
   const [marketplaceOpen, setMarketplaceOpen] = useState(false)
@@ -216,7 +222,7 @@ export function Sidebar() {
         <div className="mx-4 mb-5 rounded-2xl bg-[hsl(var(--primary))] p-4">
           <h4 className="font-display text-sm font-bold text-[#0a0a0a]">New Campaign</h4>
           <p className="mt-1 text-xs leading-relaxed text-[#0a0a0a]/70">Ready to advertise? Launch a campaign and start reaching your audience now.</p>
-          <button className="btn-gelatine mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#0a0a0a] py-2.5 text-xs font-semibold text-[hsl(var(--primary))] transition-opacity hover:opacity-90">
+          <button onClick={openCreateCampaign} className="btn-gelatine mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#0a0a0a] py-2.5 text-xs font-semibold text-[hsl(var(--primary))] transition-opacity hover:opacity-90">
             <Plus className="h-4 w-4" strokeWidth={2.5} />
             New Campaign
           </button>
@@ -224,12 +230,26 @@ export function Sidebar() {
       )}
 
       {collapsed && (
-        <div className="mb-5 flex justify-center">
-          <button title="New Campaign" className="btn-gelatine flex h-10 w-10 items-center justify-center rounded-xl bg-[hsl(var(--primary))] text-[#0a0a0a] transition-opacity hover:opacity-90">
+        <div className="mb-4 flex justify-center">
+          <button onClick={openCreateCampaign} title="New Campaign" className="btn-gelatine flex h-10 w-10 items-center justify-center rounded-xl bg-[hsl(var(--primary))] text-[#0a0a0a] transition-opacity hover:opacity-90">
             <Plus className="h-5 w-5" strokeWidth={2.5} />
           </button>
         </div>
       )}
+
+      <div className={cn("mx-4 mb-5", collapsed && "flex justify-center")}>
+        <button
+          onClick={openChatbot}
+          title="AI Assist"
+          className={cn(
+            "btn-gelatine flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-sidebar-accent/50 py-2.5 text-sm font-medium text-[hsl(var(--sidebar-foreground))] transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+            collapsed && "h-10 w-10 p-0"
+          )}
+        >
+          <Bot className="h-4 w-4 shrink-0" strokeWidth={2} />
+          {!collapsed && <span className="font-display">AI Assist</span>}
+        </button>
+      </div>
     </aside>
   )
 }

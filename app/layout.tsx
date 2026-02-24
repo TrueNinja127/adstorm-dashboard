@@ -4,6 +4,9 @@ import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from "@/components/theme"
 import { ColorThemeProvider } from "@/contexts/color-theme-context"
 import { CartProvider } from "@/contexts/cart-context"
+import { ChatbotProvider } from "@/contexts/chatbot-context"
+import { CreateCampaignProvider } from "@/contexts/create-campaign-context"
+import { CreateCampaignDialog } from "@/components/layout/create-campaign-dialog"
 import "./globals.css"
 
 const dmSans = DM_Sans({
@@ -34,8 +37,13 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <ColorThemeProvider>
             <CartProvider>
-              {children}
-              <Toaster />
+              <CreateCampaignProvider>
+                <ChatbotProvider>
+                  {children}
+                  <Toaster />
+                </ChatbotProvider>
+                <CreateCampaignDialog />
+              </CreateCampaignProvider>
             </CartProvider>
           </ColorThemeProvider>
         </ThemeProvider>

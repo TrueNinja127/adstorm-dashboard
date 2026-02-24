@@ -3,9 +3,10 @@
 import { useState } from "react"
 import { MessageCircle, X, Send, Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useChatbot } from "@/contexts/chatbot-context"
 
 export function Chatbot() {
-  const [isOpen, setIsOpen] = useState(false)
+  const { isOpen, closeChatbot, toggleChatbot } = useChatbot()
   const [message, setMessage] = useState("")
 
   return (
@@ -22,7 +23,7 @@ export function Chatbot() {
                 <p className="text-[10px] text-emerald-400">Online</p>
               </div>
             </div>
-            <button onClick={() => setIsOpen(false)} className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
+            <button onClick={closeChatbot} className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
               <X className="h-3.5 w-3.5" />
             </button>
           </div>
@@ -47,7 +48,7 @@ export function Chatbot() {
         </div>
       )}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={toggleChatbot}
         className={cn(
           "btn-gelatine fixed bottom-5 right-5 z-50 flex h-11 w-11 items-center justify-center rounded-full shadow-lg transition-all duration-200",
           isOpen ? "bg-secondary text-foreground" : "bg-primary text-primary-foreground"
