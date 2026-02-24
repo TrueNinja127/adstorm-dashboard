@@ -39,9 +39,7 @@ export function LoadingScreen({ onComplete }: { onComplete: () => void }) {
 
   useEffect(() => {
     const stepTimer = setInterval(() => {
-      setStepIndex((prev) =>
-        prev < loadingSteps.length - 1 ? prev + 1 : prev
-      )
+      setStepIndex((prev) => (prev < loadingSteps.length - 1 ? prev + 1 : prev))
     }, 480)
     return () => clearInterval(stepTimer)
   }, [])

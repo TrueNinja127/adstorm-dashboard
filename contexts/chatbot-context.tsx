@@ -24,7 +24,9 @@ export function ChatbotProvider({ children }: { children: React.ReactNode }) {
     toggleChatbot,
   }
 
-  return <ChatbotContext.Provider value={value}>{children}</ChatbotContext.Provider>
+  return (
+    <ChatbotContext.Provider value={value}>{children}</ChatbotContext.Provider>
+  )
 }
 
 export function useChatbot() {

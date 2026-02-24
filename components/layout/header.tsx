@@ -68,12 +68,90 @@ interface Notification {
 }
 
 const notifications: Notification[] = [
-  { id: 1, icon: Megaphone, accentColor: "text-[hsl(var(--primary))]", accentBg: "bg-orange-500/10", borderAccent: "border-l-[hsl(var(--primary))]", category: "campaigns", title: "Campaign \"Summer Sale\" is live", description: "Your campaign has been approved and is now running across 12 channels.", time: "2m", timeLabel: "2 min ago", unread: true, action: "View Campaign" },
-  { id: 2, icon: TrendingUp, accentColor: "text-emerald-400", accentBg: "bg-emerald-500/10", borderAccent: "border-l-emerald-400", category: "campaigns", title: "Impressions milestone reached", description: "Brand Networks campaign hit 50K impressions. Performance is above average.", time: "1h", timeLabel: "1 hour ago", unread: true, action: "View Analytics" },
-  { id: 3, icon: AlertCircle, accentColor: "text-amber-400", accentBg: "bg-amber-500/10", borderAccent: "border-l-amber-400", category: "billing", title: "Low balance warning", description: "Your account balance is below $20. Top up to keep your campaigns running.", time: "3h", timeLabel: "3 hours ago", unread: true, action: "Top Up Now" },
-  { id: 4, icon: CheckCircle2, accentColor: "text-sky-400", accentBg: "bg-sky-400/10", borderAccent: "border-l-sky-400", category: "campaigns", title: "Ad review completed", description: "Your ad \"Holiday Promo\" passed moderation review.", time: "1d", timeLabel: "Yesterday", unread: false },
-  { id: 5, icon: Receipt, accentColor: "text-muted-foreground", accentBg: "bg-secondary", borderAccent: "border-l-border", category: "billing", title: "Payment processed", description: "Invoice #1042 for $250.00 has been successfully paid.", time: "2d", timeLabel: "2 days ago", unread: false },
-  { id: 6, icon: Zap, accentColor: "text-violet-400", accentBg: "bg-violet-400/10", borderAccent: "border-l-violet-400", category: "system", title: "New AI targeting available", description: "Smart Automation now supports audience lookalike targeting.", time: "3d", timeLabel: "3 days ago", unread: false },
+  {
+    id: 1,
+    icon: Megaphone,
+    accentColor: "text-[hsl(var(--primary))]",
+    accentBg: "bg-orange-500/10",
+    borderAccent: "border-l-[hsl(var(--primary))]",
+    category: "campaigns",
+    title: 'Campaign "Summer Sale" is live',
+    description:
+      "Your campaign has been approved and is now running across 12 channels.",
+    time: "2m",
+    timeLabel: "2 min ago",
+    unread: true,
+    action: "View Campaign",
+  },
+  {
+    id: 2,
+    icon: TrendingUp,
+    accentColor: "text-emerald-400",
+    accentBg: "bg-emerald-500/10",
+    borderAccent: "border-l-emerald-400",
+    category: "campaigns",
+    title: "Impressions milestone reached",
+    description:
+      "Brand Networks campaign hit 50K impressions. Performance is above average.",
+    time: "1h",
+    timeLabel: "1 hour ago",
+    unread: true,
+    action: "View Analytics",
+  },
+  {
+    id: 3,
+    icon: AlertCircle,
+    accentColor: "text-amber-400",
+    accentBg: "bg-amber-500/10",
+    borderAccent: "border-l-amber-400",
+    category: "billing",
+    title: "Low balance warning",
+    description:
+      "Your account balance is below $20. Top up to keep your campaigns running.",
+    time: "3h",
+    timeLabel: "3 hours ago",
+    unread: true,
+    action: "Top Up Now",
+  },
+  {
+    id: 4,
+    icon: CheckCircle2,
+    accentColor: "text-sky-400",
+    accentBg: "bg-sky-400/10",
+    borderAccent: "border-l-sky-400",
+    category: "campaigns",
+    title: "Ad review completed",
+    description: 'Your ad "Holiday Promo" passed moderation review.',
+    time: "1d",
+    timeLabel: "Yesterday",
+    unread: false,
+  },
+  {
+    id: 5,
+    icon: Receipt,
+    accentColor: "text-muted-foreground",
+    accentBg: "bg-secondary",
+    borderAccent: "border-l-border",
+    category: "billing",
+    title: "Payment processed",
+    description: "Invoice #1042 for $250.00 has been successfully paid.",
+    time: "2d",
+    timeLabel: "2 days ago",
+    unread: false,
+  },
+  {
+    id: 6,
+    icon: Zap,
+    accentColor: "text-violet-400",
+    accentBg: "bg-violet-400/10",
+    borderAccent: "border-l-violet-400",
+    category: "system",
+    title: "New AI targeting available",
+    description: "Smart Automation now supports audience lookalike targeting.",
+    time: "3d",
+    timeLabel: "3 days ago",
+    unread: false,
+  },
 ]
 
 const categoryTabs: { label: string; value: NotifCategory }[] = [
@@ -95,7 +173,12 @@ function formatPrice(amount: number) {
 export function Header() {
   const { toast } = useToast()
   const { resolvedTheme, setTheme } = useTheme()
-  const { items: cartItems, count: cartCount, removeItem, clearCart } = useCart()
+  const {
+    items: cartItems,
+    count: cartCount,
+    removeItem,
+    clearCart,
+  } = useCart()
   const cartTotal = cartItems.reduce((sum, item) => sum + (item.price ?? 0), 0)
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
@@ -111,11 +194,18 @@ export function Header() {
   const notifRef = useRef<HTMLDivElement>(null)
 
   const unreadCount = notifList.filter((n) => n.unread).length
-  const filtered = activeTab === "all" ? notifList : notifList.filter((n) => n.category === activeTab)
+  const filtered =
+    activeTab === "all"
+      ? notifList
+      : notifList.filter((n) => n.category === activeTab)
 
   function markAllRead() {
     setNotifList((prev) => prev.map((n) => ({ ...n, unread: false })))
-    toast({ variant: "success", title: "Success!", description: "All notifications have been marked as read." })
+    toast({
+      variant: "success",
+      title: "Success!",
+      description: "All notifications have been marked as read.",
+    })
   }
 
   function dismissNotif(id: number) {
@@ -124,8 +214,10 @@ export function Header() {
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (profileRef.current && !profileRef.current.contains(e.target as Node)) setIsProfileOpen(false)
-      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setIsNotifOpen(false)
+      if (profileRef.current && !profileRef.current.contains(e.target as Node))
+        setIsProfileOpen(false)
+      if (notifRef.current && !notifRef.current.contains(e.target as Node))
+        setIsNotifOpen(false)
     }
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
@@ -178,27 +270,47 @@ export function Header() {
           aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
           className="btn-gelatine flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition-colors hover:text-foreground"
         >
-          {mounted && isDark ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
+          {mounted && isDark ? (
+            <Sun className="h-[18px] w-[18px]" />
+          ) : (
+            <Moon className="h-[18px] w-[18px]" />
+          )}
         </button>
 
         <div ref={notifRef} className="relative">
           <button
-            onClick={() => { setIsNotifOpen(!isNotifOpen); setIsProfileOpen(false) }}
+            onClick={() => {
+              setIsNotifOpen(!isNotifOpen)
+              setIsProfileOpen(false)
+            }}
             className="btn-gelatine relative flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition-colors hover:text-foreground"
           >
             <Bell className="h-[18px] w-[18px]" />
             {unreadCount > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground ring-2 ring-background">{unreadCount}</span>
+              <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground ring-2 ring-background">
+                {unreadCount}
+              </span>
             )}
           </button>
           {isNotifOpen && (
             <div className="absolute right-0 top-full z-50 mt-2 w-[400px] origin-top-right animate-scale-in rounded-2xl bg-card shadow-2xl ring-1 ring-border">
               <div className="flex items-center justify-between px-5 pt-4 pb-2">
                 <div className="flex items-center gap-2.5">
-                  <h3 className="font-display text-[15px] font-bold text-foreground">Notifications</h3>
-                  {unreadCount > 0 && <span className="flex h-5 items-center rounded-md bg-primary/15 px-1.5 text-[11px] font-bold text-primary">{unreadCount} new</span>}
+                  <h3 className="font-display text-[15px] font-bold text-foreground">
+                    Notifications
+                  </h3>
+                  {unreadCount > 0 && (
+                    <span className="flex h-5 items-center rounded-md bg-primary/15 px-1.5 text-[11px] font-bold text-primary">
+                      {unreadCount} new
+                    </span>
+                  )}
                 </div>
-                <button onClick={markAllRead} className="text-[11px] font-semibold text-primary transition-colors hover:text-primary/80">Mark all read</button>
+                <button
+                  onClick={markAllRead}
+                  className="text-[11px] font-semibold text-primary transition-colors hover:text-primary/80"
+                >
+                  Mark all read
+                </button>
               </div>
               <div className="flex gap-1 px-5 py-2">
                 {categoryTabs.map((tab) => (
@@ -216,26 +328,49 @@ export function Header() {
                 {filtered.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-10 text-center">
                     <Bell className="mb-2 h-8 w-8 text-muted-foreground/30" />
-                    <p className="text-[13px] text-muted-foreground">No notifications</p>
+                    <p className="text-[13px] text-muted-foreground">
+                      No notifications
+                    </p>
                   </div>
                 ) : (
                   filtered.map((notif, idx) => (
-                    <div key={notif.id} className={`group relative mb-1.5 rounded-xl p-3 transition-all duration-200 hover:bg-secondary/60 ${notif.unread ? "bg-secondary/30" : "bg-transparent"}`} style={{ animationDelay: `${idx * 50}ms` }}>
-                      <button onClick={() => dismissNotif(notif.id)} className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground/40 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-secondary hover:text-foreground">
+                    <div
+                      key={notif.id}
+                      className={`group relative mb-1.5 rounded-xl p-3 transition-all duration-200 hover:bg-secondary/60 ${notif.unread ? "bg-secondary/30" : "bg-transparent"}`}
+                      style={{ animationDelay: `${idx * 50}ms` }}
+                    >
+                      <button
+                        onClick={() => dismissNotif(notif.id)}
+                        className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground/40 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-secondary hover:text-foreground"
+                      >
                         <X className="h-3 w-3" />
                       </button>
                       <div className="flex items-start gap-3">
-                        <div className={`mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${notif.accentBg}`}>
-                          <notif.icon className={`h-4 w-4 ${notif.accentColor}`} />
+                        <div
+                          className={`mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${notif.accentBg}`}
+                        >
+                          <notif.icon
+                            className={`h-4 w-4 ${notif.accentColor}`}
+                          />
                         </div>
                         <div className="flex-1 overflow-hidden pr-4">
                           <div className="flex items-center gap-2">
-                            <p className={`text-[13px] leading-snug ${notif.unread ? "font-bold text-foreground" : "font-medium text-foreground/70"}`}>{notif.title}</p>
-                            {notif.unread && <span className="h-2 w-2 flex-shrink-0 rounded-full bg-primary" />}
+                            <p
+                              className={`text-[13px] leading-snug ${notif.unread ? "font-bold text-foreground" : "font-medium text-foreground/70"}`}
+                            >
+                              {notif.title}
+                            </p>
+                            {notif.unread && (
+                              <span className="h-2 w-2 flex-shrink-0 rounded-full bg-primary" />
+                            )}
                           </div>
-                          <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground/70">{notif.description}</p>
+                          <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground/70">
+                            {notif.description}
+                          </p>
                           <div className="mt-2 flex items-center gap-3">
-                            <span className="text-[10px] font-medium text-muted-foreground/50">{notif.timeLabel}</span>
+                            <span className="text-[10px] font-medium text-muted-foreground/50">
+                              {notif.timeLabel}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -258,47 +393,77 @@ export function Header() {
 
         <div ref={profileRef} className="relative">
           <button
-            onClick={() => { setIsProfileOpen(!isProfileOpen); setIsNotifOpen(false) }}
+            onClick={() => {
+              setIsProfileOpen(!isProfileOpen)
+              setIsNotifOpen(false)
+            }}
             className="btn-gelatine flex items-center gap-3 rounded-xl px-2 py-1.5 transition-colors hover:bg-card"
           >
             <Avatar className="h-9 w-9">
-              <AvatarFallback className="bg-primary/15 text-xs font-bold text-primary">JD</AvatarFallback>
+              <AvatarFallback className="bg-primary/15 text-xs font-bold text-primary">
+                JD
+              </AvatarFallback>
             </Avatar>
             <div className="flex flex-col items-start">
-              <span className="text-sm font-semibold text-foreground">John Doe</span>
-              <span className="text-[11px] text-muted-foreground">Advertiser</span>
+              <span className="text-sm font-semibold text-foreground">
+                John Doe
+              </span>
+              <span className="text-[11px] text-muted-foreground">
+                Advertiser
+              </span>
             </div>
-            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${isProfileOpen ? "rotate-180" : ""}`} />
+            <ChevronDown
+              className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${isProfileOpen ? "rotate-180" : ""}`}
+            />
           </button>
 
           {isProfileOpen && (
             <div className="absolute right-0 top-full z-50 mt-2 w-56 origin-top-right animate-scale-in rounded-xl bg-card p-1.5 shadow-xl ring-1 ring-border">
               <div className="flex items-center gap-3 px-3 py-3">
                 <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-primary/15 text-sm font-bold text-primary">JD</AvatarFallback>
+                  <AvatarFallback className="bg-primary/15 text-sm font-bold text-primary">
+                    JD
+                  </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
-                  <span className="text-sm font-semibold text-foreground">John Doe</span>
-                  <span className="text-[11px] text-muted-foreground">john@adstorm.com</span>
+                  <span className="text-sm font-semibold text-foreground">
+                    John Doe
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">
+                    john@adstorm.com
+                  </span>
                 </div>
               </div>
               <div className="mx-2 my-1 h-px bg-border" />
               <div className="py-1">
                 {dropdownItems.map((item) => (
-                  <button key={item.label} onClick={() => setIsProfileOpen(false)} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                  <button
+                    key={item.label}
+                    onClick={() => setIsProfileOpen(false)}
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                  >
                     <item.icon className="h-4 w-4" />
                     {item.label}
                   </button>
                 ))}
               </div>
               <div className="mx-2 my-1 h-px bg-border" />
-              <button onClick={() => { setIsProfileOpen(false); setIsThemesOpen(true) }} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+              <button
+                onClick={() => {
+                  setIsProfileOpen(false)
+                  setIsThemesOpen(true)
+                }}
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              >
                 <PaintRoller className="h-4 w-4" />
                 Themes
               </button>
               <div className="mx-2 my-1 h-px bg-border" />
               <div className="py-1">
-                <button onClick={() => setIsProfileOpen(false)} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-red-400 transition-colors hover:bg-red-400/10">
+                <button
+                  onClick={() => setIsProfileOpen(false)}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-red-400 transition-colors hover:bg-red-400/10"
+                >
                   <LogOut className="h-4 w-4" />
                   Logout
                 </button>
@@ -323,7 +488,10 @@ export function Header() {
                 Your cart
               </SheetTitle>
               {cartCount > 0 && (
-                <Badge variant="secondary" className="font-semibold tabular-nums">
+                <Badge
+                  variant="secondary"
+                  className="font-semibold tabular-nums"
+                >
                   {cartCount} item{cartCount !== 1 ? "s" : ""}
                 </Badge>
               )}
@@ -341,7 +509,8 @@ export function Header() {
                     Your cart is empty
                   </p>
                   <p className="max-w-[240px] text-sm leading-relaxed text-muted-foreground">
-                    Add sites or locations from the Sites &amp; Locations page to get started.
+                    Add sites or locations from the Sites &amp; Locations page
+                    to get started.
                   </p>
                 </div>
                 <Button
@@ -376,7 +545,10 @@ export function Header() {
                             {item.name}
                           </p>
                           <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                            <Badge variant="secondary" className="text-[10px] font-medium">
+                            <Badge
+                              variant="secondary"
+                              className="text-[10px] font-medium"
+                            >
                               {item.type === "site" ? "Site" : "Location"}
                             </Badge>
                             <span className="flex items-center gap-0.5 text-[11px] text-muted-foreground">

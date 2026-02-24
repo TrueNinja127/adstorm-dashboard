@@ -1,7 +1,17 @@
 "use client"
 
 import { useState, useRef, useCallback, useEffect } from "react"
-import { Upload, X, Video, Loader2, CheckCircle2, Sparkles, Film, Play, Pause } from "lucide-react"
+import {
+  Upload,
+  X,
+  Video,
+  Loader2,
+  CheckCircle2,
+  Sparkles,
+  Film,
+  Play,
+  Pause,
+} from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -25,7 +35,7 @@ function formatFileSize(bytes: number): string {
   const k = 1024
   const sizes = ["Bytes", "KB", "MB", "GB"]
   const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + " " + sizes[i]
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i]
 }
 
 function formatDuration(seconds: number): string {
@@ -52,7 +62,7 @@ export function UploadAdDialog({ open, onOpenChange }: UploadAdDialogProps) {
 
   function handlePlayPause() {
     if (!videoRef.current) return
-    
+
     if (isPlaying) {
       videoRef.current.pause()
       setIsPlaying(false)
@@ -91,12 +101,12 @@ export function UploadAdDialog({ open, onOpenChange }: UploadAdDialogProps) {
 
   function handleSeek(e: React.MouseEvent<HTMLDivElement>) {
     if (!videoRef.current || !videoDuration) return
-    
+
     const rect = e.currentTarget.getBoundingClientRect()
     const x = e.clientX - rect.left
     const percentage = x / rect.width
     const newTime = percentage * videoDuration
-    
+
     videoRef.current.currentTime = newTime
     setCurrentTime(newTime)
   }
@@ -119,7 +129,7 @@ export function UploadAdDialog({ open, onOpenChange }: UploadAdDialogProps) {
     }
 
     setFile(file)
-    
+
     // Create preview URL
     const url = URL.createObjectURL(file)
     setVideoPreview(url)
@@ -138,13 +148,16 @@ export function UploadAdDialog({ open, onOpenChange }: UploadAdDialogProps) {
     setIsDragging(false)
   }
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (!isUploading) {
-      setIsDragging(true)
-    }
-  }, [isUploading])
+  const handleDragOver = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      if (!isUploading) {
+        setIsDragging(true)
+      }
+    },
+    [isUploading]
+  )
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -152,18 +165,21 @@ export function UploadAdDialog({ open, onOpenChange }: UploadAdDialogProps) {
     setIsDragging(false)
   }, [])
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragging(false)
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      setIsDragging(false)
 
-    if (isUploading) return
+      if (isUploading) return
 
-    const droppedFile = e.dataTransfer.files?.[0]
-    if (droppedFile) {
-      handleFileSelect(droppedFile)
-    }
-  }, [isUploading])
+      const droppedFile = e.dataTransfer.files?.[0]
+      if (droppedFile) {
+        handleFileSelect(droppedFile)
+      }
+    },
+    [isUploading]
+  )
 
   function handleUpload() {
     if (!file) {
@@ -267,7 +283,6 @@ export function UploadAdDialog({ open, onOpenChange }: UploadAdDialogProps) {
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl border-border/60 bg-gradient-to-b from-background via-background to-muted/30 shadow-2xl backdrop-blur-sm !grid-rows-[auto_1fr_auto]">
         <DialogHeader className="space-y-4 pb-4 border-b border-border/50 shrink-0">
           <div className="flex items-start gap-4">
-            
             <div className="flex-1 space-y-1">
               <DialogTitle className="font-display text-2xl font-bold tracking-tight">
                 Upload Video Ad
@@ -279,7 +294,10 @@ export function UploadAdDialog({ open, onOpenChange }: UploadAdDialogProps) {
         <div className="space-y-6 py-4 overflow-y-auto min-h-0">
           {/* Ad Name Input */}
           <div className="space-y-2.5 animate-fade-in">
-            <Label htmlFor="ad-name" className="text-sm font-semibold text-foreground">
+            <Label
+              htmlFor="ad-name"
+              className="text-sm font-semibold text-foreground"
+            >
               AD File Name
             </Label>
             <Input
@@ -330,9 +348,9 @@ export function UploadAdDialog({ open, onOpenChange }: UploadAdDialogProps) {
                   <div className="relative flex h-16 w-16 items-center justify-center">
                     <div className="absolute inset-0 rounded-xl bg-muted/40" />
                     <div className="relative flex h-14 w-14 items-center justify-center rounded-xl border border-border/60 bg-card/50 backdrop-blur-sm transition-all duration-300 group-hover:border-border group-hover:bg-card/80">
-                      <svg 
-                        className="h-7 w-7 text-muted-foreground transition-all group-hover:scale-110" 
-                        viewBox="0 0 32 32" 
+                      <svg
+                        className="h-7 w-7 text-muted-foreground transition-all group-hover:scale-110"
+                        viewBox="0 0 32 32"
                         fill="currentColor"
                         xmlns="http://www.w3.org/2000/svg"
                       >
@@ -358,12 +376,15 @@ export function UploadAdDialog({ open, onOpenChange }: UploadAdDialogProps) {
                   <div className="relative overflow-hidden rounded-xl border border-border bg-card/90 shadow-lg">
                     {videoPreview ? (
                       <div className="relative w-full bg-muted rounded-t-xl overflow-hidden group">
-                        <div className="relative w-full flex items-center justify-center" style={{ height: '300px', maxHeight: '300px' }}>
+                        <div
+                          className="relative w-full flex items-center justify-center"
+                          style={{ height: "300px", maxHeight: "300px" }}
+                        >
                           <video
                             ref={videoRef}
                             src={videoPreview}
                             className="max-h-full max-w-full w-auto h-auto object-contain"
-                            style={{ maxHeight: '300px', maxWidth: '100%' }}
+                            style={{ maxHeight: "300px", maxWidth: "100%" }}
                             muted
                             playsInline
                             onEnded={handleVideoEnded}
@@ -373,7 +394,7 @@ export function UploadAdDialog({ open, onOpenChange }: UploadAdDialogProps) {
                             onClick={handlePlayPause}
                           />
                         </div>
-                        
+
                         {/* Play Button Overlay - Hidden when playing */}
                         {!isPlaying && (
                           <button
@@ -382,26 +403,31 @@ export function UploadAdDialog({ open, onOpenChange }: UploadAdDialogProps) {
                             className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm transition-opacity opacity-100"
                           >
                             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/20 backdrop-blur-md ring-2 ring-white/30 hover:bg-white/30 transition-all hover:scale-110">
-                              <Play className="h-6 w-6 text-white ml-1" fill="white" />
+                              <Play
+                                className="h-6 w-6 text-white ml-1"
+                                fill="white"
+                              />
                             </div>
                           </button>
                         )}
 
                         {/* Video Controls Bar - Shown when playing */}
                         {isPlaying && showControls && (
-                          <div 
+                          <div
                             className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent p-4 transition-opacity"
                             onMouseEnter={() => setShowControls(true)}
                             onMouseLeave={() => setShowControls(true)}
                           >
                             {/* Progress Bar */}
-                            <div 
+                            <div
                               className="w-full h-1.5 bg-white/20 rounded-full mb-3 cursor-pointer group/progress"
                               onClick={handleSeek}
                             >
-                              <div 
+                              <div
                                 className="h-full bg-primary rounded-full transition-all relative"
-                                style={{ width: `${videoDuration ? (currentTime / videoDuration) * 100 : 0}%` }}
+                                style={{
+                                  width: `${videoDuration ? (currentTime / videoDuration) * 100 : 0}%`,
+                                }}
                               >
                                 <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-3 h-3 rounded-full bg-primary opacity-0 group-hover/progress:opacity-100 transition-opacity" />
                               </div>
@@ -414,13 +440,20 @@ export function UploadAdDialog({ open, onOpenChange }: UploadAdDialogProps) {
                                 onClick={handlePlayPause}
                                 className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors"
                               >
-                                <Pause className="h-4 w-4 text-white" fill="white" />
+                                <Pause
+                                  className="h-4 w-4 text-white"
+                                  fill="white"
+                                />
                               </button>
-                              
+
                               <div className="flex-1 flex items-center gap-2 text-xs text-white tabular-nums">
                                 <span>{formatDuration(currentTime)}</span>
                                 <span>/</span>
-                                <span>{videoDuration ? formatDuration(videoDuration) : '0:00'}</span>
+                                <span>
+                                  {videoDuration
+                                    ? formatDuration(videoDuration)
+                                    : "0:00"}
+                                </span>
                               </div>
 
                               {videoDuration && (
@@ -435,11 +468,14 @@ export function UploadAdDialog({ open, onOpenChange }: UploadAdDialogProps) {
                         )}
                       </div>
                     ) : (
-                      <div className="flex items-center justify-center bg-muted rounded-t-xl" style={{ height: '300px' }}>
+                      <div
+                        className="flex items-center justify-center bg-muted rounded-t-xl"
+                        style={{ height: "300px" }}
+                      >
                         <Video className="h-12 w-12 text-muted-foreground" />
                       </div>
                     )}
-                    
+
                     <div className="p-4 space-y-3">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0 space-y-2">
@@ -451,22 +487,31 @@ export function UploadAdDialog({ open, onOpenChange }: UploadAdDialogProps) {
                           </div>
                           <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
                             <div className="flex items-center gap-3">
-                            <span className="font-medium">{formatFileSize(file.size)}</span>
-                            {videoDuration && (
-                              <>
-                                <span>•</span>
-                                <span className="tabular-nums">{formatDuration(videoDuration)}</span>
-                              </>
-                            )}
-                            <span>•</span>
-                            <span className="uppercase">{file.type.split("/")[1] || "Video"}</span>
+                              <span className="font-medium">
+                                {formatFileSize(file.size)}
+                              </span>
+                              {videoDuration && (
+                                <>
+                                  <span>•</span>
+                                  <span className="tabular-nums">
+                                    {formatDuration(videoDuration)}
+                                  </span>
+                                </>
+                              )}
+                              <span>•</span>
+                              <span className="uppercase">
+                                {file.type.split("/")[1] || "Video"}
+                              </span>
                             </div>
                             {isUploading && (
                               <>
                                 <div className="flex items-center gap-2">
                                   {/* Small Circular Progress Chart */}
                                   <div className="relative flex h-5 w-5 shrink-0 items-center justify-center">
-                                    <svg className="h-5 w-5 -rotate-90 transform" viewBox="0 0 36 36">
+                                    <svg
+                                      className="h-5 w-5 -rotate-90 transform"
+                                      viewBox="0 0 36 36"
+                                    >
                                       {/* Background circle */}
                                       <circle
                                         cx="18"
@@ -489,7 +534,9 @@ export function UploadAdDialog({ open, onOpenChange }: UploadAdDialogProps) {
                                         strokeLinecap="round"
                                         className={cn(
                                           "transition-all duration-300",
-                                          uploadProgress === 100 ? "text-emerald-500" : "text-primary"
+                                          uploadProgress === 100
+                                            ? "text-emerald-500"
+                                            : "text-primary"
                                         )}
                                       />
                                     </svg>
@@ -501,10 +548,14 @@ export function UploadAdDialog({ open, onOpenChange }: UploadAdDialogProps) {
                                       )}
                                     </div>
                                   </div>
-                                  <span className={cn(
-                                    "font-bold tabular-nums",
-                                    uploadProgress === 100 ? "text-emerald-500" : "text-primary"
-                                  )}>
+                                  <span
+                                    className={cn(
+                                      "font-bold tabular-nums",
+                                      uploadProgress === 100
+                                        ? "text-emerald-500"
+                                        : "text-primary"
+                                    )}
+                                  >
                                     {Math.round(uploadProgress)}%
                                   </span>
                                 </div>
@@ -559,14 +610,11 @@ export function UploadAdDialog({ open, onOpenChange }: UploadAdDialogProps) {
                 Uploading...
               </>
             ) : (
-              <>
-                Upload Video
-              </>
+              <>Upload Video</>
             )}
           </Button>
         </DialogFooter>
       </DialogContent>
-
     </Dialog>
   )
 }

@@ -10,7 +10,14 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts"
-import { TrendingUp, ArrowUpRight, DollarSign, Receipt, TrendingDown, MoreVertical } from "lucide-react"
+import {
+  TrendingUp,
+  ArrowUpRight,
+  DollarSign,
+  Receipt,
+  TrendingDown,
+  MoreVertical,
+} from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,9 +29,15 @@ type FilterPeriod = "28days" | "month" | "year"
 
 // Generate daily data for the last year
 const generateDailyData = () => {
-  const data: Array<{ date: Date; month: string; day: string; revenue: number; spend: number }> = []
+  const data: Array<{
+    date: Date
+    month: string
+    day: string
+    revenue: number
+    spend: number
+  }> = []
   const today = new Date()
-  
+
   // Monthly totals for reference
   const monthlyTotals = [
     { month: "Jan", revenue: 4200, spend: 2800 },
@@ -40,21 +53,25 @@ const generateDailyData = () => {
     { month: "Nov", revenue: 11200, spend: 5800 },
     { month: "Dec", revenue: 12800, spend: 6100 },
   ]
-  
+
   // Generate data for the last 365 days
   for (let i = 364; i >= 0; i--) {
     const date = new Date(today)
     date.setDate(date.getDate() - i)
-    
+
     const monthIndex = date.getMonth()
     const monthData = monthlyTotals[monthIndex]
-    const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
-    
+    const daysInMonth = new Date(
+      date.getFullYear(),
+      date.getMonth() + 1,
+      0
+    ).getDate()
+
     // Distribute monthly totals across days with some variation
     const baseDailyRevenue = monthData.revenue / daysInMonth
     const baseDailySpend = monthData.spend / daysInMonth
     const variation = 0.7 + Math.random() * 0.6 // 70% to 130% variation
-    
+
     data.push({
       date,
       month: monthData.month,
@@ -63,7 +80,7 @@ const generateDailyData = () => {
       spend: Math.round(baseDailySpend * variation),
     })
   }
-  
+
   return data
 }
 
@@ -108,86 +125,106 @@ export function RevenueChart() {
   const [filter, setFilter] = useState<FilterPeriod>("year")
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
-  const { filteredData, chartData, summary, previousPeriodBalance } = useMemo(() => {
-    const today = new Date()
-    let filtered: typeof allData = []
-    let chartData: Array<{ label: string; revenue: number; spend: number }> = []
-    
-    if (filter === "28days") {
-      const cutoffDate = new Date(today)
-      cutoffDate.setDate(cutoffDate.getDate() - 28)
-      filtered = allData.filter((d) => d.date >= cutoffDate)
-      // Group by day for chart
-      chartData = filtered.map((d) => ({
-        label: `${d.month} ${d.day}`,
-        revenue: d.revenue,
-        spend: d.spend,
-      }))
-    } else if (filter === "month") {
-      const cutoffDate = new Date(today.getFullYear(), today.getMonth(), 1)
-      filtered = allData.filter((d) => d.date >= cutoffDate)
-      // Group by day for chart
-      chartData = filtered.map((d) => ({
-        label: `${d.month} ${d.day}`,
-        revenue: d.revenue,
-        spend: d.spend,
-      }))
-    } else {
-      // Year - group by month
-      filtered = allData
-      const monthlyData: Record<string, { revenue: number; spend: number }> = {}
-      filtered.forEach((d) => {
-        if (!monthlyData[d.month]) {
-          monthlyData[d.month] = { revenue: 0, spend: 0 }
-        }
-        monthlyData[d.month].revenue += d.revenue
-        monthlyData[d.month].spend += d.spend
-      })
-      chartData = Object.entries(monthlyData).map(([month, values]) => ({
-        label: month,
-        revenue: values.revenue,
-        spend: values.spend,
-      }))
-    }
-    
-    const totalRevenue = filtered.reduce((sum, d) => sum + d.revenue, 0)
-    const totalSpend = filtered.reduce((sum, d) => sum + d.spend, 0)
-    const roi = totalSpend > 0 ? ((totalRevenue - totalSpend) / totalSpend) * 100 : 0
-    
-    // Calculate previous period balance for comparison
-    let previousPeriodData: typeof allData = []
-    if (filter === "28days") {
-      const cutoffDate = new Date(today)
-      cutoffDate.setDate(cutoffDate.getDate() - 56) // 28 days before the current period
-      const periodEndDate = new Date(today)
-      periodEndDate.setDate(periodEndDate.getDate() - 28)
-      previousPeriodData = allData.filter((d) => d.date >= cutoffDate && d.date < periodEndDate)
-    } else if (filter === "month") {
-      const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1)
-      const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 1)
-      previousPeriodData = allData.filter((d) => d.date >= lastMonthStart && d.date < lastMonthEnd)
-    } else {
-      // For year, compare with previous year
-      const lastYearStart = new Date(today.getFullYear() - 1, 0, 1)
-      const lastYearEnd = new Date(today.getFullYear(), 0, 1)
-      previousPeriodData = allData.filter((d) => d.date >= lastYearStart && d.date < lastYearEnd)
-    }
-    
-    const previousRevenue = previousPeriodData.reduce((sum, d) => sum + d.revenue, 0)
-    const previousSpend = previousPeriodData.reduce((sum, d) => sum + d.spend, 0)
-    const previousPeriodBalance = previousRevenue - previousSpend
-    
-    return {
-      filteredData: filtered,
-      chartData,
-      summary: {
-        totalRevenue,
-        totalSpend,
-        roi,
-      },
-      previousPeriodBalance,
-    }
-  }, [filter])
+  const { filteredData, chartData, summary, previousPeriodBalance } =
+    useMemo(() => {
+      const today = new Date()
+      let filtered: typeof allData = []
+      let chartData: Array<{ label: string; revenue: number; spend: number }> =
+        []
+
+      if (filter === "28days") {
+        const cutoffDate = new Date(today)
+        cutoffDate.setDate(cutoffDate.getDate() - 28)
+        filtered = allData.filter((d) => d.date >= cutoffDate)
+        // Group by day for chart
+        chartData = filtered.map((d) => ({
+          label: `${d.month} ${d.day}`,
+          revenue: d.revenue,
+          spend: d.spend,
+        }))
+      } else if (filter === "month") {
+        const cutoffDate = new Date(today.getFullYear(), today.getMonth(), 1)
+        filtered = allData.filter((d) => d.date >= cutoffDate)
+        // Group by day for chart
+        chartData = filtered.map((d) => ({
+          label: `${d.month} ${d.day}`,
+          revenue: d.revenue,
+          spend: d.spend,
+        }))
+      } else {
+        // Year - group by month
+        filtered = allData
+        const monthlyData: Record<string, { revenue: number; spend: number }> =
+          {}
+        filtered.forEach((d) => {
+          if (!monthlyData[d.month]) {
+            monthlyData[d.month] = { revenue: 0, spend: 0 }
+          }
+          monthlyData[d.month].revenue += d.revenue
+          monthlyData[d.month].spend += d.spend
+        })
+        chartData = Object.entries(monthlyData).map(([month, values]) => ({
+          label: month,
+          revenue: values.revenue,
+          spend: values.spend,
+        }))
+      }
+
+      const totalRevenue = filtered.reduce((sum, d) => sum + d.revenue, 0)
+      const totalSpend = filtered.reduce((sum, d) => sum + d.spend, 0)
+      const roi =
+        totalSpend > 0 ? ((totalRevenue - totalSpend) / totalSpend) * 100 : 0
+
+      // Calculate previous period balance for comparison
+      let previousPeriodData: typeof allData = []
+      if (filter === "28days") {
+        const cutoffDate = new Date(today)
+        cutoffDate.setDate(cutoffDate.getDate() - 56) // 28 days before the current period
+        const periodEndDate = new Date(today)
+        periodEndDate.setDate(periodEndDate.getDate() - 28)
+        previousPeriodData = allData.filter(
+          (d) => d.date >= cutoffDate && d.date < periodEndDate
+        )
+      } else if (filter === "month") {
+        const lastMonthStart = new Date(
+          today.getFullYear(),
+          today.getMonth() - 1,
+          1
+        )
+        const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 1)
+        previousPeriodData = allData.filter(
+          (d) => d.date >= lastMonthStart && d.date < lastMonthEnd
+        )
+      } else {
+        // For year, compare with previous year
+        const lastYearStart = new Date(today.getFullYear() - 1, 0, 1)
+        const lastYearEnd = new Date(today.getFullYear(), 0, 1)
+        previousPeriodData = allData.filter(
+          (d) => d.date >= lastYearStart && d.date < lastYearEnd
+        )
+      }
+
+      const previousRevenue = previousPeriodData.reduce(
+        (sum, d) => sum + d.revenue,
+        0
+      )
+      const previousSpend = previousPeriodData.reduce(
+        (sum, d) => sum + d.spend,
+        0
+      )
+      const previousPeriodBalance = previousRevenue - previousSpend
+
+      return {
+        filteredData: filtered,
+        chartData,
+        summary: {
+          totalRevenue,
+          totalSpend,
+          roi,
+        },
+        previousPeriodBalance,
+      }
+    }, [filter])
 
   return (
     <div className="rounded-2xl bg-card p-5 animate-fade-in-up delay-400">
@@ -203,92 +240,104 @@ export function RevenueChart() {
 
           {/* Chart */}
           <div className="h-[300px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart
-            data={chartData}
-            margin={{ top: 8, right: 8, left: -12, bottom: 0 }}
-          >
-            <defs>
-              <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="0%"
-                  stopColor="hsl(30, 93%, 54%)"
-                  stopOpacity={0.3}
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart
+                data={chartData}
+                margin={{ top: 8, right: 8, left: -12, bottom: 0 }}
+              >
+                <defs>
+                  <linearGradient
+                    id="revenueGradient"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="0%"
+                      stopColor="hsl(30, 93%, 54%)"
+                      stopOpacity={0.3}
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor="hsl(30, 93%, 54%)"
+                      stopOpacity={0}
+                    />
+                  </linearGradient>
+                  <linearGradient
+                    id="spendGradient"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="0%"
+                      stopColor="hsl(197, 71%, 60%)"
+                      stopOpacity={0.2}
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor="hsl(197, 71%, 60%)"
+                      stopOpacity={0}
+                    />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="hsl(228, 8%, 14%)"
+                  vertical={false}
                 />
-                <stop
-                  offset="100%"
-                  stopColor="hsl(30, 93%, 54%)"
-                  stopOpacity={0}
+                <XAxis
+                  dataKey="label"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "hsl(228, 6%, 44%)", fontSize: 11 }}
+                  dy={8}
+                  interval={filter === "year" ? 0 : "preserveStartEnd"}
                 />
-              </linearGradient>
-              <linearGradient id="spendGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="0%"
-                  stopColor="hsl(197, 71%, 60%)"
-                  stopOpacity={0.2}
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "hsl(228, 6%, 44%)", fontSize: 11 }}
+                  tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
+                  dx={-4}
                 />
-                <stop
-                  offset="100%"
-                  stopColor="hsl(197, 71%, 60%)"
-                  stopOpacity={0}
+                <Tooltip
+                  content={<CustomTooltip />}
+                  cursor={{ stroke: "hsl(228, 8%, 20%)", strokeWidth: 1 }}
                 />
-              </linearGradient>
-            </defs>
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke="hsl(228, 8%, 14%)"
-              vertical={false}
-            />
-            <XAxis
-              dataKey="label"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: "hsl(228, 6%, 44%)", fontSize: 11 }}
-              dy={8}
-              interval={filter === "year" ? 0 : "preserveStartEnd"}
-            />
-            <YAxis
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: "hsl(228, 6%, 44%)", fontSize: 11 }}
-              tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
-              dx={-4}
-            />
-            <Tooltip
-              content={<CustomTooltip />}
-              cursor={{ stroke: "hsl(228, 8%, 20%)", strokeWidth: 1 }}
-            />
-            <Area
-              type="monotone"
-              dataKey="revenue"
-              stroke="hsl(30, 93%, 54%)"
-              strokeWidth={2.5}
-              fill="url(#revenueGradient)"
-              dot={false}
-              activeDot={{
-                r: 5,
-                fill: "hsl(30, 93%, 54%)",
-                stroke: "hsl(228, 12%, 7%)",
-                strokeWidth: 2,
-              }}
-            />
-            <Area
-              type="monotone"
-              dataKey="spend"
-              stroke="hsl(197, 71%, 60%)"
-              strokeWidth={2}
-              fill="url(#spendGradient)"
-              dot={false}
-              activeDot={{
-                r: 4,
-                fill: "hsl(197, 71%, 60%)",
-                stroke: "hsl(228, 12%, 7%)",
-                strokeWidth: 2,
-              }}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
+                <Area
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="hsl(30, 93%, 54%)"
+                  strokeWidth={2.5}
+                  fill="url(#revenueGradient)"
+                  dot={false}
+                  activeDot={{
+                    r: 5,
+                    fill: "hsl(30, 93%, 54%)",
+                    stroke: "hsl(228, 12%, 7%)",
+                    strokeWidth: 2,
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="spend"
+                  stroke="hsl(197, 71%, 60%)"
+                  strokeWidth={2}
+                  fill="url(#spendGradient)"
+                  dot={false}
+                  activeDot={{
+                    r: 4,
+                    fill: "hsl(197, 71%, 60%)",
+                    stroke: "hsl(228, 12%, 7%)",
+                    strokeWidth: 2,
+                  }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         {/* Right Section - Summary Stats */}
@@ -298,16 +347,23 @@ export function RevenueChart() {
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <p className="font-display text-xl font-bold text-foreground">
-                  ${((summary.totalRevenue - summary.totalSpend) / 1000).toFixed(2)}k
+                  $
+                  {((summary.totalRevenue - summary.totalSpend) / 1000).toFixed(
+                    2
+                  )}
+                  k
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
                   {filter === "28days" && "Last 28 days balance "}
                   {filter === "month" && "Last month balance "}
-                  {filter === "year" && "Last year balance "}
-                  ${(previousPeriodBalance / 1000).toFixed(2)}k
+                  {filter === "year" && "Last year balance "}$
+                  {(previousPeriodBalance / 1000).toFixed(2)}k
                 </p>
               </div>
-              <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+              <DropdownMenu
+                open={isDropdownOpen}
+                onOpenChange={setIsDropdownOpen}
+              >
                 <DropdownMenuTrigger asChild>
                   <button className="p-1.5 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-foreground">
                     <MoreVertical className="h-5 w-5" />

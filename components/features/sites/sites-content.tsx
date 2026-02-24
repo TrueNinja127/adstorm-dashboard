@@ -68,7 +68,12 @@ import {
 import { UsStatesMap } from "./us-states-map"
 import { cn } from "@/lib/utils"
 import type { SiteOrLocationType, SiteOrLocation } from "@/types"
-import { mockSitesAndLocations, US_STATES, mockBrands, mockChannelsAndGenres } from "@/services"
+import {
+  mockSitesAndLocations,
+  US_STATES,
+  mockBrands,
+  mockChannelsAndGenres,
+} from "@/services"
 import { useCart } from "@/contexts/cart-context"
 import { useToast } from "@/hooks/use-toast"
 
@@ -169,13 +174,7 @@ export function SitesContent({
         matchesAvailability
       )
     })
-  }, [
-    search,
-    typeFilter,
-    categoryFilter,
-    regionFilter,
-    availabilityFilter,
-  ])
+  }, [search, typeFilter, categoryFilter, regionFilter, availabilityFilter])
 
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE))
   const paginatedItems = useMemo(() => {
@@ -240,10 +239,13 @@ export function SitesContent({
   const availableCount = mockItems.filter((i) => i.available).length
   const unavailableCount = mockItems.filter((i) => !i.available).length
 
-  const typeCounts = useMemo(() => ({
-    site: mockItems.filter((i) => i.type === "site").length,
-    location: mockItems.filter((i) => i.type === "location").length,
-  }), [])
+  const typeCounts = useMemo(
+    () => ({
+      site: mockItems.filter((i) => i.type === "site").length,
+      location: mockItems.filter((i) => i.type === "location").length,
+    }),
+    []
+  )
 
   const categoryCounts = useMemo(() => {
     const acc: Record<string, number> = {}
@@ -264,8 +266,8 @@ export function SitesContent({
               Sites &amp; Locations
             </h1>
             <p className="mt-1 text-[13px] text-muted-foreground">
-              Target specific publisher sites and physical locations for
-              precise geo-based audience reach.
+              Target specific publisher sites and physical locations for precise
+              geo-based audience reach.
             </p>
           </div>
 
@@ -273,10 +275,7 @@ export function SitesContent({
             <h2 className="font-display text-[15px] font-bold text-foreground mb-4">
               Featured
             </h2>
-            <Carousel
-              opts={{ align: "start", loop: true }}
-              className="w-full"
-            >
+            <Carousel opts={{ align: "start", loop: true }} className="w-full">
               <CarouselContent className="-ml-2 md:-ml-4">
                 {featuredItems.map((item) => (
                   <CarouselItem
@@ -299,7 +298,10 @@ export function SitesContent({
                             {item.name}
                           </p>
                           <div className="mt-0.5">
-                            <Badge variant="secondary" className="text-[10px] font-medium">
+                            <Badge
+                              variant="secondary"
+                              className="text-[10px] font-medium"
+                            >
                               {item.type === "site" ? "Site" : "Location"}
                             </Badge>
                           </div>
@@ -310,7 +312,8 @@ export function SitesContent({
                             {item.cityName}, {item.stateName}
                           </p>
                           <p className="mt-0.5 text-[11px] text-muted-foreground">
-                            {item.channelsCount} channels · {item.citiesCount} cities
+                            {item.channelsCount} channels · {item.citiesCount}{" "}
+                            cities
                           </p>
                           <div className="mt-1.5">
                             <span className="text-[11px] font-medium text-emerald-400">
@@ -440,247 +443,263 @@ export function SitesContent({
             </div>
           </div>
 
-      {viewMode === "card" && (
-        <div
-          className={`animate-fade-in-up grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 ${showHeaderAndFeatured ? "delay-200" : ""}`}
-        >
-          {filteredItems.length === 0 ? (
-            <div className="col-span-full flex h-48 items-center justify-center rounded-2xl border border-border bg-card text-muted-foreground text-sm">
-              No sites or locations match your filters.
-            </div>
-          ) : (
-            paginatedItems.map((item) => (
-              <div
-                key={item.id}
-                className="group flex flex-col overflow-hidden rounded-2xl bg-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/20"
-              >
-                {/* Top: full-width image with overlay badges */}
-                <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden bg-secondary">
-                  <Image
-                    src={item.image}
-                    alt={item.name}
-                    fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                  />
-                  <div className="absolute left-3 top-3">
-                    <span className="rounded-lg bg-background/90 px-2.5 py-1 text-xs font-medium text-foreground backdrop-blur-sm">
-                      {item.type === "site" ? "Site" : "Location"}
-                    </span>
-                  </div>
-                </div>
-                {/* Middle: name, verified, location */}
-                <div className="flex flex-1 flex-col p-4">
-                  <h3 className="font-display text-base font-bold tracking-tight text-foreground truncate">
-                    {item.name}
-                  </h3>
-                  <p className="mt-1 flex items-center gap-1.5 truncate text-xs text-muted-foreground">
-                    <Building2 className="h-3.5 w-3.5 shrink-0" />
-                    Brand: {getBrandName(item.brandId)}
-                  </p>
-                  <p className="mt-1 flex items-center gap-1.5 truncate text-xs text-muted-foreground">
-                    <MapPin className="h-3.5 w-3.5 shrink-0" />
-                    {item.cityName}, {item.stateName}
-                  </p>
-                  {/* Bottom: features (icons + text), metric, CTA */}
-                  <div className="mt-4 flex flex-wrap items-center gap-3 text-muted-foreground">
-                    <span className="flex items-center gap-1.5 text-xs">
-                      <Radio className="h-3.5 w-3.5" />
-                      {item.channelsCount} Channels
-                    </span>
-                    <span className="flex items-center gap-1.5 text-xs">
-                      <Building2 className="h-3.5 w-3.5" />
-                      {item.citiesCount} Cities
-                    </span>
-                    <span className="flex items-center gap-1.5 text-xs">
-                      <Wifi className="h-3.5 w-3.5" />
-                      {item.available ? "Available" : "Unavailable"}
-                    </span>
-                  </div>
-                  <div className="mt-4 flex items-center justify-between gap-2 border-t border-border pt-4">
-                    <div className="min-w-0">
-                      <p className="text-xs text-muted-foreground">{item.metric}</p>
-                      <p className="text-sm font-bold tabular-nums text-foreground">
-                        {formatPrice(item.price)}
-                      </p>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="shrink-0 btn-gelatine border-[hsl(var(--primary))] text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10 hover:text-[hsl(var(--primary))]"
-                      onClick={() => handleAddToCart(item)}
-                    >
-                      <ShoppingCart className="mr-1.5 h-3.5 w-3.5" />
-                      {isInCart(item.id) ? "In cart" : "Add to cart"}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
-
-      {viewMode === "list" && (
-        <div
-          className={`animate-fade-in-up rounded-2xl border border-border bg-card overflow-hidden ${showHeaderAndFeatured ? "delay-200" : ""}`}
-        >
-          <Table>
-            <TableHeader>
-              <TableRow className="border-border hover:bg-transparent">
-                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
-                  Name
-                </TableHead>
-                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
-                  Brand
-                </TableHead>
-                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
-                  Type
-                </TableHead>
-                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
-                  State / City
-                </TableHead>
-                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
-                  Channels
-                </TableHead>
-                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
-                  Cities
-                </TableHead>
-                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
-                  Category
-                </TableHead>
-                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
-                  Metric
-                </TableHead>
-                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
-                  Price
-                </TableHead>
-                <TableHead className="h-12 px-6 text-right font-display font-semibold text-muted-foreground">
-                  Action
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          {viewMode === "card" && (
+            <div
+              className={`animate-fade-in-up grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 ${showHeaderAndFeatured ? "delay-200" : ""}`}
+            >
               {filteredItems.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={10}
-                    className="h-32 px-6 text-center text-muted-foreground"
-                  >
-                    No sites or locations match your filters.
-                  </TableCell>
-                </TableRow>
+                <div className="col-span-full flex h-48 items-center justify-center rounded-2xl border border-border bg-card text-muted-foreground text-sm">
+                  No sites or locations match your filters.
+                </div>
               ) : (
                 paginatedItems.map((item) => (
-                  <TableRow
+                  <div
                     key={item.id}
-                    className="border-border transition-colors hover:bg-accent/50"
+                    className="group flex flex-col overflow-hidden rounded-2xl bg-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/20"
                   >
-                    <TableCell className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-secondary">
-                          <Image
-                            src={item.image}
-                            alt={item.name}
-                            fill
-                            className="object-cover"
-                            sizes="48px"
-                          />
-                        </div>
-                        <div>
-                          <p className="font-display font-medium text-foreground">
-                            {item.name}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {item.subtitle}
-                          </p>
-                        </div>
+                    {/* Top: full-width image with overlay badges */}
+                    <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden bg-secondary">
+                      <Image
+                        src={item.image}
+                        alt={item.name}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                      />
+                      <div className="absolute left-3 top-3">
+                        <span className="rounded-lg bg-background/90 px-2.5 py-1 text-xs font-medium text-foreground backdrop-blur-sm">
+                          {item.type === "site" ? "Site" : "Location"}
+                        </span>
                       </div>
-                    </TableCell>
-                    <TableCell className="px-6 py-4">
-                      <p className="text-sm font-medium text-foreground">
-                        {getBrandName(item.brandId)}
+                    </div>
+                    {/* Middle: name, verified, location */}
+                    <div className="flex flex-1 flex-col p-4">
+                      <h3 className="font-display text-base font-bold tracking-tight text-foreground truncate">
+                        {item.name}
+                      </h3>
+                      <p className="mt-1 flex items-center gap-1.5 truncate text-xs text-muted-foreground">
+                        <Building2 className="h-3.5 w-3.5 shrink-0" />
+                        Brand: {getBrandName(item.brandId)}
                       </p>
-                    </TableCell>
-                    <TableCell className="px-6 py-4">
-                      <Badge variant="secondary" className="text-xs font-medium">
-                        {item.type === "site" ? "Site" : "Location"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="px-6 py-4 text-sm text-muted-foreground">
-                      {item.stateName}
-                      <span className="text-muted-foreground/80"> · </span>
-                      {item.cityName}
-                    </TableCell>
-                    <TableCell className="px-6 py-4 text-sm font-medium text-foreground">
-                      {item.channelsCount}
-                    </TableCell>
-                    <TableCell className="px-6 py-4 text-sm font-medium text-foreground">
-                      {item.citiesCount}
-                    </TableCell>
-                    <TableCell className="px-6 py-4">
-                      <Badge variant="outline" className="text-xs font-medium">
-                        {item.category}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="px-6 py-4 text-sm text-muted-foreground">
-                      {item.metric}
-                    </TableCell>
-                    <TableCell className="px-6 py-4 font-semibold tabular-nums text-foreground">
-                      {formatPrice(item.price)}
-                    </TableCell>
-                    <TableCell className="px-6 py-4 text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0"
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                            <span className="sr-only">Open menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setSelectedSite(item)}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleAddToCart(item)} className="text-primary">
-                            <ShoppingCart className="mr-2 h-4 w-4 text-primary" />
-                            {isInCart(item.id) ? "In cart" : "Add to cart"}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
+                      <p className="mt-1 flex items-center gap-1.5 truncate text-xs text-muted-foreground">
+                        <MapPin className="h-3.5 w-3.5 shrink-0" />
+                        {item.cityName}, {item.stateName}
+                      </p>
+                      {/* Bottom: features (icons + text), metric, CTA */}
+                      <div className="mt-4 flex flex-wrap items-center gap-3 text-muted-foreground">
+                        <span className="flex items-center gap-1.5 text-xs">
+                          <Radio className="h-3.5 w-3.5" />
+                          {item.channelsCount} Channels
+                        </span>
+                        <span className="flex items-center gap-1.5 text-xs">
+                          <Building2 className="h-3.5 w-3.5" />
+                          {item.citiesCount} Cities
+                        </span>
+                        <span className="flex items-center gap-1.5 text-xs">
+                          <Wifi className="h-3.5 w-3.5" />
+                          {item.available ? "Available" : "Unavailable"}
+                        </span>
+                      </div>
+                      <div className="mt-4 flex items-center justify-between gap-2 border-t border-border pt-4">
+                        <div className="min-w-0">
+                          <p className="text-xs text-muted-foreground">
+                            {item.metric}
+                          </p>
+                          <p className="text-sm font-bold tabular-nums text-foreground">
+                            {formatPrice(item.price)}
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="shrink-0 btn-gelatine border-[hsl(var(--primary))] text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10 hover:text-[hsl(var(--primary))]"
+                          onClick={() => handleAddToCart(item)}
+                        >
+                          <ShoppingCart className="mr-1.5 h-3.5 w-3.5" />
+                          {isInCart(item.id) ? "In cart" : "Add to cart"}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                 ))
               )}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+            </div>
+          )}
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="mt-6 flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
-                <p className="text-sm text-muted-foreground order-2 sm:order-1 whitespace-nowrap">Page {page} of {totalPages}</p>
-                <Pagination className="order-1 sm:order-2">
-                  <PaginationContent className="gap-1">
-                    <PaginationItem>
-                      <Button
-                        variant="ghost"
-                        size="default"
-                        className="gap-1 pl-2.5 h-9"
-                        onClick={() => setPage((p) => Math.max(1, p - 1))}
-                        disabled={page <= 1}
-                        aria-label="Go to previous page"
+          {viewMode === "list" && (
+            <div
+              className={`animate-fade-in-up rounded-2xl border border-border bg-card overflow-hidden ${showHeaderAndFeatured ? "delay-200" : ""}`}
+            >
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-border hover:bg-transparent">
+                    <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                      Name
+                    </TableHead>
+                    <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                      Brand
+                    </TableHead>
+                    <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                      Type
+                    </TableHead>
+                    <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                      State / City
+                    </TableHead>
+                    <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                      Channels
+                    </TableHead>
+                    <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                      Cities
+                    </TableHead>
+                    <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                      Category
+                    </TableHead>
+                    <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                      Metric
+                    </TableHead>
+                    <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                      Price
+                    </TableHead>
+                    <TableHead className="h-12 px-6 text-right font-display font-semibold text-muted-foreground">
+                      Action
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredItems.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={10}
+                        className="h-32 px-6 text-center text-muted-foreground"
                       >
-                        <ChevronLeft className="h-4 w-4" />
-                        Previous
-                      </Button>
-                    </PaginationItem>
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                        No sites or locations match your filters.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    paginatedItems.map((item) => (
+                      <TableRow
+                        key={item.id}
+                        className="border-border transition-colors hover:bg-accent/50"
+                      >
+                        <TableCell className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-secondary">
+                              <Image
+                                src={item.image}
+                                alt={item.name}
+                                fill
+                                className="object-cover"
+                                sizes="48px"
+                              />
+                            </div>
+                            <div>
+                              <p className="font-display font-medium text-foreground">
+                                {item.name}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {item.subtitle}
+                              </p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <p className="text-sm font-medium text-foreground">
+                            {getBrandName(item.brandId)}
+                          </p>
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <Badge
+                            variant="secondary"
+                            className="text-xs font-medium"
+                          >
+                            {item.type === "site" ? "Site" : "Location"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-sm text-muted-foreground">
+                          {item.stateName}
+                          <span className="text-muted-foreground/80"> · </span>
+                          {item.cityName}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-sm font-medium text-foreground">
+                          {item.channelsCount}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-sm font-medium text-foreground">
+                          {item.citiesCount}
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <Badge
+                            variant="outline"
+                            className="text-xs font-medium"
+                          >
+                            {item.category}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-sm text-muted-foreground">
+                          {item.metric}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 font-semibold tabular-nums text-foreground">
+                          {formatPrice(item.price)}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                                <span className="sr-only">Open menu</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => setSelectedSite(item)}
+                              >
+                                <Eye className="mr-2 h-4 w-4" />
+                                View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleAddToCart(item)}
+                                className="text-primary"
+                              >
+                                <ShoppingCart className="mr-2 h-4 w-4 text-primary" />
+                                {isInCart(item.id) ? "In cart" : "Add to cart"}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="mt-6 flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
+              <p className="text-sm text-muted-foreground order-2 sm:order-1 whitespace-nowrap">
+                Page {page} of {totalPages}
+              </p>
+              <Pagination className="order-1 sm:order-2">
+                <PaginationContent className="gap-1">
+                  <PaginationItem>
+                    <Button
+                      variant="ghost"
+                      size="default"
+                      className="gap-1 pl-2.5 h-9"
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={page <= 1}
+                      aria-label="Go to previous page"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
+                    </Button>
+                  </PaginationItem>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (p) => (
                       <PaginationItem key={p}>
                         <Button
                           variant={page === p ? "outline" : "ghost"}
@@ -693,32 +712,35 @@ export function SitesContent({
                           {p}
                         </Button>
                       </PaginationItem>
-                    ))}
-                    <PaginationItem>
-                      <Button
-                        variant="ghost"
-                        size="default"
-                        className="gap-1 pr-2.5 h-9"
-                        onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                        disabled={page >= totalPages}
-                        aria-label="Go to next page"
-                      >
-                        Next
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
-              </div>
-            )}
+                    )
+                  )}
+                  <PaginationItem>
+                    <Button
+                      variant="ghost"
+                      size="default"
+                      className="gap-1 pr-2.5 h-9"
+                      onClick={() =>
+                        setPage((p) => Math.min(totalPages, p + 1))
+                      }
+                      disabled={page >= totalPages}
+                      aria-label="Go to next page"
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </div>
 
         {/* Right: Filters sidebar */}
         <aside className="w-full flex-shrink-0 animate-fade-in-up order-1 lg:order-2 lg:w-[280px]">
           <UsStatesMap
-              selectedStateNames={regionFilter}
-              onStateClick={toggleRegion}
-              className="w-full"
+            selectedStateNames={regionFilter}
+            onStateClick={toggleRegion}
+            className="w-full"
           />
           <div className="sticky top-8 rounded-2xl bg-card p-5 mt-4">
             <div className="mb-4 flex items-center justify-between">
@@ -759,7 +781,7 @@ export function SitesContent({
                       />
                       Location ({typeCounts.location})
                     </label>
-                  </div>  
+                  </div>
                 </CollapsibleContent>
               </Collapsible>
 
@@ -804,7 +826,7 @@ export function SitesContent({
                         <Checkbox
                           checked={regionFilter.includes(r)}
                           onCheckedChange={() => toggleRegion(r)}
-                        className="btn-gelatine"
+                          className="btn-gelatine"
                         />
                         {r} ({regionCounts[r] ?? 0})
                       </label>
@@ -832,7 +854,9 @@ export function SitesContent({
                     <label className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground">
                       <Checkbox
                         checked={availabilityFilter.includes("unavailable")}
-                        onCheckedChange={() => toggleAvailability("unavailable")}
+                        onCheckedChange={() =>
+                          toggleAvailability("unavailable")
+                        }
                       />
                       Unavailable ({unavailableCount})
                     </label>
@@ -845,142 +869,193 @@ export function SitesContent({
       </div>
 
       {/* Site/Location details drawer (from right) */}
-      <Sheet open={!!selectedSite} onOpenChange={(open) => !open && setSelectedSite(null)}>
+      <Sheet
+        open={!!selectedSite}
+        onOpenChange={(open) => !open && setSelectedSite(null)}
+      >
         <SheetContent
           side="right"
           className="!w-[min(32rem,90vw)] !max-w-none h-full overflow-hidden flex flex-col border-l border-border/50 bg-gradient-to-b from-background to-muted/20 p-0 shadow-xl"
         >
-          {selectedSite && (() => {
-            const channels = getChannelsBySiteId(selectedSite.id)
-            
-            return (
-              <>
-                <SheetHeader className="shrink-0 space-y-0 border-b border-border/50 bg-gradient-to-b from-muted/30 to-transparent px-6 pt-6 pb-5 text-left animate-fade-in-up [animation-delay:80ms] [animation-fill-mode:forwards] opacity-0">
-                  <div className="flex gap-4 pr-8">
-                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-muted shadow-md ring-1 ring-black/5">
-                      <Image src={selectedSite.image} alt={selectedSite.name} fill className="object-cover" sizes="64px" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <SheetTitle className="text-xl font-display font-bold tracking-tight text-foreground">
-                        {selectedSite.name}
-                      </SheetTitle>
-                      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-                        {selectedSite.subtitle}
-                      </p>
-                      <div className="mt-3 flex flex-wrap items-center gap-2">
-                        <Badge variant="secondary" className="rounded-full px-2.5 py-0 text-[10px] font-medium">
-                          {selectedSite.type === "site" ? "Site" : "Location"}
-                        </Badge>
-                        <Badge variant="outline" className="rounded-full px-2.5 py-0 text-[10px] font-medium">
-                          {selectedSite.category}
-                        </Badge>
-                        <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                          <Building2 className="h-3.5 w-3.5" />
-                          Brand: {getBrandName(selectedSite.brandId)}
-                        </span>
-                        <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                          <Radio className="h-3.5 w-3.5" />
-                          {selectedSite.channelsCount} channels
-                        </span>
-                        <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                          <MapPin className="h-3.5 w-3.5" />
-                          {selectedSite.cityName}, {selectedSite.stateName}
-                        </span>
+          {selectedSite &&
+            (() => {
+              const channels = getChannelsBySiteId(selectedSite.id)
+
+              return (
+                <>
+                  <SheetHeader className="shrink-0 space-y-0 border-b border-border/50 bg-gradient-to-b from-muted/30 to-transparent px-6 pt-6 pb-5 text-left animate-fade-in-up [animation-delay:80ms] [animation-fill-mode:forwards] opacity-0">
+                    <div className="flex gap-4 pr-8">
+                      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-muted shadow-md ring-1 ring-black/5">
+                        <Image
+                          src={selectedSite.image}
+                          alt={selectedSite.name}
+                          fill
+                          className="object-cover"
+                          sizes="64px"
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <SheetTitle className="text-xl font-display font-bold tracking-tight text-foreground">
+                          {selectedSite.name}
+                        </SheetTitle>
+                        <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                          {selectedSite.subtitle}
+                        </p>
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <Badge
+                            variant="secondary"
+                            className="rounded-full px-2.5 py-0 text-[10px] font-medium"
+                          >
+                            {selectedSite.type === "site" ? "Site" : "Location"}
+                          </Badge>
+                          <Badge
+                            variant="outline"
+                            className="rounded-full px-2.5 py-0 text-[10px] font-medium"
+                          >
+                            {selectedSite.category}
+                          </Badge>
+                          <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                            <Building2 className="h-3.5 w-3.5" />
+                            Brand: {getBrandName(selectedSite.brandId)}
+                          </span>
+                          <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                            <Radio className="h-3.5 w-3.5" />
+                            {selectedSite.channelsCount} channels
+                          </span>
+                          <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                            <MapPin className="h-3.5 w-3.5" />
+                            {selectedSite.cityName}, {selectedSite.stateName}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </SheetHeader>
-                <div className="min-h-0 flex-1 overflow-y-auto p-6">
-                  <div className="mb-5 flex items-baseline justify-between gap-2 animate-fade-in-up [animation-delay:160ms] [animation-fill-mode:forwards] opacity-0">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      Channels & Genres
-                    </span>
-                    {channels.length > 0 && (
-                      <span className="text-xs text-muted-foreground">{channels.length} channels</span>
-                    )}
-                  </div>
-                  {channels.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-border/60 bg-muted/20 py-12 text-center animate-fade-in-up delay-200">
-                      <p className="text-sm text-muted-foreground">No channels or genres for this site/location.</p>
+                  </SheetHeader>
+                  <div className="min-h-0 flex-1 overflow-y-auto p-6">
+                    <div className="mb-5 flex items-baseline justify-between gap-2 animate-fade-in-up [animation-delay:160ms] [animation-fill-mode:forwards] opacity-0">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        Channels & Genres
+                      </span>
+                      {channels.length > 0 && (
+                        <span className="text-xs text-muted-foreground">
+                          {channels.length} channels
+                        </span>
+                      )}
                     </div>
-                  ) : (
-                    <ul className="space-y-3">
-                      {channels.map((channel, index) => {
-                        const Icon = getTypeIcon(channel.type)
-                        return (
-                          <li
-                            key={channel.id}
-                            className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-card to-card/80 shadow-[0_1px_2px_rgba(0,0,0,.04)] ring-1 ring-border/40 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/[0.06] hover:ring-border/60 animate-drawer-item-in opacity-0"
-                            style={{ animationDelay: `${220 + index * 55}ms`, animationFillMode: "forwards" }}
-                          >
-                            <div className="flex gap-4 p-4 sm:p-5">
-                              <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-2xl bg-muted shadow-inner ring-1 ring-black/5">
-                                <Image src={channel.image} alt={channel.name} fill className="object-cover" sizes="72px" />
-                              </div>
-                              <div className="min-w-0 flex-1 space-y-3">
-                                <div className="flex flex-wrap items-start justify-between gap-2">
-                                  <div>
-                                    <h4 className="font-display font-semibold tracking-tight text-foreground">
-                                      {channel.name}
-                                    </h4>
-                                    <div className="mt-1.5 flex flex-wrap gap-1.5">
-                                      <Badge variant="secondary" className="text-[10px] font-medium">
-                                        {channel.category}
-                                      </Badge>
-                                      <Badge variant="outline" className="text-[10px] font-medium">
-                                        {channel.type === "channel" ? "Channel" : "Genre"}
-                                      </Badge>
+                    {channels.length === 0 ? (
+                      <div className="rounded-2xl border border-dashed border-border/60 bg-muted/20 py-12 text-center animate-fade-in-up delay-200">
+                        <p className="text-sm text-muted-foreground">
+                          No channels or genres for this site/location.
+                        </p>
+                      </div>
+                    ) : (
+                      <ul className="space-y-3">
+                        {channels.map((channel, index) => {
+                          const Icon = getTypeIcon(channel.type)
+                          return (
+                            <li
+                              key={channel.id}
+                              className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-card to-card/80 shadow-[0_1px_2px_rgba(0,0,0,.04)] ring-1 ring-border/40 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/[0.06] hover:ring-border/60 animate-drawer-item-in opacity-0"
+                              style={{
+                                animationDelay: `${220 + index * 55}ms`,
+                                animationFillMode: "forwards",
+                              }}
+                            >
+                              <div className="flex gap-4 p-4 sm:p-5">
+                                <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-2xl bg-muted shadow-inner ring-1 ring-black/5">
+                                  <Image
+                                    src={channel.image}
+                                    alt={channel.name}
+                                    fill
+                                    className="object-cover"
+                                    sizes="72px"
+                                  />
+                                </div>
+                                <div className="min-w-0 flex-1 space-y-3">
+                                  <div className="flex flex-wrap items-start justify-between gap-2">
+                                    <div>
+                                      <h4 className="font-display font-semibold tracking-tight text-foreground">
+                                        {channel.name}
+                                      </h4>
+                                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                                        <Badge
+                                          variant="secondary"
+                                          className="text-[10px] font-medium"
+                                        >
+                                          {channel.category}
+                                        </Badge>
+                                        <Badge
+                                          variant="outline"
+                                          className="text-[10px] font-medium"
+                                        >
+                                          {channel.type === "channel"
+                                            ? "Channel"
+                                            : "Genre"}
+                                        </Badge>
+                                      </div>
+                                    </div>
+                                    <div
+                                      className={cn(
+                                        "flex items-center gap-1.5 rounded-full px-3 py-1.5 backdrop-blur-sm",
+                                        channel.available
+                                          ? "bg-emerald-500/10"
+                                          : "bg-amber-500/10"
+                                      )}
+                                    >
+                                      <span
+                                        className={cn(
+                                          "h-2 w-2 rounded-full",
+                                          channel.available
+                                            ? "bg-emerald-400"
+                                            : "bg-amber-400"
+                                        )}
+                                      />
+                                      <span
+                                        className={cn(
+                                          "text-xs font-semibold",
+                                          channel.available
+                                            ? "text-emerald-400"
+                                            : "text-amber-400"
+                                        )}
+                                      >
+                                        {channel.available
+                                          ? "Available"
+                                          : "Unavailable"}
+                                      </span>
                                     </div>
                                   </div>
-                                  <div className={cn(
-                                    "flex items-center gap-1.5 rounded-full px-3 py-1.5 backdrop-blur-sm",
-                                    channel.available ? "bg-emerald-500/10" : "bg-amber-500/10"
-                                  )}>
-                                    <span className={cn(
-                                      "h-2 w-2 rounded-full",
-                                      channel.available ? "bg-emerald-400" : "bg-amber-400"
-                                    )} />
-                                    <span className={cn(
-                                      "text-xs font-semibold",
-                                      channel.available ? "text-emerald-400" : "text-amber-400"
-                                    )}>
-                                      {channel.available ? "Available" : "Unavailable"}
+                                  <p className="text-xs text-muted-foreground line-clamp-2">
+                                    {channel.description}
+                                  </p>
+                                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+                                    <span className="flex items-center gap-1.5">
+                                      <Icon className="h-3 w-3 shrink-0 opacity-70" />
+                                      {channel.type === "channel"
+                                        ? "Channel"
+                                        : "Genre"}
+                                    </span>
+                                    <span className="flex items-center gap-1.5">
+                                      <Globe className="h-3 w-3 shrink-0 opacity-70" />
+                                      {channel.sitesCount} sites
                                     </span>
                                   </div>
                                 </div>
-                                <p className="text-xs text-muted-foreground line-clamp-2">
-                                  {channel.description}
-                                </p>
-                                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
-                                  <span className="flex items-center gap-1.5">
-                                    <Icon className="h-3 w-3 shrink-0 opacity-70" />
-                                    {channel.type === "channel" ? "Channel" : "Genre"}
-                                  </span>
-                                  <span className="flex items-center gap-1.5">
-                                    <Globe className="h-3 w-3 shrink-0 opacity-70" />
-                                    {channel.sitesCount} sites
-                                  </span>
-                                </div>
                               </div>
-                            </div>
-                          </li>
-                        )
-                      })}
-                    </ul>
-                  )}
-                </div>
-              </>
-            )
-          })()}
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    )}
+                  </div>
+                </>
+              )
+            })()}
         </SheetContent>
       </Sheet>
     </div>
   )
 
   if (scrollContainer) {
-    return (
-      <div className="flex-1 min-h-0 overflow-y-auto">{inner}</div>
-    )
+    return <div className="flex-1 min-h-0 overflow-y-auto">{inner}</div>
   }
   return <>{inner}</>
 }

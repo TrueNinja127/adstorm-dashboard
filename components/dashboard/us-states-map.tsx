@@ -26,7 +26,18 @@ export function UsStatesMap({
 
   const customStates = useMemo(() => {
     const abbrs = Object.keys(STATE_ABBR_TO_NAME) as USAStateAbbreviation[]
-    const result: Partial<Record<USAStateAbbreviation, { fill?: string; stroke?: string; onClick?: (state: USAStateAbbreviation) => void; label?: { enabled: boolean }; tooltip?: { enabled: boolean } }>> = {}
+    const result: Partial<
+      Record<
+        USAStateAbbreviation,
+        {
+          fill?: string
+          stroke?: string
+          onClick?: (state: USAStateAbbreviation) => void
+          label?: { enabled: boolean }
+          tooltip?: { enabled: boolean }
+        }
+      >
+    > = {}
     const primaryFill = "hsl(var(--primary))"
     const primaryStroke = "hsl(var(--primary) / 0.8)"
     const defaultFill = "hsl(var(--muted))"

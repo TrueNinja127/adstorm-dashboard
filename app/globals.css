@@ -234,10 +234,19 @@
 
 /* ===== Gelatine Button Animation ===== */
 @keyframes gelatine {
-  0%, 100% { transform: scale(1, 1); }
-  25% { transform: scale(0.9, 1.1); }
-  50% { transform: scale(1.1, 0.9); }
-  75% { transform: scale(0.95, 1.05); }
+  0%,
+  100% {
+    transform: scale(1, 1);
+  }
+  25% {
+    transform: scale(0.9, 1.1);
+  }
+  50% {
+    transform: scale(1.1, 0.9);
+  }
+  75% {
+    transform: scale(0.95, 1.05);
+  }
 }
 
 .btn-gelatine {
@@ -264,8 +273,12 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes scaleIn {
@@ -291,8 +304,14 @@
 }
 
 @keyframes countUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Drawer list item: slide in from right + fade (matches drawer open direction) */
@@ -338,46 +357,92 @@
 }
 
 /* Stagger delay utilities */
-.delay-75 { animation-delay: 75ms; }
-.delay-100 { animation-delay: 100ms; }
-.delay-150 { animation-delay: 150ms; }
-.delay-200 { animation-delay: 200ms; }
-.delay-250 { animation-delay: 250ms; }
-.delay-300 { animation-delay: 300ms; }
-.delay-400 { animation-delay: 400ms; }
-.delay-500 { animation-delay: 500ms; }
-.delay-600 { animation-delay: 600ms; }
-.delay-700 { animation-delay: 700ms; }
+.delay-75 {
+  animation-delay: 75ms;
+}
+.delay-100 {
+  animation-delay: 100ms;
+}
+.delay-150 {
+  animation-delay: 150ms;
+}
+.delay-200 {
+  animation-delay: 200ms;
+}
+.delay-250 {
+  animation-delay: 250ms;
+}
+.delay-300 {
+  animation-delay: 300ms;
+}
+.delay-400 {
+  animation-delay: 400ms;
+}
+.delay-500 {
+  animation-delay: 500ms;
+}
+.delay-600 {
+  animation-delay: 600ms;
+}
+.delay-700 {
+  animation-delay: 700ms;
+}
 
 /* ===== Loading Screen ===== */
 @keyframes pulse-glow {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 @keyframes loader-bar {
-  0% { width: 0%; }
-  100% { width: 100%; }
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
 }
 
 @keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes loader-fade-out {
-  0% { opacity: 1; }
-  100% { opacity: 0; visibility: hidden; }
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
 }
 
 @keyframes dashboard-fade-in {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 @keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 .animate-pulse-glow {
@@ -452,23 +517,93 @@
   position: absolute;
   width: 4rem;
   height: 4.25rem;
-  --drop: radial-gradient(circle at 64% 51%, var(--toast-clr) 0.35rem, #fff0 calc(0.35rem + 1px)),
-    radial-gradient(circle at 100% 100%, #fff0 0.65rem, var(--toast-clr) calc(0.65rem + 1px) 0.9rem, #fff0 calc(0.9rem + 1px) 100%),
-    radial-gradient(circle at 0% 0%, #fff0 0.65rem, var(--toast-clr) calc(0.65rem + 1px) 0.9rem, #fff0 calc(0.9rem + 1px) 100%),
-    radial-gradient(circle at 0% 120%, var(--toast-clr) 2.75rem, #fff0 calc(2.75rem + 1px));
+  --drop:
+    radial-gradient(
+      circle at 64% 51%,
+      var(--toast-clr) 0.35rem,
+      #fff0 calc(0.35rem + 1px)
+    ),
+    radial-gradient(
+      circle at 100% 100%,
+      #fff0 0.65rem,
+      var(--toast-clr) calc(0.65rem + 1px) 0.9rem,
+      #fff0 calc(0.9rem + 1px) 100%
+    ),
+    radial-gradient(
+      circle at 0% 0%,
+      #fff0 0.65rem,
+      var(--toast-clr) calc(0.65rem + 1px) 0.9rem,
+      #fff0 calc(0.9rem + 1px) 100%
+    ),
+    radial-gradient(
+      circle at 0% 120%,
+      var(--toast-clr) 2.75rem,
+      #fff0 calc(2.75rem + 1px)
+    );
   background:
-    radial-gradient(circle at 22% 2.5rem, var(--toast-clr) 0.5rem, #fff0 calc(0.5rem + 1px)),
-    radial-gradient(circle at 95% 1.25rem, var(--toast-clr) 0.05rem, #fff0 calc(0.05rem + 1px)),
-    radial-gradient(circle at 80% 1.5rem, var(--toast-clr) 0.12rem, #fff0 calc(0.12rem + 1px)),
-    radial-gradient(circle at 80% 50%, var(--toast-clr) 0.25rem, #fff0 calc(0.25rem + 1px)),
-    radial-gradient(circle at 43% 1.5rem, var(--toast-clr) 0.05rem, #fff0 calc(0.05rem + 1px)),
-    radial-gradient(circle at 40% 0.65rem, var(--toast-clr) 0.08rem, #fff0 calc(0.08rem + 1px)),
-    radial-gradient(circle at 20% 1rem, var(--toast-clr) 0.18rem, #fff0 calc(0.18rem + 1px)),
-    var(--drop),
-    #f000;
+    radial-gradient(
+      circle at 22% 2.5rem,
+      var(--toast-clr) 0.5rem,
+      #fff0 calc(0.5rem + 1px)
+    ),
+    radial-gradient(
+      circle at 95% 1.25rem,
+      var(--toast-clr) 0.05rem,
+      #fff0 calc(0.05rem + 1px)
+    ),
+    radial-gradient(
+      circle at 80% 1.5rem,
+      var(--toast-clr) 0.12rem,
+      #fff0 calc(0.12rem + 1px)
+    ),
+    radial-gradient(
+      circle at 80% 50%,
+      var(--toast-clr) 0.25rem,
+      #fff0 calc(0.25rem + 1px)
+    ),
+    radial-gradient(
+      circle at 43% 1.5rem,
+      var(--toast-clr) 0.05rem,
+      #fff0 calc(0.05rem + 1px)
+    ),
+    radial-gradient(
+      circle at 40% 0.65rem,
+      var(--toast-clr) 0.08rem,
+      #fff0 calc(0.08rem + 1px)
+    ),
+    radial-gradient(
+      circle at 20% 1rem,
+      var(--toast-clr) 0.18rem,
+      #fff0 calc(0.18rem + 1px)
+    ),
+    var(--drop), #f000;
   background-repeat: no-repeat;
-  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 1.2rem 1.2rem, 1.2rem 1.2rem, 100% 100%, 100% 100%;
-  background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, calc(100% - 1.25rem) 1.9rem, calc(100% - 1.25rem) 2rem, 0 0, 0 0;
+  background-size:
+    100% 100%,
+    100% 100%,
+    100% 100%,
+    100% 100%,
+    100% 100%,
+    100% 100%,
+    100% 100%,
+    100% 100%,
+    1.2rem 1.2rem,
+    1.2rem 1.2rem,
+    100% 100%,
+    100% 100%;
+  background-position:
+    0 0,
+    0 0,
+    0 0,
+    0 0,
+    0 0,
+    0 0,
+    0 0,
+    0 0,
+    calc(100% - 1.25rem) 1.9rem,
+    calc(100% - 1.25rem) 2rem,
+    0 0,
+    0 0;
   bottom: 0;
   left: 0;
   z-index: 0;
@@ -499,18 +634,51 @@
   background: var(--toast-ch2);
   --toast-clr: var(--toast-ch1);
 }
-.toast-blob--help::after { --toast-char: "?"; }
+.toast-blob--help::after {
+  --toast-char: "?";
+}
 
 .toast-blob--success {
   background: var(--toast-cs2);
   --toast-clr: var(--toast-cs1);
 }
 .toast-blob--success::before {
-  --drop: radial-gradient(circle at 65% 63%, var(--toast-clr) 0.3rem, #fff0 calc(0.3rem + 1px)),
-    radial-gradient(circle at 70% 125%, #fff0 0.7rem, var(--toast-clr) calc(0.7rem + 1px) 0.9rem, #fff0 calc(0.9rem + 1px) 100%),
-    radial-gradient(circle at 30% -25%, #fff0 0.7rem, var(--toast-clr) calc(0.7rem + 1px) 0.9rem, #fff0 calc(0.9rem + 1px) 100%),
-    radial-gradient(circle at 20% 120%, var(--toast-clr) 2.25rem, #fff0 calc(2.25rem + 1px));
-  background-position: 0 0.25rem, -0.15rem 2.2rem, 0 0.25rem, -1.35rem -1rem, -0.5rem 0, -0.65rem 0.25rem, 0 1rem, 0.8rem 0.25rem, calc(100% - 0.5rem) 2.35rem, calc(100% - 0.5rem) 2.5rem, 0 0, 0 0;
+  --drop:
+    radial-gradient(
+      circle at 65% 63%,
+      var(--toast-clr) 0.3rem,
+      #fff0 calc(0.3rem + 1px)
+    ),
+    radial-gradient(
+      circle at 70% 125%,
+      #fff0 0.7rem,
+      var(--toast-clr) calc(0.7rem + 1px) 0.9rem,
+      #fff0 calc(0.9rem + 1px) 100%
+    ),
+    radial-gradient(
+      circle at 30% -25%,
+      #fff0 0.7rem,
+      var(--toast-clr) calc(0.7rem + 1px) 0.9rem,
+      #fff0 calc(0.9rem + 1px) 100%
+    ),
+    radial-gradient(
+      circle at 20% 120%,
+      var(--toast-clr) 2.25rem,
+      #fff0 calc(2.25rem + 1px)
+    );
+  background-position:
+    0 0.25rem,
+    -0.15rem 2.2rem,
+    0 0.25rem,
+    -1.35rem -1rem,
+    -0.5rem 0,
+    -0.65rem 0.25rem,
+    0 1rem,
+    0.8rem 0.25rem,
+    calc(100% - 0.5rem) 2.35rem,
+    calc(100% - 0.5rem) 2.5rem,
+    0 0,
+    0 0;
 }
 .toast-blob--success::after {
   --toast-char: "✓";
@@ -523,24 +691,89 @@
   --toast-clr: var(--toast-cw1);
 }
 .toast-blob--warning::before {
-  --drop: radial-gradient(circle at 65% 63%, var(--toast-clr) 0.3rem, #fff0 calc(0.3rem + 1px)),
-    radial-gradient(circle at 129% 36%, #fff0 0.7rem, var(--toast-clr) calc(0.7rem + 1px) 0.9rem, #fff0 calc(0.9rem + 1px) 100%),
-    radial-gradient(circle at -27% 25%, #fff0 0.7rem, var(--toast-clr) calc(0.7rem + 1px) 0.9rem, #fff0 calc(0.9rem + 1px) 100%),
-    radial-gradient(circle at 20% 120%, var(--toast-clr) 2.25rem, #fff0 calc(2.25rem + 1px));
-  background-position: 1.2rem 0.4rem, -0.8rem 0.8rem, -1.35rem 0.5rem, -2.35rem -1.3rem, -0.35rem -0.35rem, 2rem 2.8rem, 0 -0.35rem, 0.8rem 0.25rem, calc(100% - 2.6rem) 1.85rem, calc(100% - 2.5rem) 1.85rem, 0 0, 0 0;
+  --drop:
+    radial-gradient(
+      circle at 65% 63%,
+      var(--toast-clr) 0.3rem,
+      #fff0 calc(0.3rem + 1px)
+    ),
+    radial-gradient(
+      circle at 129% 36%,
+      #fff0 0.7rem,
+      var(--toast-clr) calc(0.7rem + 1px) 0.9rem,
+      #fff0 calc(0.9rem + 1px) 100%
+    ),
+    radial-gradient(
+      circle at -27% 25%,
+      #fff0 0.7rem,
+      var(--toast-clr) calc(0.7rem + 1px) 0.9rem,
+      #fff0 calc(0.9rem + 1px) 100%
+    ),
+    radial-gradient(
+      circle at 20% 120%,
+      var(--toast-clr) 2.25rem,
+      #fff0 calc(2.25rem + 1px)
+    );
+  background-position:
+    1.2rem 0.4rem,
+    -0.8rem 0.8rem,
+    -1.35rem 0.5rem,
+    -2.35rem -1.3rem,
+    -0.35rem -0.35rem,
+    2rem 2.8rem,
+    0 -0.35rem,
+    0.8rem 0.25rem,
+    calc(100% - 2.6rem) 1.85rem,
+    calc(100% - 2.5rem) 1.85rem,
+    0 0,
+    0 0;
 }
-.toast-blob--warning::after { --toast-char: "!"; font-size: 1.2rem; }
+.toast-blob--warning::after {
+  --toast-char: "!";
+  font-size: 1.2rem;
+}
 
 .toast-blob--error {
   background: var(--toast-ce2);
   --toast-clr: var(--toast-ce1);
 }
 .toast-blob--error::before {
-  --drop: radial-gradient(circle at 65% 63%, var(--toast-clr) 0.3rem, #fff0 calc(0.3rem + 1px)),
-    radial-gradient(circle at 129% 36%, #fff0 0.7rem, var(--toast-clr) calc(0.7rem + 1px) 0.9rem, #fff0 calc(0.9rem + 1px) 100%),
-    radial-gradient(circle at -27% 25%, #fff0 0.7rem, var(--toast-clr) calc(0.7rem + 1px) 0.9rem, #fff0 calc(0.9rem + 1px) 100%),
-    radial-gradient(circle at 20% 120%, var(--toast-clr) 2.25rem, #fff0 calc(2.25rem + 1px));
-  background-position: 1.15rem 0.5rem, -0.5rem 0.8rem, -0.9rem 0.35rem, -2.35rem -1.65rem, -0.25rem 0, 1.35rem 0.85rem, 0.55rem 1.05rem, 0.35rem 1.1rem, calc(100% - 2rem) 2.15rem, calc(100% - 1.85rem) 2rem, 0 0, 0 0;
+  --drop:
+    radial-gradient(
+      circle at 65% 63%,
+      var(--toast-clr) 0.3rem,
+      #fff0 calc(0.3rem + 1px)
+    ),
+    radial-gradient(
+      circle at 129% 36%,
+      #fff0 0.7rem,
+      var(--toast-clr) calc(0.7rem + 1px) 0.9rem,
+      #fff0 calc(0.9rem + 1px) 100%
+    ),
+    radial-gradient(
+      circle at -27% 25%,
+      #fff0 0.7rem,
+      var(--toast-clr) calc(0.7rem + 1px) 0.9rem,
+      #fff0 calc(0.9rem + 1px) 100%
+    ),
+    radial-gradient(
+      circle at 20% 120%,
+      var(--toast-clr) 2.25rem,
+      #fff0 calc(2.25rem + 1px)
+    );
+  background-position:
+    1.15rem 0.5rem,
+    -0.5rem 0.8rem,
+    -0.9rem 0.35rem,
+    -2.35rem -1.65rem,
+    -0.25rem 0,
+    1.35rem 0.85rem,
+    0.55rem 1.05rem,
+    0.35rem 1.1rem,
+    calc(100% - 2rem) 2.15rem,
+    calc(100% - 1.85rem) 2rem,
+    0 0,
+    0 0;
 }
 .toast-blob--error::after {
   --toast-char: "×";
@@ -868,7 +1101,9 @@
   background: transparent;
   color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
-  transition: color 0.2s, border-color 0.2s;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
 }
 
 .hero-arrow:hover {

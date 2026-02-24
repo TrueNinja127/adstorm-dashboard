@@ -1,7 +1,13 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { Sidebar, Header, CategoryCards, Chatbot, LoadingScreen } from "@/components/layout"
+import {
+  Sidebar,
+  Header,
+  CategoryCards,
+  Chatbot,
+  LoadingScreen,
+} from "@/components/layout"
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true)

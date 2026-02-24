@@ -14,7 +14,10 @@ export default function BrandsPage() {
           <div className="relative h-[70vh] min-h-[420px] w-full shrink-0">
             <HeroCarousel embedded />
           </div>
-          <BrandsContent showHeaderAndFeatured={false} scrollContainer={false} />
+          <BrandsContent
+            showHeaderAndFeatured={false}
+            scrollContainer={false}
+          />
         </div>
       </div>
       <Chatbot />

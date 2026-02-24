@@ -82,7 +82,12 @@ export function Sidebar() {
     const label = pathnameToLabel(pathname)
     if (label) {
       setActiveItem(label)
-      if (pathname === "/brands" || pathname === "/sites" || pathname === "/channels-genres") setMarketplaceOpen(true)
+      if (
+        pathname === "/brands" ||
+        pathname === "/sites" ||
+        pathname === "/channels-genres"
+      )
+        setMarketplaceOpen(true)
     }
   }, [pathname])
 
@@ -158,10 +163,12 @@ export function Sidebar() {
           {navItems.map((item) => {
             const hasChildren = !!item.children
             const isParentActive =
-              item.label === activeItem || (hasChildren && isMarketplaceChildActive)
-            const isDirectActive =
-              item.label === activeItem && !hasChildren
-            const showCurves = isDirectActive || (hasChildren && isMarketplaceChildActive && !marketplaceOpen)
+              item.label === activeItem ||
+              (hasChildren && isMarketplaceChildActive)
+            const isDirectActive = item.label === activeItem && !hasChildren
+            const showCurves =
+              isDirectActive ||
+              (hasChildren && isMarketplaceChildActive && !marketplaceOpen)
 
             return (
               <li key={item.label}>
@@ -260,7 +267,10 @@ export function Sidebar() {
                         return (
                           <li
                             key={child.label}
-                            className={cn("nav-item relative", isChildActive && "active")}
+                            className={cn(
+                              "nav-item relative",
+                              isChildActive && "active"
+                            )}
                           >
                             <span className="curve-top" aria-hidden="true" />
                             <span className="curve-bottom" aria-hidden="true" />

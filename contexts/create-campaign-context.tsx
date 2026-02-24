@@ -8,9 +8,15 @@ interface CreateCampaignContextValue {
   closeCreateCampaign: () => void
 }
 
-const CreateCampaignContext = createContext<CreateCampaignContextValue | null>(null)
+const CreateCampaignContext = createContext<CreateCampaignContextValue | null>(
+  null
+)
 
-export function CreateCampaignProvider({ children }: { children: React.ReactNode }) {
+export function CreateCampaignProvider({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   const [isOpen, setIsOpen] = useState(false)
   const openCreateCampaign = useCallback(() => setIsOpen(true), [])
   const closeCreateCampaign = useCallback(() => setIsOpen(false), [])

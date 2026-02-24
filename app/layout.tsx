@@ -33,7 +33,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${dmSans.variable} ${exo2.variable} font-sans antialiased`}>
+      <body
+        className={`${dmSans.variable} ${exo2.variable} font-sans antialiased`}
+      >
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <ColorThemeProvider>
             <CartProvider>

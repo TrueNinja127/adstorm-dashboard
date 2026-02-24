@@ -33,7 +33,11 @@ function getStoredTheme(): ColorThemeId {
   return "orange"
 }
 
-export function ColorThemeProvider({ children }: { children: React.ReactNode }) {
+export function ColorThemeProvider({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   const [colorTheme, setColorThemeState] = useState<ColorThemeId>("orange")
   const [mounted, setMounted] = useState(false)
 

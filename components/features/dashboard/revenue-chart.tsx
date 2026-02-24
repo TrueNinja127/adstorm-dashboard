@@ -102,7 +102,8 @@ export function RevenueChart() {
 
     const totalRevenue = filtered.reduce((sum, d) => sum + d.revenue, 0)
     const totalSpend = filtered.reduce((sum, d) => sum + d.spend, 0)
-    const roi = totalSpend > 0 ? ((totalRevenue - totalSpend) / totalSpend) * 100 : 0
+    const roi =
+      totalSpend > 0 ? ((totalRevenue - totalSpend) / totalSpend) * 100 : 0
 
     let previousPeriodData: typeof allData = []
     if (filter === "28days") {
@@ -110,19 +111,35 @@ export function RevenueChart() {
       cutoffDate.setDate(cutoffDate.getDate() - 56)
       const periodEndDate = new Date(today)
       periodEndDate.setDate(periodEndDate.getDate() - 28)
-      previousPeriodData = allData.filter((d) => d.date >= cutoffDate && d.date < periodEndDate)
+      previousPeriodData = allData.filter(
+        (d) => d.date >= cutoffDate && d.date < periodEndDate
+      )
     } else if (filter === "month") {
-      const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1)
+      const lastMonthStart = new Date(
+        today.getFullYear(),
+        today.getMonth() - 1,
+        1
+      )
       const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 1)
-      previousPeriodData = allData.filter((d) => d.date >= lastMonthStart && d.date < lastMonthEnd)
+      previousPeriodData = allData.filter(
+        (d) => d.date >= lastMonthStart && d.date < lastMonthEnd
+      )
     } else {
       const lastYearStart = new Date(today.getFullYear() - 1, 0, 1)
       const lastYearEnd = new Date(today.getFullYear(), 0, 1)
-      previousPeriodData = allData.filter((d) => d.date >= lastYearStart && d.date < lastYearEnd)
+      previousPeriodData = allData.filter(
+        (d) => d.date >= lastYearStart && d.date < lastYearEnd
+      )
     }
 
-    const previousRevenue = previousPeriodData.reduce((sum, d) => sum + d.revenue, 0)
-    const previousSpend = previousPeriodData.reduce((sum, d) => sum + d.spend, 0)
+    const previousRevenue = previousPeriodData.reduce(
+      (sum, d) => sum + d.revenue,
+      0
+    )
+    const previousSpend = previousPeriodData.reduce(
+      (sum, d) => sum + d.spend,
+      0
+    )
     const previousPeriodBalance = previousRevenue - previousSpend
 
     return {
@@ -148,16 +165,48 @@ export function RevenueChart() {
                 margin={{ top: 8, right: 8, left: -12, bottom: 0 }}
               >
                 <defs>
-                  <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(30, 93%, 54%)" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="hsl(30, 93%, 54%)" stopOpacity={0} />
+                  <linearGradient
+                    id="revenueGradient"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="0%"
+                      stopColor="hsl(30, 93%, 54%)"
+                      stopOpacity={0.3}
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor="hsl(30, 93%, 54%)"
+                      stopOpacity={0}
+                    />
                   </linearGradient>
-                  <linearGradient id="spendGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(197, 71%, 60%)" stopOpacity={0.2} />
-                    <stop offset="100%" stopColor="hsl(197, 71%, 60%)" stopOpacity={0} />
+                  <linearGradient
+                    id="spendGradient"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="0%"
+                      stopColor="hsl(197, 71%, 60%)"
+                      stopOpacity={0.2}
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor="hsl(197, 71%, 60%)"
+                      stopOpacity={0}
+                    />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(228, 8%, 14%)" vertical={false} />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="hsl(228, 8%, 14%)"
+                  vertical={false}
+                />
                 <XAxis
                   dataKey="label"
                   axisLine={false}
@@ -184,7 +233,12 @@ export function RevenueChart() {
                   strokeWidth={2.5}
                   fill="url(#revenueGradient)"
                   dot={false}
-                  activeDot={{ r: 5, fill: "hsl(30, 93%, 54%)", stroke: "hsl(228, 12%, 7%)", strokeWidth: 2 }}
+                  activeDot={{
+                    r: 5,
+                    fill: "hsl(30, 93%, 54%)",
+                    stroke: "hsl(228, 12%, 7%)",
+                    strokeWidth: 2,
+                  }}
                 />
                 <Area
                   type="monotone"
@@ -193,7 +247,12 @@ export function RevenueChart() {
                   strokeWidth={2}
                   fill="url(#spendGradient)"
                   dot={false}
-                  activeDot={{ r: 4, fill: "hsl(197, 71%, 60%)", stroke: "hsl(228, 12%, 7%)", strokeWidth: 2 }}
+                  activeDot={{
+                    r: 4,
+                    fill: "hsl(197, 71%, 60%)",
+                    stroke: "hsl(228, 12%, 7%)",
+                    strokeWidth: 2,
+                  }}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -205,25 +264,56 @@ export function RevenueChart() {
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <p className="font-display text-xl font-bold text-foreground">
-                  ${((summary.totalRevenue - summary.totalSpend) / 1000).toFixed(2)}k
+                  $
+                  {((summary.totalRevenue - summary.totalSpend) / 1000).toFixed(
+                    2
+                  )}
+                  k
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
                   {filter === "28days" && "Last 28 days balance "}
                   {filter === "month" && "Last month balance "}
-                  {filter === "year" && "Last year balance "}
-                  ${(previousPeriodBalance / 1000).toFixed(2)}k
+                  {filter === "year" && "Last year balance "}$
+                  {(previousPeriodBalance / 1000).toFixed(2)}k
                 </p>
               </div>
-              <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+              <DropdownMenu
+                open={isDropdownOpen}
+                onOpenChange={setIsDropdownOpen}
+              >
                 <DropdownMenuTrigger asChild>
                   <button className="p-1.5 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-foreground">
                     <MoreVertical className="h-5 w-5" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-40">
-                  <DropdownMenuItem onClick={() => { setFilter("28days"); setIsDropdownOpen(false) }} className={filter === "28days" ? "bg-accent" : ""}>Last 28 Days</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => { setFilter("month"); setIsDropdownOpen(false) }} className={filter === "month" ? "bg-accent" : ""}>Last Month</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => { setFilter("year"); setIsDropdownOpen(false) }} className={filter === "year" ? "bg-accent" : ""}>Last Year</DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setFilter("28days")
+                      setIsDropdownOpen(false)
+                    }}
+                    className={filter === "28days" ? "bg-accent" : ""}
+                  >
+                    Last 28 Days
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setFilter("month")
+                      setIsDropdownOpen(false)
+                    }}
+                    className={filter === "month" ? "bg-accent" : ""}
+                  >
+                    Last Month
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setFilter("year")
+                      setIsDropdownOpen(false)
+                    }}
+                    className={filter === "year" ? "bg-accent" : ""}
+                  >
+                    Last Year
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -233,8 +323,12 @@ export function RevenueChart() {
               <DollarSign className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Total Revenue</p>
-              <p className="font-display text-xl font-bold text-foreground truncate">${summary.totalRevenue.toLocaleString()}</p>
+              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                Total Revenue
+              </p>
+              <p className="font-display text-xl font-bold text-foreground truncate">
+                ${summary.totalRevenue.toLocaleString()}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -242,8 +336,12 @@ export function RevenueChart() {
               <Receipt className="h-5 w-5 text-sky-400" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Total Spend</p>
-              <p className="font-display text-xl font-bold text-foreground truncate">${summary.totalSpend.toLocaleString()}</p>
+              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                Total Spend
+              </p>
+              <p className="font-display text-xl font-bold text-foreground truncate">
+                ${summary.totalSpend.toLocaleString()}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -251,11 +349,17 @@ export function RevenueChart() {
               <TrendingUp className="h-5 w-5 text-emerald-400" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">ROI</p>
-              <p className="font-display text-xl font-bold text-emerald-400 truncate">{summary.roi.toFixed(1)}%</p>
+              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                ROI
+              </p>
+              <p className="font-display text-xl font-bold text-emerald-400 truncate">
+                {summary.roi.toFixed(1)}%
+              </p>
             </div>
           </div>
-          <button className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 mt-auto">View Report</button>
+          <button className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 mt-auto">
+            View Report
+          </button>
         </div>
       </div>
     </div>

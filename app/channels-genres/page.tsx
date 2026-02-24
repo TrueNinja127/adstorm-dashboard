@@ -14,7 +14,10 @@ export default function ChannelsGenresPage() {
           <div className="relative h-[70vh] min-h-[420px] w-full shrink-0">
             <HeroCarousel embedded />
           </div>
-          <ChannelsContent showHeaderAndFeatured={false} scrollContainer={false} />
+          <ChannelsContent
+            showHeaderAndFeatured={false}
+            scrollContainer={false}
+          />
         </div>
       </div>
       <Chatbot />

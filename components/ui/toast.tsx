@@ -1,10 +1,10 @@
-'use client'
+"use client"
 
-import * as React from 'react'
-import * as ToastPrimitives from '@radix-ui/react-toast'
-import { X } from 'lucide-react'
+import * as React from "react"
+import * as ToastPrimitives from "@radix-ui/react-toast"
+import { X } from "lucide-react"
 
-import { cn } from '@/lib/utils'
+import { cn } from "@/lib/utils"
 
 const ToastProvider = ToastPrimitives.Provider
 
@@ -15,50 +15,57 @@ const ToastViewport = React.forwardRef<
   <ToastPrimitives.Viewport
     ref={ref}
     className={cn(
-      'fixed bottom-0 right-5 z-[130] flex max-h-screen w-full flex-col gap-0 p-4 md:max-w-[22rem]',
-      className,
+      "fixed bottom-0 right-5 z-[130] flex max-h-screen w-full flex-col gap-0 p-4 md:max-w-[22rem]",
+      className
     )}
     {...props}
   />
 ))
 ToastViewport.displayName = ToastPrimitives.Viewport.displayName
 
-type ToastVariant = 'help' | 'success' | 'warning' | 'error'
+type ToastVariant = "help" | "success" | "warning" | "error"
 
 const blobVariantMap: Record<string, ToastVariant> = {
-  default: 'help',
-  info: 'help',
-  help: 'help',
-  success: 'success',
-  warning: 'warning',
-  destructive: 'error',
-  error: 'error',
+  default: "help",
+  info: "help",
+  help: "help",
+  success: "success",
+  warning: "warning",
+  destructive: "error",
+  error: "error",
 }
 
 const Toast = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Root>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> & {
-    variant?: 'default' | 'help' | 'success' | 'warning' | 'destructive' | 'error' | 'info'
+    variant?:
+      | "default"
+      | "help"
+      | "success"
+      | "warning"
+      | "destructive"
+      | "error"
+      | "info"
   }
->(({ className, variant = 'default', children, ...props }, ref) => {
-  const blobVariant = blobVariantMap[variant] ?? 'help'
+>(({ className, variant = "default", children, ...props }, ref) => {
+  const blobVariant = blobVariantMap[variant] ?? "help"
 
   return (
     <ToastPrimitives.Root
       ref={ref}
       className={cn(
-        'pointer-events-auto w-full transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-bottom-full',
-        className,
+        "pointer-events-auto w-full transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-bottom-full",
+        className
       )}
       {...props}
     >
       <div
         className={cn(
-          'toast-blob',
-          blobVariant === 'help' && 'toast-blob--help',
-          blobVariant === 'success' && 'toast-blob--success',
-          blobVariant === 'warning' && 'toast-blob--warning',
-          blobVariant === 'error' && 'toast-blob--error',
+          "toast-blob",
+          blobVariant === "help" && "toast-blob--help",
+          blobVariant === "success" && "toast-blob--success",
+          blobVariant === "warning" && "toast-blob--warning",
+          blobVariant === "error" && "toast-blob--error"
         )}
       >
         {children}
@@ -75,8 +82,8 @@ const ToastAction = React.forwardRef<
   <ToastPrimitives.Action
     ref={ref}
     className={cn(
-      'inline-flex h-8 shrink-0 items-center justify-center rounded-lg border border-white/30 bg-transparent px-3 text-xs font-semibold text-white/95 ring-offset-background transition-colors hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
-      className,
+      "inline-flex h-8 shrink-0 items-center justify-center rounded-lg border border-white/30 bg-transparent px-3 text-xs font-semibold text-white/95 ring-offset-background transition-colors hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+      className
     )}
     {...props}
   />
@@ -89,7 +96,7 @@ const ToastClose = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ToastPrimitives.Close
     ref={ref}
-    className={cn('toast-blob__close', className)}
+    className={cn("toast-blob__close", className)}
     toast-close=""
     {...props}
   >
@@ -104,7 +111,7 @@ const ToastTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ToastPrimitives.Title
     ref={ref}
-    className={cn('toast-blob__title', className)}
+    className={cn("toast-blob__title", className)}
     {...props}
   />
 ))
@@ -116,7 +123,7 @@ const ToastDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ToastPrimitives.Description
     ref={ref}
-    className={cn('toast-blob__description', className)}
+    className={cn("toast-blob__description", className)}
     {...props}
   />
 ))

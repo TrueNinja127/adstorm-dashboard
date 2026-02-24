@@ -42,7 +42,9 @@ export function Chatbot() {
               </div>
               <div className="rounded-lg rounded-tl-sm bg-secondary px-3 py-2">
                 <p className="text-[12px] leading-relaxed text-foreground">
-                  {"Hello! I'm your ADStorm assistant. I can help with campaigns, targeting, and performance insights."}
+                  {
+                    "Hello! I'm your ADStorm assistant. I can help with campaigns, targeting, and performance insights."
+                  }
                 </p>
               </div>
             </div>

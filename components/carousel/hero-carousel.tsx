@@ -3,7 +3,14 @@
 import { useEffect, useRef, useState, useCallback } from "react"
 import Link from "next/link"
 import { gsap } from "gsap"
-import { Globe, Search, User, ChevronLeft, ChevronRight, Bookmark } from "lucide-react"
+import {
+  Globe,
+  Search,
+  User,
+  ChevronLeft,
+  ChevronRight,
+  Bookmark,
+} from "lucide-react"
 import { carouselSlides, type CarouselSlide } from "@/lib/carousel-data"
 
 const EASE = "sine.inOut"
@@ -19,7 +26,8 @@ const EMBEDDED_CARD_HEIGHT = 220
 const EMBEDDED_GAP = 12
 const EMBEDDED_PROGRESS_WIDTH = 280
 /** Visible width of card stack so only ~3.5 cards show (half of 4th, 5th off-screen, like original). */
-const EMBEDDED_STACK_VISIBLE_WIDTH = 3.5 * EMBEDDED_CARD_WIDTH + 3 * EMBEDDED_GAP
+const EMBEDDED_STACK_VISIBLE_WIDTH =
+  3.5 * EMBEDDED_CARD_WIDTH + 3 * EMBEDDED_GAP
 
 function getCard(index: number) {
   return `#hero-card-${index}`
@@ -54,8 +62,12 @@ export function HeroCarousel({ embedded = false }: HeroCarouselProps) {
   const clicksRef = useRef(0)
   const offsetTopRef = useRef(200)
   const offsetLeftRef = useRef(700)
-  const widthRef = useRef(typeof window !== "undefined" ? window.innerWidth : 1920)
-  const heightRef = useRef(typeof window !== "undefined" ? window.innerHeight : 1080)
+  const widthRef = useRef(
+    typeof window !== "undefined" ? window.innerWidth : 1920
+  )
+  const heightRef = useRef(
+    typeof window !== "undefined" ? window.innerHeight : 1080
+  )
   const cardWRef = useRef(CARD_WIDTH)
   const cardHRef = useRef(CARD_HEIGHT)
   const gapRef = useRef(GAP)
@@ -92,7 +104,11 @@ export function HeroCarousel({ embedded = false }: HeroCarouselProps) {
         }
 
         gsap.set(`#hero-${detailsActive}`, { zIndex: 22 })
-        gsap.to(`#hero-${detailsActive}`, { opacity: 1, delay: 0.4, ease: EASE })
+        gsap.to(`#hero-${detailsActive}`, {
+          opacity: 1,
+          delay: 0.4,
+          ease: EASE,
+        })
         gsap.to(`#hero-${detailsActive} .hero-detail-place`, {
           y: 0,
           delay: 0.1,
@@ -140,7 +156,11 @@ export function HeroCarousel({ embedded = false }: HeroCarouselProps) {
           ease: EASE,
         })
         gsap.to(getSlideItemId(active), { x: 0, duration: 0.4, ease: EASE })
-        gsap.to(getSlideItemId(prv), { x: -NUMBER_SIZE, duration: 0.4, ease: EASE })
+        gsap.to(getSlideItemId(prv), {
+          x: -NUMBER_SIZE,
+          duration: 0.4,
+          ease: EASE,
+        })
         gsap.to(".hero-progress-foreground", {
           width: progressW * (1 / next.length) * (active + 1),
           duration: 0.4,
@@ -175,8 +195,12 @@ export function HeroCarousel({ embedded = false }: HeroCarouselProps) {
             gsap.set(getSlideItemId(prv), { x: rest.length * NUMBER_SIZE })
             gsap.set(`#hero-${detailsInactive}`, { opacity: 0 })
             gsap.set(`#hero-${detailsInactive} .hero-detail-place`, { y: 100 })
-            gsap.set(`#hero-${detailsInactive} .hero-detail-title-1`, { y: 100 })
-            gsap.set(`#hero-${detailsInactive} .hero-detail-title-2`, { y: 100 })
+            gsap.set(`#hero-${detailsInactive} .hero-detail-title-1`, {
+              y: 100,
+            })
+            gsap.set(`#hero-${detailsInactive} .hero-detail-title-2`, {
+              y: 100,
+            })
             gsap.set(`#hero-${detailsInactive} .hero-detail-desc`, { y: 50 })
             gsap.set(`#hero-${detailsInactive} .hero-detail-cta`, { y: 60 })
             clicksRef.current -= 1
@@ -266,7 +290,11 @@ export function HeroCarousel({ embedded = false }: HeroCarouselProps) {
       gsap.set(`#hero-${detailsActive} .hero-detail-title-2`, { y: 100 })
       gsap.set(`#hero-${detailsActive} .hero-detail-desc`, { y: 50 })
       gsap.set(`#hero-${detailsActive} .hero-detail-cta`, { y: 60 })
-      gsap.to(`#hero-${detailsActive}`, { opacity: 1, duration: 0.4, ease: EASE })
+      gsap.to(`#hero-${detailsActive}`, {
+        opacity: 1,
+        duration: 0.4,
+        ease: EASE,
+      })
       gsap.to(`#hero-${detailsActive} .hero-detail-place`, {
         y: 0,
         delay: 0.1,
@@ -473,7 +501,13 @@ export function HeroCarousel({ embedded = false }: HeroCarouselProps) {
               ease: EASE,
               delay: startDelay,
             })
-            if (!embedded) gsap.to("#hero-nav", { y: 0, opacity: 1, ease: EASE, delay: startDelay })
+            if (!embedded)
+              gsap.to("#hero-nav", {
+                y: 0,
+                opacity: 1,
+                ease: EASE,
+                delay: startDelay,
+              })
             gsap.to(`#hero-${detailsActive}`, {
               opacity: 1,
               x: 0,
@@ -482,7 +516,11 @@ export function HeroCarousel({ embedded = false }: HeroCarouselProps) {
             })
 
             const loop = async () => {
-              await gsap.to("#hero-indicator", { x: 0, duration: 2, ease: EASE })
+              await gsap.to("#hero-indicator", {
+                x: 0,
+                duration: 2,
+                ease: EASE,
+              })
               await gsap.to("#hero-indicator", {
                 x: width,
                 duration: 0.8,
@@ -524,32 +562,36 @@ export function HeroCarousel({ embedded = false }: HeroCarouselProps) {
   return (
     <div
       ref={containerRef}
-      className={embedded ? "hero-carousel-root hero-carousel-embedded h-full w-full min-h-0" : "hero-carousel-root"}
+      className={
+        embedded
+          ? "hero-carousel-root hero-carousel-embedded h-full w-full min-h-0"
+          : "hero-carousel-root"
+      }
     >
       <div id="hero-indicator" className="hero-indicator" />
 
       {!embedded && (
-      <nav id="hero-nav" className="hero-nav">
-        <div className="hero-nav-left">
-          <div className="hero-nav-icon">
-            <Globe className="h-5 w-5" strokeWidth={1.5} />
+        <nav id="hero-nav" className="hero-nav">
+          <div className="hero-nav-left">
+            <div className="hero-nav-icon">
+              <Globe className="h-5 w-5" strokeWidth={1.5} />
+            </div>
+            <Link href="/" className="hero-nav-logo">
+              ADStorm
+            </Link>
           </div>
-          <Link href="/" className="hero-nav-logo">
-            ADStorm
-          </Link>
-        </div>
-        <div className="hero-nav-right">
-          <span className="hero-nav-active">Carousel</span>
-          <Link href="/">Dashboard</Link>
-          <Link href="/brands">Brands</Link>
-          <div className="hero-nav-icon" aria-hidden>
-            <Search className="h-5 w-5" strokeWidth={1.5} />
+          <div className="hero-nav-right">
+            <span className="hero-nav-active">Carousel</span>
+            <Link href="/">Dashboard</Link>
+            <Link href="/brands">Brands</Link>
+            <div className="hero-nav-icon" aria-hidden>
+              <Search className="h-5 w-5" strokeWidth={1.5} />
+            </div>
+            <div className="hero-nav-icon" aria-hidden>
+              <User className="h-5 w-5" />
+            </div>
           </div>
-          <div className="hero-nav-icon" aria-hidden>
-            <User className="h-5 w-5" />
-          </div>
-        </div>
-      </nav>
+        </nav>
       )}
 
       <div id="hero-demo" className="hero-demo">

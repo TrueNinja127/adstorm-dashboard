@@ -94,7 +94,13 @@ const categories = [
 const staggerDelays = ["delay-100", "delay-150", "delay-200", "delay-250"]
 const cardDelays = ["delay-300", "delay-400", "delay-500", "delay-600"]
 
-function MiniSparkline({ data, positive }: { data: number[]; positive: boolean }) {
+function MiniSparkline({
+  data,
+  positive,
+}: {
+  data: number[]
+  positive: boolean
+}) {
   const max = Math.max(...data)
   const min = Math.min(...data)
   const range = max - min || 1

@@ -44,7 +44,9 @@ export function ThemeToggle({ className, collapsed }: ThemeToggleProps) {
       onClick={() => setTheme(isDark ? "light" : "dark")}
       className={cn(
         "flex items-center gap-3 rounded-xl border border-transparent py-2.5 text-[hsl(var(--sidebar-foreground))] transition-colors hover:bg-[hsl(var(--sidebar-accent))] hover:text-[hsl(var(--sidebar-accent-foreground))]",
-        collapsed ? "mx-auto w-10 justify-center px-0" : "ml-3 w-[calc(100%-12px)] px-5",
+        collapsed
+          ? "mx-auto w-10 justify-center px-0"
+          : "ml-3 w-[calc(100%-12px)] px-5",
         className
       )}
     >

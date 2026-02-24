@@ -61,8 +61,9 @@ const notifications: Notification[] = [
     accentBg: "bg-orange-500/10",
     borderAccent: "border-l-[hsl(var(--primary))]",
     category: "campaigns",
-    title: "Campaign \"Summer Sale\" is live",
-    description: "Your campaign has been approved and is now running across 12 channels.",
+    title: 'Campaign "Summer Sale" is live',
+    description:
+      "Your campaign has been approved and is now running across 12 channels.",
     time: "2m",
     timeLabel: "2 min ago",
     unread: true,
@@ -76,7 +77,8 @@ const notifications: Notification[] = [
     borderAccent: "border-l-emerald-400",
     category: "campaigns",
     title: "Impressions milestone reached",
-    description: "Brand Networks campaign hit 50K impressions. Performance is above average.",
+    description:
+      "Brand Networks campaign hit 50K impressions. Performance is above average.",
     time: "1h",
     timeLabel: "1 hour ago",
     unread: true,
@@ -90,7 +92,8 @@ const notifications: Notification[] = [
     borderAccent: "border-l-amber-400",
     category: "billing",
     title: "Low balance warning",
-    description: "Your account balance is below $20. Top up to keep your campaigns running.",
+    description:
+      "Your account balance is below $20. Top up to keep your campaigns running.",
     time: "3h",
     timeLabel: "3 hours ago",
     unread: true,
@@ -104,7 +107,7 @@ const notifications: Notification[] = [
     borderAccent: "border-l-sky-400",
     category: "campaigns",
     title: "Ad review completed",
-    description: "Your ad \"Holiday Promo\" passed moderation review.",
+    description: 'Your ad "Holiday Promo" passed moderation review.',
     time: "1d",
     timeLabel: "Yesterday",
     unread: false,
@@ -180,7 +183,10 @@ export function Header() {
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(e.target as Node)
+      ) {
         setIsProfileOpen(false)
       }
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
@@ -226,7 +232,11 @@ export function Header() {
           aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
           className="btn-gelatine flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition-colors hover:text-foreground"
         >
-          {mounted && isDark ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
+          {mounted && isDark ? (
+            <Sun className="h-[18px] w-[18px]" />
+          ) : (
+            <Moon className="h-[18px] w-[18px]" />
+          )}
         </button>
 
         {/* Notifications */}
@@ -293,7 +303,9 @@ export function Header() {
                 {filtered.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-10 text-center">
                     <Bell className="mb-2 h-8 w-8 text-muted-foreground/30" />
-                    <p className="text-[13px] text-muted-foreground">No notifications</p>
+                    <p className="text-[13px] text-muted-foreground">
+                      No notifications
+                    </p>
                   </div>
                 ) : (
                   filtered.map((notif, idx) => (
@@ -315,7 +327,9 @@ export function Header() {
                         <div
                           className={`mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${notif.accentBg}`}
                         >
-                          <notif.icon className={`h-4 w-4 ${notif.accentColor}`} />
+                          <notif.icon
+                            className={`h-4 w-4 ${notif.accentColor}`}
+                          />
                         </div>
 
                         {/* Content */}
@@ -382,8 +396,12 @@ export function Header() {
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col items-start">
-              <span className="text-sm font-semibold text-foreground">John Doe</span>
-              <span className="text-[11px] text-muted-foreground">Advertiser</span>
+              <span className="text-sm font-semibold text-foreground">
+                John Doe
+              </span>
+              <span className="text-[11px] text-muted-foreground">
+                Advertiser
+              </span>
             </div>
             <ChevronDown
               className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${isProfileOpen ? "rotate-180" : ""}`}
@@ -400,8 +418,12 @@ export function Header() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
-                  <span className="text-sm font-semibold text-foreground">John Doe</span>
-                  <span className="text-[11px] text-muted-foreground">john@adstorm.com</span>
+                  <span className="text-sm font-semibold text-foreground">
+                    John Doe
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">
+                    john@adstorm.com
+                  </span>
                 </div>
               </div>
 

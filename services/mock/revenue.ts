@@ -26,7 +26,11 @@ export function generateDailyRevenueData(): RevenueDataPoint[] {
 
     const monthIndex = date.getMonth()
     const monthData = monthlyTotals[monthIndex]
-    const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
+    const daysInMonth = new Date(
+      date.getFullYear(),
+      date.getMonth() + 1,
+      0
+    ).getDate()
 
     const baseDailyRevenue = monthData.revenue / daysInMonth
     const baseDailySpend = monthData.spend / daysInMonth

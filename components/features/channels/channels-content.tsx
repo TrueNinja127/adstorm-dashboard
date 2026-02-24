@@ -48,7 +48,11 @@ import {
 } from "@/components/ui/pagination"
 import { cn } from "@/lib/utils"
 import type { ChannelOrGenreType } from "@/types"
-import { mockChannelsAndGenres, mockSitesAndLocations, mockBrands } from "@/services"
+import {
+  mockChannelsAndGenres,
+  mockSitesAndLocations,
+  mockBrands,
+} from "@/services"
 
 const mockItems = mockChannelsAndGenres
 
@@ -128,7 +132,9 @@ export function ChannelsContent({
         availabilityFilter.length === 0 ||
         (availabilityFilter.includes("available") && item.available) ||
         (availabilityFilter.includes("unavailable") && !item.available)
-      return matchesSearch && matchesType && matchesCategory && matchesAvailability
+      return (
+        matchesSearch && matchesType && matchesCategory && matchesAvailability
+      )
     })
   }, [search, typeFilter, categoryFilter, availabilityFilter])
 
@@ -175,8 +181,8 @@ export function ChannelsContent({
               Channels & Genres
             </h1>
             <p className="mt-1 text-[13px] text-muted-foreground">
-              Browse ad channels and content genres to target the right audiences
-              across CTV, radio, podcast, display, and more.
+              Browse ad channels and content genres to target the right
+              audiences across CTV, radio, podcast, display, and more.
             </p>
           </div>
 
@@ -184,10 +190,7 @@ export function ChannelsContent({
             <h2 className="font-display text-[15px] font-bold text-foreground mb-4">
               Featured
             </h2>
-            <Carousel
-              opts={{ align: "start", loop: true }}
-              className="w-full"
-            >
+            <Carousel opts={{ align: "start", loop: true }} className="w-full">
               <CarouselContent className="-ml-2 md:-ml-4">
                 {mockItems.slice(0, 8).map((item) => {
                   const TypeIcon = getTypeIcon(item.type)
@@ -212,7 +215,10 @@ export function ChannelsContent({
                               {item.name}
                             </p>
                             <div className="mt-0.5">
-                              <Badge variant="secondary" className="text-[10px] font-medium">
+                              <Badge
+                                variant="secondary"
+                                className="text-[10px] font-medium"
+                              >
                                 {item.category}
                               </Badge>
                               <Badge
@@ -232,7 +238,9 @@ export function ChannelsContent({
                               <span
                                 className={cn(
                                   "text-[11px] font-medium",
-                                  item.available ? "text-emerald-400" : "text-amber-400"
+                                  item.available
+                                    ? "text-emerald-400"
+                                    : "text-amber-400"
                                 )}
                               >
                                 {item.available ? "Available" : "Unavailable"}
@@ -346,256 +354,275 @@ export function ChannelsContent({
             </div>
           </div>
 
-      {viewMode === "card" && (
-        <div
-          className={cn(
-            "animate-fade-in-up grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4",
-            showHeaderAndFeatured ? "delay-200" : ""
-          )}
-        >
-          {filteredItems.length === 0 ? (
-            <div className="col-span-full flex h-48 items-center justify-center rounded-2xl border border-border bg-card text-muted-foreground text-sm">
-              No channels or genres match your filters.
-            </div>
-          ) : (
-            paginatedItems.map((item) => {
-              const TypeIcon = getTypeIcon(item.type)
-              return (
-                <div
-                  key={item.id}
-                  className="group rounded-2xl bg-card p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-secondary">
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        fill
-                        className="object-cover"
-                        sizes="64px"
-                      />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-display font-semibold text-foreground truncate">
-                        {item.name}
-                      </p>
-                      <div className="mt-0.5 flex flex-wrap gap-1">
-                        <Badge variant="secondary" className="text-[10px] font-medium">
-                          {item.category}
-                        </Badge>
-                        <Badge variant="outline" className="text-[10px] font-medium border-border">
-                          {item.type === "channel" ? "Channel" : "Genre"}
-                        </Badge>
-                      </div>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Site: {getSiteName(item.siteId)}
-                      </p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        Brand: {getBrandName(item.siteId)}
-                      </p>
-                      <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
-                        {item.description}
-                      </p>
-                      <div className="mt-2 flex flex-wrap items-center gap-2">
-                        <span
-                          className={cn(
-                            "text-[11px] font-medium",
-                            item.available ? "text-emerald-400" : "text-amber-400"
-                          )}
-                        >
-                          {item.available ? "Available" : "Unavailable"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-4 flex items-center justify-between gap-2 border-t border-border pt-4">
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1.5">
-                        <Globe className="h-3.5 w-3.5" />
-                        {item.sitesCount} sites
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        {item.type === "channel" ? (
-                          <Music2 className="h-3.5 w-3.5" />
-                        ) : (
-                          <Radio className="h-3.5 w-3.5" />
-                        )}
-                        {item.secondaryCount}{" "}
-                        {item.type === "channel" ? "genres" : "channels"}
-                      </span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10 hover:text-[hsl(var(--primary))] shrink-0"
-                    >
-                      Explore
-                      <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </div>
-              )
-            })
-          )}
-        </div>
-      )}
-
-      {viewMode === "list" && (
-        <div
-          className={cn(
-            "animate-fade-in-up rounded-2xl border border-border bg-card overflow-hidden",
-            showHeaderAndFeatured ? "delay-200" : ""
-          )}
-        >
-          <Table>
-            <TableHeader>
-              <TableRow className="border-border hover:bg-transparent">
-                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
-                  Name
-                </TableHead>
-                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
-                  Site
-                </TableHead>
-                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
-                  Brand
-                </TableHead>
-                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
-                  Type
-                </TableHead>
-                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
-                  Category
-                </TableHead>
-                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
-                  Description
-                </TableHead>
-                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
-                  Sites
-                </TableHead>
-                <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
-                  Status
-                </TableHead>
-                <TableHead className="h-12 px-6 text-right font-display font-semibold text-muted-foreground">
-                  Action
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          {viewMode === "card" && (
+            <div
+              className={cn(
+                "animate-fade-in-up grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4",
+                showHeaderAndFeatured ? "delay-200" : ""
+              )}
+            >
               {filteredItems.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={9}
-                    className="h-32 px-6 text-center text-muted-foreground"
-                  >
-                    No channels or genres match your filters.
-                  </TableCell>
-                </TableRow>
+                <div className="col-span-full flex h-48 items-center justify-center rounded-2xl border border-border bg-card text-muted-foreground text-sm">
+                  No channels or genres match your filters.
+                </div>
               ) : (
-                paginatedItems.map((item) => (
-                  <TableRow
-                    key={item.id}
-                    className="border-border transition-colors hover:bg-accent/50"
-                  >
-                    <TableCell className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-secondary">
+                paginatedItems.map((item) => {
+                  const TypeIcon = getTypeIcon(item.type)
+                  return (
+                    <div
+                      key={item.id}
+                      className="group rounded-2xl bg-card p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-secondary">
                           <Image
                             src={item.image}
                             alt={item.name}
                             fill
                             className="object-cover"
-                            sizes="48px"
+                            sizes="64px"
                           />
                         </div>
-                        <p className="font-display font-medium text-foreground">
-                          {item.name}
-                        </p>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-display font-semibold text-foreground truncate">
+                            {item.name}
+                          </p>
+                          <div className="mt-0.5 flex flex-wrap gap-1">
+                            <Badge
+                              variant="secondary"
+                              className="text-[10px] font-medium"
+                            >
+                              {item.category}
+                            </Badge>
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] font-medium border-border"
+                            >
+                              {item.type === "channel" ? "Channel" : "Genre"}
+                            </Badge>
+                          </div>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            Site: {getSiteName(item.siteId)}
+                          </p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            Brand: {getBrandName(item.siteId)}
+                          </p>
+                          <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
+                            {item.description}
+                          </p>
+                          <div className="mt-2 flex flex-wrap items-center gap-2">
+                            <span
+                              className={cn(
+                                "text-[11px] font-medium",
+                                item.available
+                                  ? "text-emerald-400"
+                                  : "text-amber-400"
+                              )}
+                            >
+                              {item.available ? "Available" : "Unavailable"}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                    </TableCell>
-                    <TableCell className="px-6 py-4">
-                      <p className="text-sm font-medium text-foreground">
-                        {getSiteName(item.siteId)}
-                      </p>
-                    </TableCell>
-                    <TableCell className="px-6 py-4">
-                      <p className="text-sm font-medium text-foreground">
-                        {getBrandName(item.siteId)}
-                      </p>
-                    </TableCell>
-                    <TableCell className="px-6 py-4">
-                      <Badge variant="outline" className="text-xs font-medium border-border">
-                        {item.type === "channel" ? "Channel" : "Genre"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="px-6 py-4">
-                      <Badge variant="secondary" className="text-xs font-medium">
-                        {item.category}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="max-w-[280px] px-6 py-4 text-sm text-muted-foreground line-clamp-2">
-                      {item.description}
-                    </TableCell>
-                    <TableCell className="px-6 py-4">
-                      <span className="flex items-center gap-2 font-medium text-foreground">
-                        <Globe className="h-4 w-4 text-muted-foreground" />
-                        {item.sitesCount}
-                      </span>
-                    </TableCell>
-                    <TableCell className="px-6 py-4">
-                      <span
-                        className={cn(
-                          "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold",
-                          item.available
-                            ? "bg-emerald-500/10 text-emerald-400"
-                            : "bg-amber-500/10 text-amber-400"
-                        )}
-                      >
-                        <span
-                          className={cn(
-                            "h-1.5 w-1.5 rounded-full",
-                            item.available ? "bg-emerald-400" : "bg-amber-400"
-                          )}
-                        />
-                        {item.available ? "Available" : "Unavailable"}
-                      </span>
-                    </TableCell>
-                    <TableCell className="px-6 py-4 text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10 hover:text-[hsl(var(--primary))]"
-                      >
-                        Explore
-                        <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
+                      <div className="mt-4 flex items-center justify-between gap-2 border-t border-border pt-4">
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1.5">
+                            <Globe className="h-3.5 w-3.5" />
+                            {item.sitesCount} sites
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            {item.type === "channel" ? (
+                              <Music2 className="h-3.5 w-3.5" />
+                            ) : (
+                              <Radio className="h-3.5 w-3.5" />
+                            )}
+                            {item.secondaryCount}{" "}
+                            {item.type === "channel" ? "genres" : "channels"}
+                          </span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10 hover:text-[hsl(var(--primary))] shrink-0"
+                        >
+                          Explore
+                          <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  )
+                })
               )}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+            </div>
+          )}
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="mt-6 flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
-                <p className="text-sm text-muted-foreground order-2 sm:order-1 whitespace-nowrap">Page {page} of {totalPages}</p>
-                <Pagination className="order-1 sm:order-2">
-                  <PaginationContent className="gap-1">
-                    <PaginationItem>
-                      <Button
-                        variant="ghost"
-                        size="default"
-                        className="gap-1 pl-2.5 h-9"
-                        onClick={() => setPage((p) => Math.max(1, p - 1))}
-                        disabled={page <= 1}
-                        aria-label="Go to previous page"
+          {viewMode === "list" && (
+            <div
+              className={cn(
+                "animate-fade-in-up rounded-2xl border border-border bg-card overflow-hidden",
+                showHeaderAndFeatured ? "delay-200" : ""
+              )}
+            >
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-border hover:bg-transparent">
+                    <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                      Name
+                    </TableHead>
+                    <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                      Site
+                    </TableHead>
+                    <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                      Brand
+                    </TableHead>
+                    <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                      Type
+                    </TableHead>
+                    <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                      Category
+                    </TableHead>
+                    <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                      Description
+                    </TableHead>
+                    <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                      Sites
+                    </TableHead>
+                    <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                      Status
+                    </TableHead>
+                    <TableHead className="h-12 px-6 text-right font-display font-semibold text-muted-foreground">
+                      Action
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredItems.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={9}
+                        className="h-32 px-6 text-center text-muted-foreground"
                       >
-                        <ChevronLeft className="h-4 w-4" />
-                        Previous
-                      </Button>
-                    </PaginationItem>
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                        No channels or genres match your filters.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    paginatedItems.map((item) => (
+                      <TableRow
+                        key={item.id}
+                        className="border-border transition-colors hover:bg-accent/50"
+                      >
+                        <TableCell className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-secondary">
+                              <Image
+                                src={item.image}
+                                alt={item.name}
+                                fill
+                                className="object-cover"
+                                sizes="48px"
+                              />
+                            </div>
+                            <p className="font-display font-medium text-foreground">
+                              {item.name}
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <p className="text-sm font-medium text-foreground">
+                            {getSiteName(item.siteId)}
+                          </p>
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <p className="text-sm font-medium text-foreground">
+                            {getBrandName(item.siteId)}
+                          </p>
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <Badge
+                            variant="outline"
+                            className="text-xs font-medium border-border"
+                          >
+                            {item.type === "channel" ? "Channel" : "Genre"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <Badge
+                            variant="secondary"
+                            className="text-xs font-medium"
+                          >
+                            {item.category}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="max-w-[280px] px-6 py-4 text-sm text-muted-foreground line-clamp-2">
+                          {item.description}
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <span className="flex items-center gap-2 font-medium text-foreground">
+                            <Globe className="h-4 w-4 text-muted-foreground" />
+                            {item.sitesCount}
+                          </span>
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <span
+                            className={cn(
+                              "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold",
+                              item.available
+                                ? "bg-emerald-500/10 text-emerald-400"
+                                : "bg-amber-500/10 text-amber-400"
+                            )}
+                          >
+                            <span
+                              className={cn(
+                                "h-1.5 w-1.5 rounded-full",
+                                item.available
+                                  ? "bg-emerald-400"
+                                  : "bg-amber-400"
+                              )}
+                            />
+                            {item.available ? "Available" : "Unavailable"}
+                          </span>
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-right">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10 hover:text-[hsl(var(--primary))]"
+                          >
+                            Explore
+                            <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="mt-6 flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
+              <p className="text-sm text-muted-foreground order-2 sm:order-1 whitespace-nowrap">
+                Page {page} of {totalPages}
+              </p>
+              <Pagination className="order-1 sm:order-2">
+                <PaginationContent className="gap-1">
+                  <PaginationItem>
+                    <Button
+                      variant="ghost"
+                      size="default"
+                      className="gap-1 pl-2.5 h-9"
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={page <= 1}
+                      aria-label="Go to previous page"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
+                    </Button>
+                  </PaginationItem>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (p) => (
                       <PaginationItem key={p}>
                         <Button
                           variant={page === p ? "outline" : "ghost"}
@@ -608,24 +635,27 @@ export function ChannelsContent({
                           {p}
                         </Button>
                       </PaginationItem>
-                    ))}
-                    <PaginationItem>
-                      <Button
-                        variant="ghost"
-                        size="default"
-                        className="gap-1 pr-2.5 h-9"
-                        onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                        disabled={page >= totalPages}
-                        aria-label="Go to next page"
-                      >
-                        Next
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
-              </div>
-            )}
+                    )
+                  )}
+                  <PaginationItem>
+                    <Button
+                      variant="ghost"
+                      size="default"
+                      className="gap-1 pr-2.5 h-9"
+                      onClick={() =>
+                        setPage((p) => Math.min(totalPages, p + 1))
+                      }
+                      disabled={page >= totalPages}
+                      aria-label="Go to next page"
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </div>
 
         {/* Right: Filters sidebar */}
@@ -717,7 +747,9 @@ export function ChannelsContent({
                     <label className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground">
                       <Checkbox
                         checked={availabilityFilter.includes("unavailable")}
-                        onCheckedChange={() => toggleAvailability("unavailable")}
+                        onCheckedChange={() =>
+                          toggleAvailability("unavailable")
+                        }
                         className="btn-gelatine"
                       />
                       Unavailable ({unavailableCount})

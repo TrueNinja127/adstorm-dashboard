@@ -19,11 +19,16 @@ export function Chatbot() {
                 <Sparkles className="h-3.5 w-3.5 text-primary" />
               </div>
               <div>
-                <p className="text-[13px] font-semibold text-foreground">AI Assistant</p>
+                <p className="text-[13px] font-semibold text-foreground">
+                  AI Assistant
+                </p>
                 <p className="text-[10px] text-emerald-400">Online</p>
               </div>
             </div>
-            <button onClick={closeChatbot} className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
+            <button
+              onClick={closeChatbot}
+              className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            >
               <X className="h-3.5 w-3.5" />
             </button>
           </div>
@@ -33,13 +38,23 @@ export function Chatbot() {
                 <Sparkles className="h-3 w-3 text-primary" />
               </div>
               <div className="rounded-lg rounded-tl-sm bg-secondary px-3 py-2">
-                <p className="text-[12px] leading-relaxed text-foreground">{"Hello! I'm your ADStorm assistant. I can help with campaigns, targeting, and performance insights."}</p>
+                <p className="text-[12px] leading-relaxed text-foreground">
+                  {
+                    "Hello! I'm your ADStorm assistant. I can help with campaigns, targeting, and performance insights."
+                  }
+                </p>
               </div>
             </div>
           </div>
           <div className="border-t border-border p-3">
             <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2">
-              <input type="text" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Ask anything..." className="flex-1 bg-transparent text-[12px] text-foreground placeholder:text-muted-foreground focus:outline-none" />
+              <input
+                type="text"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Ask anything..."
+                className="flex-1 bg-transparent text-[12px] text-foreground placeholder:text-muted-foreground focus:outline-none"
+              />
               <button className="btn-gelatine flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground transition-colors hover:bg-primary/90">
                 <Send className="h-3 w-3" />
               </button>
@@ -51,10 +66,16 @@ export function Chatbot() {
         onClick={toggleChatbot}
         className={cn(
           "btn-gelatine fixed bottom-5 right-5 z-50 flex h-11 w-11 items-center justify-center rounded-full shadow-lg transition-all duration-200",
-          isOpen ? "bg-secondary text-foreground" : "bg-primary text-primary-foreground"
+          isOpen
+            ? "bg-secondary text-foreground"
+            : "bg-primary text-primary-foreground"
         )}
       >
-        {isOpen ? <X className="h-4 w-4" /> : <MessageCircle className="h-4 w-4" />}
+        {isOpen ? (
+          <X className="h-4 w-4" />
+        ) : (
+          <MessageCircle className="h-4 w-4" />
+        )}
       </button>
     </>
   )

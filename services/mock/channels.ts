@@ -1,16 +1,172 @@
 import type { ChannelOrGenre } from "@/types"
 
 export const mockChannelsAndGenres: ChannelOrGenre[] = [
-  { id: "1", type: "channel", name: "Connected TV (CTV)", description: "Streaming and smart TV ad inventory with premium viewability and full-screen reach.", category: "CTV", image: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=200&h=200&fit=crop", sitesCount: 48, secondaryCount: 12, available: true, siteId: "1" },
-  { id: "2", type: "channel", name: "OTT & Streaming", description: "Over-the-top video across apps and streaming platforms for cord-cutters and mobile viewers.", category: "OTT", image: "https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?w=200&h=200&fit=crop", sitesCount: 62, secondaryCount: 18, available: true, siteId: "2" },
-  { id: "3", type: "channel", name: "Radio", description: "Terrestrial and digital radio inventory for local and national audio campaigns.", category: "Radio", image: "https://images.unsplash.com/photo-1589903308904-1010c2294adc?w=200&h=200&fit=crop", sitesCount: 120, secondaryCount: 24, available: true, siteId: "3" },
-  { id: "4", type: "channel", name: "Podcast", description: "Host-read and programmatic podcast ads with engaged, loyal audiences.", category: "Podcast", image: "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=200&h=200&fit=crop", sitesCount: 85, secondaryCount: 14, available: true, siteId: "4" },
-  { id: "5", type: "channel", name: "Display", description: "Banner, native, and rich media across premium publisher sites.", category: "Display", image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=200&h=200&fit=crop", sitesCount: 200, secondaryCount: 22, available: true, siteId: "5" },
-  { id: "6", type: "channel", name: "Video", description: "In-stream and outstream video across web and in-app placements.", category: "Video", image: "https://images.unsplash.com/photo-1611162616475-46b635cb6868?w=200&h=200&fit=crop", sitesCount: 95, secondaryCount: 16, available: false, siteId: "6" },
-  { id: "7", type: "genre", name: "News", description: "Trusted news and current affairs from top publishers and broadcasters.", category: "News", image: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=200&h=200&fit=crop", sitesCount: 44, secondaryCount: 8, available: true, siteId: "4" },
-  { id: "8", type: "genre", name: "Sports", description: "Live sports, highlights, and athletic content with high-engagement audiences.", category: "Sports", image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=200&h=200&fit=crop", sitesCount: 38, secondaryCount: 10, available: true, siteId: "14" },
-  { id: "9", type: "genre", name: "Entertainment", description: "Streaming, movies, TV, and entertainment content across platforms.", category: "Entertainment", image: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=200&h=200&fit=crop", sitesCount: 72, secondaryCount: 12, available: true, siteId: "10" },
-  { id: "10", type: "genre", name: "Technology", description: "Tech reviews, innovation, and gadget content for tech-savvy audiences.", category: "Technology", image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=200&h=200&fit=crop", sitesCount: 56, secondaryCount: 9, available: true, siteId: "1" },
-  { id: "11", type: "genre", name: "Lifestyle", description: "Health, wellness, fashion, and home content for lifestyle advertisers.", category: "Lifestyle", image: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=200&h=200&fit=crop", sitesCount: 64, secondaryCount: 11, available: true, siteId: "2" },
-  { id: "12", type: "genre", name: "Finance", description: "Financial news, markets, and investing for professional and retail audiences.", category: "Finance", image: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=200&h=200&fit=crop", sitesCount: 28, secondaryCount: 6, available: false, siteId: "6" },
+  {
+    id: "1",
+    type: "channel",
+    name: "Connected TV (CTV)",
+    description:
+      "Streaming and smart TV ad inventory with premium viewability and full-screen reach.",
+    category: "CTV",
+    image:
+      "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=200&h=200&fit=crop",
+    sitesCount: 48,
+    secondaryCount: 12,
+    available: true,
+    siteId: "1",
+  },
+  {
+    id: "2",
+    type: "channel",
+    name: "OTT & Streaming",
+    description:
+      "Over-the-top video across apps and streaming platforms for cord-cutters and mobile viewers.",
+    category: "OTT",
+    image:
+      "https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?w=200&h=200&fit=crop",
+    sitesCount: 62,
+    secondaryCount: 18,
+    available: true,
+    siteId: "2",
+  },
+  {
+    id: "3",
+    type: "channel",
+    name: "Radio",
+    description:
+      "Terrestrial and digital radio inventory for local and national audio campaigns.",
+    category: "Radio",
+    image:
+      "https://images.unsplash.com/photo-1589903308904-1010c2294adc?w=200&h=200&fit=crop",
+    sitesCount: 120,
+    secondaryCount: 24,
+    available: true,
+    siteId: "3",
+  },
+  {
+    id: "4",
+    type: "channel",
+    name: "Podcast",
+    description:
+      "Host-read and programmatic podcast ads with engaged, loyal audiences.",
+    category: "Podcast",
+    image:
+      "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=200&h=200&fit=crop",
+    sitesCount: 85,
+    secondaryCount: 14,
+    available: true,
+    siteId: "4",
+  },
+  {
+    id: "5",
+    type: "channel",
+    name: "Display",
+    description:
+      "Banner, native, and rich media across premium publisher sites.",
+    category: "Display",
+    image:
+      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=200&h=200&fit=crop",
+    sitesCount: 200,
+    secondaryCount: 22,
+    available: true,
+    siteId: "5",
+  },
+  {
+    id: "6",
+    type: "channel",
+    name: "Video",
+    description:
+      "In-stream and outstream video across web and in-app placements.",
+    category: "Video",
+    image:
+      "https://images.unsplash.com/photo-1611162616475-46b635cb6868?w=200&h=200&fit=crop",
+    sitesCount: 95,
+    secondaryCount: 16,
+    available: false,
+    siteId: "6",
+  },
+  {
+    id: "7",
+    type: "genre",
+    name: "News",
+    description:
+      "Trusted news and current affairs from top publishers and broadcasters.",
+    category: "News",
+    image:
+      "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=200&h=200&fit=crop",
+    sitesCount: 44,
+    secondaryCount: 8,
+    available: true,
+    siteId: "4",
+  },
+  {
+    id: "8",
+    type: "genre",
+    name: "Sports",
+    description:
+      "Live sports, highlights, and athletic content with high-engagement audiences.",
+    category: "Sports",
+    image:
+      "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=200&h=200&fit=crop",
+    sitesCount: 38,
+    secondaryCount: 10,
+    available: true,
+    siteId: "14",
+  },
+  {
+    id: "9",
+    type: "genre",
+    name: "Entertainment",
+    description:
+      "Streaming, movies, TV, and entertainment content across platforms.",
+    category: "Entertainment",
+    image:
+      "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=200&h=200&fit=crop",
+    sitesCount: 72,
+    secondaryCount: 12,
+    available: true,
+    siteId: "10",
+  },
+  {
+    id: "10",
+    type: "genre",
+    name: "Technology",
+    description:
+      "Tech reviews, innovation, and gadget content for tech-savvy audiences.",
+    category: "Technology",
+    image:
+      "https://images.unsplash.com/photo-1518770660439-4636190af475?w=200&h=200&fit=crop",
+    sitesCount: 56,
+    secondaryCount: 9,
+    available: true,
+    siteId: "1",
+  },
+  {
+    id: "11",
+    type: "genre",
+    name: "Lifestyle",
+    description:
+      "Health, wellness, fashion, and home content for lifestyle advertisers.",
+    category: "Lifestyle",
+    image:
+      "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=200&h=200&fit=crop",
+    sitesCount: 64,
+    secondaryCount: 11,
+    available: true,
+    siteId: "2",
+  },
+  {
+    id: "12",
+    type: "genre",
+    name: "Finance",
+    description:
+      "Financial news, markets, and investing for professional and retail audiences.",
+    category: "Finance",
+    image:
+      "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=200&h=200&fit=crop",
+    sitesCount: 28,
+    secondaryCount: 6,
+    available: false,
+    siteId: "6",
+  },
 ]
