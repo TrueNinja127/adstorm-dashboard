@@ -30,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { mockBrands, mockChannelsAndGenres, mockSitesAndLocations } from "@/services"
 
 /** URL for a US state outline SVG (Borderly API). */
 function getStateMapSvgUrl(stateName: string, selected: boolean): string {
@@ -49,32 +50,11 @@ const OBJECTIVE_OPTIONS: { id: ObjectiveType; label: string; icon: typeof Buildi
   { id: "ai", label: "AI Assistant", icon: Sparkles },
 ]
 
-type SelectionItem = { name: string; image: string }
+type SelectionItem = { id: string; name: string; image: string }
 
-const MOCK_BRANDS: SelectionItem[] = [
-  { name: "Acme Corp", image: "/images/brands/acme-corp.jpg" },
-  { name: "TechFlow", image: "/images/brands/techflow.jpg" },
-  { name: "GreenLife", image: "/images/brands/greenlife.jpg" },
-  { name: "UrbanStyle", image: "/images/brands/urbanstyle.jpg" },
-  { name: "NextGen Media", image: "/images/brands/nextgen-media.jpg" },
-]
-const MOCK_SITES: SelectionItem[] = [
-  { name: "Downtown LA", image: "/images/sites/downtown-la.jpg" },
-  { name: "NYC Times Square", image: "/images/sites/nyc-times-square.jpg" },
-  { name: "Chicago Loop", image: "/images/sites/chicago-loop.jpg" },
-  { name: "Miami Beach", image: "/images/sites/miami-beach.jpg" },
-  { name: "Seattle Center", image: "/images/sites/seattle-center.jpg" },
-]
-const MOCK_CHANNELS: SelectionItem[] = [
-  { name: "News 24", image: "/images/channels/news-24.jpg" },
-  { name: "Sports HD", image: "/images/channels/sports-hd.jpg" },
-  { name: "Entertainment Plus", image: "/images/channels/entertainment-plus.jpg" },
-  { name: "Kids Zone", image: "/images/channels/kids-zone.jpg" },
-  { name: "Documentary Channel", image: "/images/channels/documentary-channel.jpg" },
-]
 const MOCK_AI_OPTIONS: SelectionItem[] = [
-  { name: "AI Campaign 1", image: "/images/ai/campaign-1.jpg" },
-  { name: "AI Campaign 2", image: "/images/ai/campaign-2.jpg" },
+  { id: "ai-1", name: "AI Campaign 1", image: "/images/ai/campaign-1.jpg" },
+  { id: "ai-2", name: "AI Campaign 2", image: "/images/ai/campaign-2.jpg" },
 ]
 const GENRE_OPTIONS: { id: string; label: string; icon: typeof Newspaper }[] = [
   { id: "News", label: "News", icon: Newspaper },
@@ -377,6 +357,7 @@ export function CreateCampaignDialog() {
   const hasAppliedOpenDefaults = useRef(false)
   const processingCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const completedCanvasRef = useRef<HTMLCanvasElement | null>(null)
+  const hasInitializedChannelsFromSelection = useRef(false)
 
   const stepOrder = useMemo(() => getStepOrder(publishType), [publishType])
   const currentStepId = stepOrder[stepIndex]
@@ -523,12 +504,83 @@ export function CreateCampaignDialog() {
   }, [phase])
 
   const selectionList = useMemo((): SelectionItem[] => {
-    if (objective === "brands") return MOCK_BRANDS
-    if (objective === "sites") return MOCK_SITES
-    if (objective === "channels") return MOCK_CHANNELS
+    if (objective === "brands") {
+      return mockBrands.map((brand) => ({
+        id: brand.id,
+        name: brand.title,
+        image: brand.image,
+      }))
+    }
+    if (objective === "sites") {
+      return mockSitesAndLocations.map((site) => ({
+        id: site.id,
+        name: site.name,
+        image: site.image,
+      }))
+    }
+    if (objective === "channels") {
+      // When objective is channels, let users pick concrete channels up-front (not genres).
+      return mockChannelsAndGenres
+        .filter((item) => item.type === "channel")
+        .map((item) => ({
+          id: item.id,
+          name: item.name,
+          image: item.image,
+        }))
+    }
     if (objective === "ai") return MOCK_AI_OPTIONS
     return []
   }, [objective])
+
+  // Channels actually available for the "channels" step, based on earlier selections.
+  const availableChannelsForStep = useMemo(() => {
+    // Only concrete channels (exclude genres here; genres are handled in the auto flow).
+    const allChannels = mockChannelsAndGenres.filter((c) => c.type === "channel")
+
+    if (objective === "brands" && selectedItems.length > 0) {
+      const selectedBrandIds = new Set(selectedItems)
+      const sitesForBrands = mockSitesAndLocations.filter((s) =>
+        selectedBrandIds.has(s.brandId),
+      )
+      const siteIds = new Set(sitesForBrands.map((s) => s.id))
+      return allChannels.filter((ch) => siteIds.has(ch.siteId))
+    }
+
+    if (objective === "sites" && selectedItems.length > 0) {
+      const selectedSiteIds = new Set(selectedItems)
+      return allChannels.filter((ch) => selectedSiteIds.has(ch.siteId))
+    }
+
+    if (objective === "channels" && selectedItems.length > 0) {
+      const selectedChannelIds = new Set(selectedItems)
+      return allChannels.filter((ch) => selectedChannelIds.has(ch.id))
+    }
+
+    // Fallback: all channels.
+    return allChannels
+  }, [objective, selectedItems])
+
+  // When entering the "channels" step for the first time, default-select all derived channels.
+  useEffect(() => {
+    if (
+      currentStepId !== "channels" ||
+      hasInitializedChannelsFromSelection.current ||
+      !isFormPhase
+    ) {
+      return
+    }
+
+    hasInitializedChannelsFromSelection.current = true
+
+    if (availableChannelsForStep.length && selectedChannels.length === 0) {
+      setSelectedChannels(availableChannelsForStep.map((ch) => ch.id))
+    }
+  }, [
+    currentStepId,
+    isFormPhase,
+    availableChannelsForStep,
+    selectedChannels.length,
+  ])
 
   function toggleSelection(id: string, list: string[], setList: (v: string[]) => void) {
     setList(list.includes(id) ? list.filter((x) => x !== id) : [...list, id])
@@ -576,6 +628,7 @@ export function CreateCampaignDialog() {
     setCampaignName("")
     setFailedImages(new Set())
     setFailedAdImages(new Set())
+    hasInitializedChannelsFromSelection.current = false
   }
 
   function handleOpenChange(open: boolean) {
@@ -624,6 +677,7 @@ export function CreateCampaignDialog() {
     closeCreateCampaign()
     resetForm()
   }
+  const hasPriorChannelSelection = objective === "channels" && selectedItems.length > 0
 
   const congratsOverlay =
     typeof document === "undefined" || !showCongratsOverlay
@@ -762,14 +816,14 @@ export function CreateCampaignDialog() {
                 )}
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-[320px] overflow-y-auto pr-2 pl-4 pt-1 pb-6">
                   {selectionList.map((item, index) => {
-                    const isSelected = selectedItems.includes(item.name)
+                    const isSelected = selectedItems.includes(item.id)
                     const initial = item.name.charAt(0).toUpperCase()
                     const showImage = item.image && !failedImages.has(item.name)
                     return (
                       <button
-                        key={item.name}
+                        key={item.id}
                         type="button"
-                        onClick={() => toggleSelection(item.name, selectedItems, setSelectedItems)}
+                        onClick={() => toggleSelection(item.id, selectedItems, setSelectedItems)}
                         className={cn(
                           "group relative rounded-xl overflow-hidden border-2 text-left transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0a]",
                           isSelected
@@ -852,10 +906,14 @@ export function CreateCampaignDialog() {
               <div className="space-y-8 pl-12">
                 <div className="space-y-2 pl-4">
                   <p className="text-2xl font-semibold text-white">
-                    Which channels would you like to use?
+                    {hasPriorChannelSelection
+                      ? "Please check selected channels again."
+                      : "Which channels would you like to use?"}
                   </p>
                   <p className="text-sm text-white/60">
-                    Select one or more. You can change this later.
+                    {hasPriorChannelSelection
+                      ? "We’ve preselected the channels you chose earlier. You can unselect any that you don’t want to include."
+                      : "Select one or more. You can change this later."}
                   </p>
                 </div>
                 {selectedChannels.length > 0 && (
@@ -873,15 +931,15 @@ export function CreateCampaignDialog() {
                   </div>
                 )}
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-[320px] overflow-y-auto pr-2 pb-6 pl-4 pt-1">
-                  {MOCK_CHANNELS.map((ch, index) => {
-                    const isSelected = selectedChannels.includes(ch.name)
+                  {availableChannelsForStep.map((ch, index) => {
+                    const isSelected = selectedChannels.includes(ch.id)
                     const showImage = ch.image && !failedImages.has(ch.name)
                     const initial = ch.name.charAt(0).toUpperCase()
                     return (
                       <button
-                        key={ch.name}
+                        key={ch.id}
                         type="button"
-                        onClick={() => toggleSelection(ch.name, selectedChannels, setSelectedChannels)}
+                        onClick={() => toggleSelection(ch.id, selectedChannels, setSelectedChannels)}
                         className={cn(
                           "group relative rounded-xl overflow-hidden border-2 text-left transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0a]",
                           isSelected
