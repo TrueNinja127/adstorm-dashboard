@@ -2977,9 +2977,9 @@ export function CreateCampaignDialog() {
                                         </p>
                                         <p className="text-sm font-medium text-white">
                                           {timezone
-                                            ? TIMEZONE_OPTIONS.find(
+                                            ? (TIMEZONE_OPTIONS.find(
                                                 (opt) => opt.value === timezone
-                                              )?.label ?? timezone
+                                              )?.label ?? timezone)
                                             : "—"}
                                         </p>
                                       </div>

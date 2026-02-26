@@ -12,28 +12,29 @@ import {
   ChevronDown,
   ChevronUp,
   DollarSign,
-  BarChart3,
-  MousePointer,
   Tv,
   FileImage,
   ArrowRight,
-  Eye,
   Calendar,
   Check,
   Trophy,
   Medal,
+  MoreHorizontal,
+  Play,
+  Pause,
+  Trash2,
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Table,
   TableBody,
@@ -55,7 +56,14 @@ import {
 import { cn } from "@/lib/utils"
 import type { Campaign, CampaignStatus } from "@/types/campaigns"
 import Image from "next/image"
-import { mockCampaigns, mockAds, type MockAd } from "@/services"
+import {
+  mockCampaigns,
+  mockAds,
+  type MockAd,
+  mockBrands,
+  mockSitesAndLocations,
+  mockChannelsAndGenres,
+} from "@/services"
 import { ChartContainer } from "@/components/ui/chart"
 import {
   Dialog,
@@ -63,10 +71,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+} from "@/components/ui/drawer"
 import { AdPreviewVideoPlayer } from "./ad-preview-video-player"
 import { useCreateCampaign } from "@/contexts/create-campaign-context"
 import { format, parseISO, isValid } from "date-fns"
 import { Pie, PieChart, Cell } from "recharts"
+import { useToast } from "@/hooks/use-toast"
 
 interface CampaignsContentProps {
   showHeaderAndFeatured?: boolean
@@ -74,18 +90,13 @@ interface CampaignsContentProps {
 }
 
 type ViewMode = "card" | "list"
+type StatusGroup = "running" | "completed" | "paused"
 
 /** Fallback sample video when ad has no video URL. */
 const FALLBACK_VIDEO = "https://www.w3schools.com/html/mov_bbb.mp4"
 
 const PAGE_SIZE = 8
-const STATUS_OPTIONS: CampaignStatus[] = [
-  "draft",
-  "scheduled",
-  "active",
-  "paused",
-  "ended",
-]
+const STATUS_OPTIONS: StatusGroup[] = ["running", "completed", "paused"]
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat("en-US", {
@@ -102,6 +113,15 @@ function formatNumber(value: number): string {
   return String(value)
 }
 
+function formatDateTime(iso: string): string {
+  try {
+    const d = parseISO(iso)
+    return isValid(d) ? format(d, "d MMM yyyy, h:mm a") : iso
+  } catch {
+    return iso
+  }
+}
+
 function formatDate(iso: string): string {
   try {
     const d = parseISO(iso)
@@ -111,17 +131,76 @@ function formatDate(iso: string): string {
   }
 }
 
+function getStatusGroup(status: CampaignStatus): StatusGroup {
+  switch (status) {
+    case "active":
+    case "scheduled":
+      return "running"
+    case "ended":
+      return "completed"
+    case "paused":
+    case "draft":
+    default:
+      return "paused"
+  }
+}
+
+const primaryAdByCampaignId: Record<string, MockAd | undefined> =
+  mockAds.reduce(
+    (acc, ad) => {
+      if (!acc[ad.campaignId]) {
+        acc[ad.campaignId] = ad
+      }
+      return acc
+    },
+    {} as Record<string, MockAd | undefined>
+  )
+
+const brandByImage = mockBrands.reduce(
+  (acc, brand) => {
+    if (brand.image) {
+      acc[brand.image] = brand
+    }
+    return acc
+  },
+  {} as Record<string, (typeof mockBrands)[number]>
+)
+
+const siteByImage = mockSitesAndLocations.reduce(
+  (acc, site) => {
+    if (site.image) {
+      acc[site.image] = site
+    }
+    return acc
+  },
+  {} as Record<string, (typeof mockSitesAndLocations)[number]>
+)
+
+const genreByImage = mockChannelsAndGenres
+  .filter((item) => item.type === "genre")
+  .reduce(
+    (acc, genre) => {
+      if (genre.image) {
+        acc[genre.image] = genre
+      }
+      return acc
+    },
+    {} as Record<string, (typeof mockChannelsAndGenres)[number]>
+  )
+
 /** Circular progress bar showing used Qty % (green = used/delivered, gray = remaining). */
 function CircularQtyProgress({
   totalQty,
   usedQty,
   size = 56,
   strokeWidth = 5,
+  textSize = "xs",
 }: {
   totalQty: number
   usedQty: number
   size?: number
   strokeWidth?: number
+  textSize?: "xs" | "sm" | "md" | "lg" | "xl"
 }) {
   const usedPct = totalQty > 0 ? Math.round((usedQty / totalQty) * 100) : 0
   const clampedPct = Math.min(100, Math.max(0, usedPct))
@@ -129,7 +208,10 @@ function CircularQtyProgress({
   const circumference = 2 * Math.PI * radius
   const filledOffset = circumference - (clampedPct / 100) * circumference
   return (
-    <div className="relative flex shrink-0 items-center justify-center" style={{ width: size, height: size }}>
+    <div
+      className="relative flex shrink-0 items-center justify-center"
+      style={{ width: size, height: size }}
+    >
       <svg width={size} height={size} className="-rotate-90" aria-hidden>
         <circle
           cx={size / 2}
@@ -153,7 +235,7 @@ function CircularQtyProgress({
           className="text-emerald-500 dark:text-emerald-400 transition-all duration-500"
         />
       </svg>
-      <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-foreground tabular-nums">
+      <span className={cn("absolute inset-0 flex items-center justify-center font-bold text-foreground tabular-nums", textSize === "xs" ? "text-xs" : textSize === "sm" ? "text-sm" : textSize === "md" ? "text-md" : textSize === "lg" ? "text-lg" : textSize === "xl" ? "text-xl" : "text-xs")}>
         {clampedPct}%
       </span>
     </div>
@@ -166,30 +248,51 @@ function campaignAdId(campaignId: string): string {
 }
 
 function StatusBadge({ status }: { status: CampaignStatus }) {
+  const group = getStatusGroup(status)
   const variants: Record<
-    CampaignStatus,
-    { label: string; className: string }
+    StatusGroup,
+    { label: string; className: string; dotClassName: string }
   > = {
-    draft: { label: "Draft", className: "bg-muted text-muted-foreground" },
-    scheduled: {
-      label: "Scheduled",
-      className: "bg-blue-500/15 text-blue-600 dark:text-blue-400",
+    running: {
+      label: "Running",
+      className: "text-emerald-600 dark:text-emerald-400",
+      dotClassName: "bg-emerald-500",
     },
-    active: {
-      label: "Active",
-      className: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+    completed: {
+      label: "Completed",
+      className: "text-muted-foreground",
+      dotClassName: "bg-[#666]",
     },
     paused: {
       label: "Paused",
-      className: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+      className: "text-amber-600 dark:text-amber-400",
+      dotClassName: "bg-primary",
     },
-    ended: { label: "Ended", className: "bg-muted text-muted-foreground" },
   }
-  const { label, className } = variants[status]
+  const { label, className, dotClassName } = variants[group]
+  const isRunning = group === "running"
   return (
-    <Badge variant="secondary" className={cn("text-[10px] font-medium", className)}>
+    <div
+      className={cn("inline-flex items-center text-xs font-medium", className)}
+    >
+      <span className="relative mr-2 flex h-2 w-2 items-center justify-center">
+        {isRunning && (
+          <span
+            className={cn(
+              "absolute inline-flex h-2.5 w-2.5 rounded-full opacity-40 animate-ping",
+              dotClassName
+            )}
+          />
+        )}
+        <span
+          className={cn(
+            "relative inline-flex h-2 w-2 rounded-full",
+            dotClassName
+          )}
+        />
+      </span>
       {label}
-    </Badge>
+    </div>
   )
 }
 
@@ -198,8 +301,16 @@ export function CampaignsContent({
   scrollContainer = true,
 }: CampaignsContentProps) {
   const { openCreateCampaign } = useCreateCampaign()
+  const { toast } = useToast()
+  const [campaigns, setCampaigns] = useState<Campaign[]>(mockCampaigns)
   const [search, setSearch] = useState("")
-  const [statusFilter, setStatusFilter] = useState<CampaignStatus[]>([])
+  const [statusFilter, setStatusFilter] = useState<StatusGroup[]>([])
+  const [approvedFilter, setApprovedFilter] = useState<
+    "approved" | "pending" | null
+  >(null)
+  const [brandFilter, setBrandFilter] = useState<string[]>([])
+  const [channelFilter, setChannelFilter] = useState<string[]>([])
+  const [genreFilter, setGenreFilter] = useState<string[]>([])
   const [viewMode, setViewMode] = useState<ViewMode>("card")
   const [page, setPage] = useState(1)
   const [dateRange, setDateRange] = useState<string>("month")
@@ -212,6 +323,43 @@ export function CampaignsContent({
     label: string
     value: number
   } | null>(null)
+  const [pendingStatusChange, setPendingStatusChange] = useState<{
+    campaignId: string
+    action: "pause" | "resume"
+  } | null>(null)
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
+  const [selectedCampaignIds, setSelectedCampaignIds] = useState<string[]>([])
+  const [pendingBulkStatusChange, setPendingBulkStatusChange] = useState<{
+    action: "pause" | "resume"
+  } | null>(null)
+  const [detailsCampaignId, setDetailsCampaignId] = useState<string | null>(
+    null
+  )
+
+  const pendingCampaign = useMemo(
+    () =>
+      pendingStatusChange
+        ? (campaigns.find((c) => c.id === pendingStatusChange.campaignId) ??
+          null)
+        : null,
+    [pendingStatusChange, campaigns]
+  )
+
+  const pendingDeleteCampaign = useMemo(
+    () =>
+      pendingDeleteId
+        ? (campaigns.find((c) => c.id === pendingDeleteId) ?? null)
+        : null,
+    [pendingDeleteId, campaigns]
+  )
+
+  const detailsCampaign = useMemo(
+    () =>
+      detailsCampaignId
+        ? (campaigns.find((c) => c.id === detailsCampaignId) ?? null)
+        : null,
+    [detailsCampaignId, campaigns]
+  )
 
   useEffect(() => {
     const tick = () => setNow(new Date())
@@ -220,30 +368,96 @@ export function CampaignsContent({
   }, [])
 
   const statusCounts = useMemo(() => {
-    const acc: Record<CampaignStatus, number> = {
-      draft: 0,
-      scheduled: 0,
-      active: 0,
+    const acc: Record<StatusGroup, number> = {
+      running: 0,
+      completed: 0,
       paused: 0,
-      ended: 0,
     }
-    mockCampaigns.forEach((c) => {
-      acc[c.status] = (acc[c.status] ?? 0) + 1
+    campaigns.forEach((c) => {
+      const group = getStatusGroup(c.status)
+      acc[group] = (acc[group] ?? 0) + 1
     })
     return acc
-  }, [])
+  }, [campaigns])
+
+  const approvedCounts = useMemo(
+    () =>
+      campaigns.reduce(
+        (acc, c) => {
+          const isApproved = c.status !== "draft"
+          if (isApproved) {
+            acc.approved += 1
+          } else {
+            acc.pending += 1
+          }
+          return acc
+        },
+        { approved: 0, pending: 0 }
+      ),
+    [campaigns]
+  )
+
+  const brandCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+    campaigns.forEach((c) => {
+      const imageKey = c.image ?? ""
+      const brand = brandByImage[imageKey]
+      if (!brand?.title) return
+      counts[brand.title] = (counts[brand.title] ?? 0) + 1
+    })
+    return counts
+  }, [campaigns])
+
+  const channelCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+    campaigns.forEach((c) => {
+      c.channelNames?.forEach((ch) => {
+        if (!ch) return
+        counts[ch] = (counts[ch] ?? 0) + 1
+      })
+    })
+    return counts
+  }, [campaigns])
+
+  const genreCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+    campaigns.forEach((c) => {
+      const imageKey = c.image ?? ""
+      const genre = genreByImage[imageKey]
+      if (!genre?.name) return
+      counts[genre.name] = (counts[genre.name] ?? 0) + 1
+    })
+    return counts
+  }, [campaigns])
+
+  const brandOptions = useMemo(
+    () => Object.keys(brandCounts).sort(),
+    [brandCounts]
+  )
+
+  const channelOptions = useMemo(
+    () => Object.keys(channelCounts).sort(),
+    [channelCounts]
+  )
+
+  const genreOptions = useMemo(
+    () => Object.keys(genreCounts).sort(),
+    [genreCounts]
+  )
 
   const overviewStats = useMemo(() => {
-    const totalSpent = mockCampaigns.reduce((s, c) => s + c.spent, 0)
-    const totalAdsAired = mockCampaigns.reduce((s, c) => s + c.usedQty, 0)
-    const approvedCampaigns = mockCampaigns.filter((c) => c.status !== "draft").length
+    const totalSpent = campaigns.reduce((s, c) => s + c.spent, 0)
+    const totalAdsAired = campaigns.reduce((s, c) => s + c.usedQty, 0)
+    const approvedCampaigns = campaigns.filter(
+      (c) => c.status !== "draft"
+    ).length
     return { totalSpent, totalAdsAired, approvedCampaigns }
-  }, [])
+  }, [campaigns])
 
   const statusChartData = useMemo(
     () => [
-      { key: "running", label: "Running", value: statusCounts.active },
-      { key: "completed", label: "Completed", value: statusCounts.ended },
+      { key: "running", label: "Running", value: statusCounts.running },
+      { key: "completed", label: "Completed", value: statusCounts.completed },
       { key: "paused", label: "Paused", value: statusCounts.paused },
     ],
     [statusCounts]
@@ -267,31 +481,72 @@ export function CampaignsContent({
   const runningPercent = useMemo(() => {
     const total = statusChartData.reduce((sum, item) => sum + item.value, 0)
     if (!total) return 0
-    const running = statusChartData.find((item) => item.key === "running")?.value ?? 0
+    const running =
+      statusChartData.find((item) => item.key === "running")?.value ?? 0
     return Math.round((running / total) * 100)
   }, [statusChartData])
 
   const topCampaigns = useMemo(
     () =>
-      [...mockCampaigns]
+      [...campaigns]
         // .filter((c) => c.spent > 0 || c.impressions > 0)
         // .sort((a, b) => b.spent - a.spent)
         .slice(0, 6),
-    []
+    [campaigns]
   )
 
   const filteredCampaigns = useMemo(() => {
-    return mockCampaigns.filter((campaign) => {
+    return campaigns.filter((campaign) => {
       const searchLower = search.toLowerCase()
       const matchesSearch =
         !search ||
         campaign.name.toLowerCase().includes(searchLower) ||
         campaign.objective.toLowerCase().includes(searchLower)
       const matchesStatus =
-        statusFilter.length === 0 || statusFilter.includes(campaign.status)
-      return matchesSearch && matchesStatus
+        statusFilter.length === 0 ||
+        statusFilter.includes(getStatusGroup(campaign.status))
+      const isApproved = campaign.status !== "draft"
+      const matchesApproved =
+        approvedFilter === null ||
+        (approvedFilter === "approved" ? isApproved : !isApproved)
+
+      const imageKey = campaign.image ?? ""
+      const brand = brandByImage[imageKey]
+      const genre = genreByImage[imageKey]
+      const brandLabel = brand?.title
+      const genreLabel = genre?.name
+
+      const matchesBrand =
+        brandFilter.length === 0 ||
+        (brandLabel ? brandFilter.includes(brandLabel) : false)
+
+      const matchesChannel =
+        channelFilter.length === 0 ||
+        (campaign.channelNames?.some((ch) => channelFilter.includes(ch)) ??
+          false)
+
+      const matchesGenre =
+        genreFilter.length === 0 ||
+        (genreLabel ? genreFilter.includes(genreLabel) : false)
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesApproved &&
+        matchesBrand &&
+        matchesChannel &&
+        matchesGenre
+      )
     })
-  }, [search, statusFilter])
+  }, [
+    search,
+    statusFilter,
+    approvedFilter,
+    brandFilter,
+    channelFilter,
+    genreFilter,
+    campaigns,
+  ])
 
   const totalPages = Math.max(
     1,
@@ -302,18 +557,124 @@ export function CampaignsContent({
     return filteredCampaigns.slice(start, start + PAGE_SIZE)
   }, [filteredCampaigns, page])
 
+  const visibleCampaignIds = useMemo(
+    () => paginatedCampaigns.map((c) => c.id),
+    [paginatedCampaigns]
+  )
+
+  const allVisibleSelected =
+    visibleCampaignIds.length > 0 &&
+    visibleCampaignIds.every((id) => selectedCampaignIds.includes(id))
+
+  const someVisibleSelected =
+    !allVisibleSelected &&
+    visibleCampaignIds.some((id) => selectedCampaignIds.includes(id))
+
+  const hasSelection = selectedCampaignIds.length > 0
+
   useEffect(() => {
     setPage(1)
-  }, [search, statusFilter])
+  }, [
+    search,
+    statusFilter,
+    approvedFilter,
+    brandFilter,
+    channelFilter,
+    genreFilter,
+  ])
 
   function resetAllFilters() {
     setStatusFilter([])
+    setApprovedFilter(null)
+    setBrandFilter([])
+    setChannelFilter([])
+    setGenreFilter([])
   }
 
-  function toggleStatus(value: CampaignStatus) {
+  function toggleStatus(value: StatusGroup) {
     setStatusFilter((prev) =>
       prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value]
     )
+  }
+
+  function handleConfirmStatusChange() {
+    if (!pendingStatusChange) return
+
+    const { campaignId, action } = pendingStatusChange
+    const campaign = campaigns.find((c) => c.id === campaignId)
+    if (!campaign) {
+      setPendingStatusChange(null)
+      return
+    }
+
+    const nextStatus: CampaignStatus = action === "pause" ? "paused" : "active"
+
+    setCampaigns((prev) =>
+      prev.map((c) => (c.id === campaignId ? { ...c, status: nextStatus } : c))
+    )
+
+    toast({
+      title: action === "pause" ? "Campaign paused" : "Campaign played",
+      description: `"${campaign.name}" is now ${nextStatus}.`,
+      variant: action === "pause" ? "warning" : "success",
+    })
+
+    setPendingStatusChange(null)
+  }
+
+  function handleConfirmDelete() {
+    if (!pendingDeleteId) return
+
+    const campaign = campaigns.find((c) => c.id === pendingDeleteId)
+
+    setCampaigns((prev) => prev.filter((c) => c.id !== pendingDeleteId))
+
+    if (campaign) {
+      toast({
+        title: "Campaign deleted",
+        description: `"${campaign.name}" has been removed.`,
+        variant: "destructive",
+      })
+    }
+
+    setPendingDeleteId(null)
+  }
+
+  function handleConfirmBulkStatusChange() {
+    if (!pendingBulkStatusChange || selectedCampaignIds.length === 0) return
+
+    const { action } = pendingBulkStatusChange
+
+    setCampaigns((prev) =>
+      prev.map((c) => {
+        if (!selectedCampaignIds.includes(c.id)) return c
+        const group = getStatusGroup(c.status)
+        if (action === "pause" && group === "running") {
+          return { ...c, status: "paused" }
+        }
+        if (action === "resume" && group === "paused") {
+          return { ...c, status: "active" }
+        }
+        return c
+      })
+    )
+
+    const affectedCount = campaigns.filter((c) =>
+      selectedCampaignIds.includes(c.id)
+    ).length
+
+    if (affectedCount > 0) {
+      toast({
+        title: action === "pause" ? "Campaigns paused" : "Campaigns played",
+        description:
+          action === "pause"
+            ? `${affectedCount} selected campaigns have been paused.`
+            : `${affectedCount} selected campaigns have been played.`,
+        variant: action === "pause" ? "warning" : "success",
+      })
+    }
+
+    setPendingBulkStatusChange(null)
   }
 
   const inner = (
@@ -347,13 +708,15 @@ export function CampaignsContent({
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-9">
               <div className="col-span-2 rounded-2xl bg-card/95 backdrop-blur-sm p-5 shadow-sm dark:ring-white/5 flex justify-between items-end gap-4">
                 <div className="flex flex-col gap-4">
-                <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
-                  Total Spent
-                </p>
-                <p className="font-display text-3xl font-bold tabular-nums text-foreground truncate">
-                  {formatCurrency(overviewStats.totalSpent)}
-                </p>
-                <p className="text-xs text-muted-foreground">Total budget used</p>
+                  <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+                    Total Spent
+                  </p>
+                  <p className="font-display text-3xl font-bold tabular-nums text-foreground truncate">
+                    {formatCurrency(overviewStats.totalSpent)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Total budget used
+                  </p>
                 </div>
                 <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[#1b1c20] text-[#666] dark:text-[#999]">
                   <DollarSign className="h-5 w-5" />
@@ -361,13 +724,15 @@ export function CampaignsContent({
               </div>
               <div className="col-span-2 rounded-2xl bg-card/95 backdrop-blur-sm p-5 shadow-sm dark:ring-white/5 flex justify-between items-end gap-4">
                 <div className="flex flex-col gap-4">
-                <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
-                  Ads Aired
-                </p>
-                <p className="font-display text-3xl font-bold tabular-nums text-foreground truncate">
-                  {formatNumber(overviewStats.totalAdsAired)}
-                </p>
-                <p className="text-xs text-muted-foreground">Total advertisements aired</p>
+                  <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+                    Ads Aired
+                  </p>
+                  <p className="font-display text-3xl font-bold tabular-nums text-foreground truncate">
+                    {formatNumber(overviewStats.totalAdsAired)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Total advertisements aired
+                  </p>
                 </div>
                 <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[#1b1c20] text-[#666] dark:text-[#999]">
                   <Tv className="h-5 w-5" />
@@ -375,13 +740,15 @@ export function CampaignsContent({
               </div>
               <div className="col-span-2 rounded-2xl bg-card/95 backdrop-blur-sm p-5 shadow-sm dark:ring-white/5 flex justify-between items-end gap-4">
                 <div className="flex flex-col gap-4">
-                <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
-                  Approved
-                </p>
-                <p className="font-display text-3xl font-bold tabular-nums text-foreground">
-                  {overviewStats.approvedCampaigns}
-                </p>
-                <p className="text-xs text-muted-foreground">Campaigns approved</p>
+                  <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+                    Approved
+                  </p>
+                  <p className="font-display text-3xl font-bold tabular-nums text-foreground">
+                    {overviewStats.approvedCampaigns}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Campaigns approved
+                  </p>
                 </div>
                 <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[#1b1c20] text-[#666] dark:text-[#999]">
                   <Check className="h-5 w-5" />
@@ -393,8 +760,10 @@ export function CampaignsContent({
                     Campaign Status
                   </p>
                   <p className="font-display text-3xl font-bold text-foreground">
-                    {runningPercent}% 
-                    <span className="text-lg text-muted-foreground font-medium ml-2">running</span>
+                    {runningPercent}%
+                    <span className="text-lg text-muted-foreground font-medium ml-2">
+                      running
+                    </span>
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Distribution of running, completed, and paused campaigns
@@ -404,7 +773,9 @@ export function CampaignsContent({
                   className="relative flex h-[120px] w-[120px] items-center justify-center"
                   onMouseMove={(e) => {
                     if (!statusTooltip) return
-                    const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect()
+                    const rect = (
+                      e.currentTarget as HTMLDivElement
+                    ).getBoundingClientRect()
                     const x = e.clientX - rect.left
                     const y = e.clientY - rect.top
                     setStatusTooltip((prev) =>
@@ -413,7 +784,10 @@ export function CampaignsContent({
                   }}
                   onMouseLeave={() => setStatusTooltip(null)}
                 >
-                  <ChartContainer config={statusChartConfig} className="relative z-10 h-full w-full">
+                  <ChartContainer
+                    config={statusChartConfig}
+                    className="relative z-10 h-full w-full"
+                  >
                     <PieChart>
                       <Pie
                         data={statusChartData}
@@ -437,7 +811,10 @@ export function CampaignsContent({
                         onMouseLeave={() => setStatusTooltip(null)}
                       >
                         {statusChartData.map((entry) => (
-                          <Cell key={entry.key} fill={`var(--color-${entry.key})`} />
+                          <Cell
+                            key={entry.key}
+                            fill={`var(--color-${entry.key})`}
+                          />
                         ))}
                       </Pie>
                     </PieChart>
@@ -446,7 +823,9 @@ export function CampaignsContent({
                     <span className="font-display text-lg font-bold text-foreground">
                       {runningPercent}%
                     </span>
-                    <span className="text-xs text-muted-foreground">Running</span>
+                    <span className="text-xs text-muted-foreground">
+                      Running
+                    </span>
                   </div>
                   {statusTooltip && (
                     <div
@@ -454,10 +833,14 @@ export function CampaignsContent({
                       style={{
                         left: statusTooltip.x + 8,
                         top: statusTooltip.y + 8,
-                        backgroundColor: statusChartConfig[statusTooltip.key].color,
+                        backgroundColor:
+                          statusChartConfig[statusTooltip.key].color,
                       }}
                     >
-                      <div className="font-medium inline">{statusTooltip.label} {statusTooltip.value.toLocaleString()}</div>
+                      <div className="font-medium inline">
+                        {statusTooltip.label}{" "}
+                        {statusTooltip.value.toLocaleString()}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -469,8 +852,12 @@ export function CampaignsContent({
           <div className="mb-5 animate-fade-in-up delay-75">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
-                <h3 className="font-display text-base font-bold text-foreground">Ads</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">{mockAds.length} creatives</p>
+                <h3 className="font-display text-base font-bold text-foreground">
+                  Ads
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {mockAds.length} creatives
+                </p>
               </div>
               <Button
                 variant="ghost"
@@ -504,7 +891,10 @@ export function CampaignsContent({
                     </div>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                  <div className="absolute inset-0 bg-black/50 backdrop-blur-md opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none" aria-hidden />
+                  <div
+                    className="absolute inset-0 bg-black/50 backdrop-blur-md opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none"
+                    aria-hidden
+                  />
                   <div className="absolute bottom-0 left-0 right-0 p-3 overflow-hidden">
                     <p className="translate-y-full opacity-0 text-lg font-semibold text-white drop-shadow-lg transition-all duration-300 ease-out group-hover:translate-y-0 group-hover:opacity-100 group-hover:whitespace-normal group-hover:break-words">
                       {ad.name}
@@ -513,8 +903,15 @@ export function CampaignsContent({
                 </button>
               ))}
             </div>
-            <Dialog open={!!selectedAd} onOpenChange={(open) => !open && setSelectedAd(null)}>
-              <DialogContent className="max-w-4xl w-full p-0 gap-0 overflow-hidden border-0 aspect-video" hideClose style={{ borderRadius: 0 }}>
+            <Dialog
+              open={!!selectedAd}
+              onOpenChange={(open) => !open && setSelectedAd(null)}
+            >
+              <DialogContent
+                className="max-w-4xl w-full p-0 gap-0 overflow-hidden border-0 aspect-video"
+                hideClose
+                style={{ borderRadius: 0 }}
+              >
                 <DialogHeader className="sr-only">
                   <DialogTitle>{selectedAd?.name ?? "Ad preview"}</DialogTitle>
                 </DialogHeader>
@@ -537,8 +934,12 @@ export function CampaignsContent({
           <div className="mb-5 animate-fade-in-up delay-100">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
-                <h3 className="font-display text-base font-bold text-foreground">Top Campaigns</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">By spend — best performers</p>
+                <h3 className="font-display text-base font-bold text-foreground">
+                  Top Campaigns
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  By spend — best performers
+                </p>
               </div>
               <Button
                 variant="ghost"
@@ -552,7 +953,8 @@ export function CampaignsContent({
             </div>
             {topCampaigns.length === 0 ? (
               <div className="rounded-2xl border border-border bg-card/95 p-10 text-center text-sm text-muted-foreground">
-                No campaign spend yet. Launch a campaign to see performance here.
+                No campaign spend yet. Launch a campaign to see performance
+                here.
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6 overflow-visible">
@@ -576,17 +978,21 @@ export function CampaignsContent({
                         </div>
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                      <div className="absolute inset-0 bg-black/50 backdrop-blur-md opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none" aria-hidden />
-                      
+                      <div
+                        className="absolute inset-0 bg-black/50 backdrop-blur-md opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none"
+                        aria-hidden
+                      />
+
                       <div className="absolute bottom-0 left-0 right-0 p-3 overflow-hidden">
                         <p className="translate-y-full opacity-0 text-lg font-semibold text-white drop-shadow-lg transition-all duration-300 ease-out group-hover:translate-y-0 group-hover:opacity-100 group-hover:whitespace-normal group-hover:break-words">
                           {campaign.name}
                         </p>
-                        {campaign.channelNames && campaign.channelNames.length > 0 && (
-                          <p className="translate-y-full opacity-0 text-sm text-white/90 drop-shadow-md transition-all duration-300 ease-out group-hover:translate-y-0 group-hover:opacity-100 delay-75">
-                            {campaign.channelNames.join(", ")}
-                          </p>
-                        )}
+                        {campaign.channelNames &&
+                          campaign.channelNames.length > 0 && (
+                            <p className="translate-y-full opacity-0 text-sm text-white/90 drop-shadow-md transition-all duration-300 ease-out group-hover:translate-y-0 group-hover:opacity-100 delay-75">
+                              {campaign.channelNames.join(", ")}
+                            </p>
+                          )}
                         <span className="mt-1.5 inline-block translate-y-full opacity-0 transition-all duration-300 ease-out group-hover:translate-y-0 group-hover:opacity-100 delay-100">
                           <StatusBadge status={campaign.status} />
                         </span>
@@ -694,12 +1100,43 @@ export function CampaignsContent({
           {viewMode === "card" && (
             <div
               className={cn(
-                "animate-fade-in-up grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4",
+                "animate-fade-in-up grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
                 showHeaderAndFeatured ? "delay-200" : ""
               )}
             >
+              {hasSelection && (
+                <div className="col-span-full flex items-center justify-between gap-3 rounded-2xl border border-border bg-muted/40 px-4 py-2 text-xs sm:text-sm">
+                  <span className="font-medium text-foreground">
+                    {selectedCampaignIds.length} selected
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 gap-1 px-2 text-xs"
+                      onClick={() =>
+                        setPendingBulkStatusChange({ action: "resume" })
+                      }
+                    >
+                      <Play className="h-3.5 w-3.5 text-emerald-600" />
+                      <span className="hidden sm:inline">Play</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 gap-1 px-2 text-xs"
+                      onClick={() =>
+                        setPendingBulkStatusChange({ action: "pause" })
+                      }
+                    >
+                      <Pause className="h-3.5 w-3.5 text-primary" />
+                      <span className="hidden sm:inline">Pause</span>
+                    </Button>
+                  </div>
+                </div>
+              )}
               {filteredCampaigns.length === 0 ? (
-                <div className="col-span-full flex h-48 flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card text-muted-foreground text-sm">
+                <div className="col-span-full flex h-48 flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card text-sm text-muted-foreground">
                   <Megaphone className="h-10 w-10 opacity-50" />
                   <p>No campaigns match your filters.</p>
                   <Button
@@ -713,90 +1150,206 @@ export function CampaignsContent({
                   </Button>
                 </div>
               ) : (
-                paginatedCampaigns.map((campaign) => (
-                  <div
-                    key={campaign.id}
-                    className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/20"
-                  >
-                    <div className="flex flex-1 flex-col p-4">
-                      <div className="flex items-center gap-4">
-                        <CircularQtyProgress
-                          totalQty={campaign.totalQty}
-                          usedQty={campaign.usedQty}
-                          size={56}
-                          strokeWidth={5}
-                        />
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                            {campaignAdId(campaign.id)}
-                          </p>
-                          <h3 className="font-display text-sm font-bold tracking-tight text-foreground line-clamp-2 mt-0.5">
-                            {campaign.name}
-                          </h3>
-                          <p className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                            <Check className="h-3 w-3 shrink-0" />
-                            Published on {format(parseISO(campaign.startDate), "d MMMM yyyy")}
-                          </p>
-                        </div>
-                        <StatusBadge status={campaign.status} />
-                      </div>
-                      <p className="mt-3 text-xs text-muted-foreground">
-                        {campaign.objective}
-                      </p>
-                      <div className="mt-4 space-y-2 text-xs text-muted-foreground">
-                        <div className="flex items-center justify-between">
-                          <span className="flex items-center gap-1.5">
-                            <DollarSign className="h-3.5 w-3.5" />
-                            Budget
-                          </span>
-                          <span className="font-medium tabular-nums text-foreground">
-                            {formatCurrency(campaign.budget)}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="flex items-center gap-1.5">
-                            <BarChart3 className="h-3.5 w-3.5" />
-                            Spent
-                          </span>
-                          <span className="font-medium tabular-nums text-foreground">
-                            {formatCurrency(campaign.spent)}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <Calendar className="h-3.5 w-3.5 shrink-0" />
-                          {formatDate(campaign.startDate)} –{" "}
-                          {formatDate(campaign.endDate)}
-                        </div>
-                        {campaign.impressions > 0 && (
-                          <div className="flex items-center gap-1.5">
-                            <Tv className="h-3.5 w-3.5 shrink-0" />
-                            {formatNumber(campaign.impressions)} impr.
-                            {campaign.clicks > 0 && (
-                              <>
-                                {" · "}
-                                <MousePointer className="h-3.5 w-3.5 shrink-0" />
-                                {formatNumber(campaign.clicks)} clicks
-                              </>
-                            )}
+                paginatedCampaigns.map((campaign) => {
+                  const ad = primaryAdByCampaignId[campaign.id]
+                  const imageKey = campaign.image ?? ""
+                  const brand = brandByImage[imageKey]
+                  const site = siteByImage[imageKey]
+                  const genre = genreByImage[imageKey]
+                  const primaryChannel = campaign.channelNames?.[0]
+                  const unitPrice =
+                    campaign.totalQty > 0
+                      ? campaign.budget / campaign.totalQty
+                      : 0
+
+                  const brandLabel = brand?.title ?? "Brand not set"
+                  const siteChannelLabel = site
+                    ? `${site.subtitle ?? site.name}${
+                        primaryChannel ? ` · ${primaryChannel}` : ""
+                      }`
+                    : (primaryChannel ?? "Site / channel not set")
+                  const genreLabel = genre?.name ?? "Genre not set"
+                  const adLabel = ad
+                    ? `${ad.name} · ${ad.duration ?? "duration not set"}`
+                    : "No ad file linked"
+                  const isSelected = selectedCampaignIds.includes(campaign.id)
+
+                  return (
+                    <div
+                      key={campaign.id}
+                      data-selected={isSelected ? "true" : "false"}
+                      onClick={() => {
+                        setSelectedCampaignIds((prev) =>
+                          prev.includes(campaign.id)
+                            ? prev.filter((id) => id !== campaign.id)
+                            : [...prev, campaign.id]
+                        )
+                      }}
+                      className="group flex flex-col cursor-pointer overflow-hidden rounded-2xl border border-border bg-card/95 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-xl hover:shadow-black/20"
+                    >
+                      <div className="relative h-28 w-full overflow-hidden bg-muted">
+                        {campaign.image ? (
+                          <Image
+                            src={campaign.image}
+                            alt={campaign.name}
+                            fill
+                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                            sizes="(max-width: 640px) 100vw, 33vw"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                            <Megaphone className="h-6 w-6" />
                           </div>
                         )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                        <div className="absolute inset-0 flex flex-col justify-between p-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <span className="inline-flex rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white/90">
+                              {campaignAdId(campaign.id)}
+                            </span>
+                            <Checkbox
+                              aria-label={`Select campaign ${campaign.name}`}
+                              checked={isSelected}
+                              onClick={(e) => e.stopPropagation()}
+                              onCheckedChange={(checked) => {
+                                const isChecked = !!checked
+                                setSelectedCampaignIds((prev) => {
+                                  if (isChecked) {
+                                    if (prev.includes(campaign.id)) return prev
+                                    return [...prev, campaign.id]
+                                  }
+                                  return prev.filter((id) => id !== campaign.id)
+                                })
+                              }}
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <p className="line-clamp-2 font-display text-sm font-semibold text-white drop-shadow">
+                              {campaign.name}
+                            </p>
+                            <div className="flex items-center justify-between gap-2">
+                              {primaryChannel && (
+                                <p className="text-[11px] text-white/80">
+                                  {primaryChannel}
+                                </p>
+                              )}
+                              <StatusBadge status={campaign.status} />
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
-                        <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <Tv className="h-3.5 w-3.5" />
-                          {campaign.channelsCount} channels
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10"
-                        >
-                          View
-                        </Button>
+                      <div className="flex flex-1 flex-col gap-3 p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0 space-y-1 text-[11px]">
+                            <p className="font-semibold text-foreground">
+                              {brandLabel}
+                            </p>
+                            <p className="truncate text-muted-foreground">
+                              {siteChannelLabel}
+                            </p>
+                            {genre && (
+                              <div className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                                <Trophy className="h-3 w-3 shrink-0" />
+                                <span className="truncate">{genreLabel}</span>
+                              </div>
+                            )}
+                          </div>
+                          <CircularQtyProgress
+                            totalQty={campaign.totalQty}
+                            usedQty={campaign.usedQty}
+                            size={46}
+                            strokeWidth={4}
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 text-[11px]">
+                          <div className="space-y-0.5">
+                            <p className="text-muted-foreground">
+                              Price / spot
+                            </p>
+                            <p className="font-semibold tabular-nums text-foreground">
+                              {formatCurrency(unitPrice)}
+                            </p>
+                          </div>
+                          <div className="space-y-0.5">
+                            <p className="text-muted-foreground">Qty</p>
+                            <p className="font-semibold tabular-nums text-foreground">
+                              {campaign.totalQty}
+                            </p>
+                          </div>
+                          <div className="space-y-0.5">
+                            <p className="text-muted-foreground">Created</p>
+                            <p className="truncate text-[11px]">
+                              {formatDateTime(campaign.createdAt)}
+                            </p>
+                          </div>
+                          <div className="space-y-0.5">
+                            <p className="text-muted-foreground">Ad</p>
+                            <p className="truncate font-medium text-foreground">
+                              {adLabel}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="mt-1 flex items-center justify-between border-t border-border pt-3">
+                          <span className="text-[11px] text-muted-foreground">
+                            {campaign.usedQty} of {campaign.totalQty} spots used
+                          </span>
+                          <div className="flex items-center gap-1">
+                            {(() => {
+                              const group = getStatusGroup(campaign.status)
+                              const isRunning = group === "running"
+                              const isPaused = group === "paused"
+
+                              if (!isRunning && !isPaused) return null
+
+                              const action: "pause" | "resume" = isRunning
+                                ? "pause"
+                                : "resume"
+
+                              return (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  aria-label={
+                                    isRunning
+                                      ? "Pause campaign"
+                                      : "Resume campaign"
+                                  }
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setPendingStatusChange({
+                                      campaignId: campaign.id,
+                                      action,
+                                    })
+                                  }}
+                                >
+                                  {isRunning ? (
+                                    <Pause className="h-3.5 w-3.5 text-primary" />
+                                  ) : (
+                                    <Play className="h-3.5 w-3.5 text-emerald-600" />
+                                  )}
+                                </Button>
+                              )
+                            })()}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="btn-gelatine h-8 px-3 text-xs font-semibold text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setDetailsCampaignId(campaign.id)
+                              }}
+                            >
+                              View
+                            </Button>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  )
+                })
               )}
             </div>
           )}
@@ -808,29 +1361,88 @@ export function CampaignsContent({
                 showHeaderAndFeatured ? "delay-200" : ""
               )}
             >
+              {hasSelection && (
+                <div className="flex items-center justify-between gap-3 border-b border-border/80 bg-muted/40 px-4 py-2 text-xs sm:text-sm">
+                  <span className="font-medium text-foreground">
+                    {selectedCampaignIds.length} selected
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 gap-1 px-2 text-xs"
+                      onClick={() =>
+                        setPendingBulkStatusChange({ action: "resume" })
+                      }
+                    >
+                      <Play className="h-3.5 w-3.5 text-emerald-600" />
+                      <span className="hidden sm:inline">Play</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 gap-1 px-2 text-xs"
+                      onClick={() =>
+                        setPendingBulkStatusChange({ action: "pause" })
+                      }
+                    >
+                      <Pause className="h-3.5 w-3.5 text-primary" />
+                      <span className="hidden sm:inline">Pause</span>
+                    </Button>
+                  </div>
+                </div>
+              )}
               <Table>
                 <TableHeader>
-                  <TableRow className="border-border hover:bg-transparent">
-                    <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground w-14">
-                      Qty
+                  <TableRow className="border-border hover:bg-transparent items-center">
+                    <TableHead className="h-12 px-6 w-10 pt-2">
+                      <Checkbox
+                        aria-label="Select all campaigns"
+                        checked={allVisibleSelected}
+                        onCheckedChange={(checked) => {
+                          const shouldSelect = !!checked
+                          if (shouldSelect) {
+                            setSelectedCampaignIds((prev) => {
+                              const next = new Set(prev)
+                              visibleCampaignIds.forEach((id) => next.add(id))
+                              return Array.from(next)
+                            })
+                          } else {
+                            setSelectedCampaignIds((prev) =>
+                              prev.filter(
+                                (id) => !visibleCampaignIds.includes(id)
+                              )
+                            )
+                          }
+                        }}
+                      />
                     </TableHead>
                     <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
                       Campaign
                     </TableHead>
                     <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                      Channel
+                    </TableHead>
+                    <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                      Genre
+                    </TableHead>
+                    <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
+                      Progress
+                    </TableHead>
+                    <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
                       Status
                     </TableHead>
                     <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
-                      Budget / Spent
+                      Approved
                     </TableHead>
                     <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
-                      Dates
+                      Price
                     </TableHead>
                     <TableHead className="h-12 px-6 font-display font-semibold text-muted-foreground">
-                      Performance
+                      Qty
                     </TableHead>
                     <TableHead className="h-12 px-6 text-right font-display font-semibold text-muted-foreground">
-                      Action
+                      Actions
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -838,80 +1450,212 @@ export function CampaignsContent({
                   {filteredCampaigns.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={7}
+                        colSpan={10}
                         className="h-32 px-6 text-center text-muted-foreground"
                       >
                         No campaigns match your filters.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    paginatedCampaigns.map((campaign) => (
-                      <TableRow
-                        key={campaign.id}
-                        className="border-border transition-colors hover:bg-accent/50"
-                      >
-                        <TableCell className="px-6 py-4">
-                          <CircularQtyProgress
-                            totalQty={campaign.totalQty}
-                            usedQty={campaign.usedQty}
-                            size={40}
-                            strokeWidth={3}
-                          />
-                        </TableCell>
-                        <TableCell className="px-6 py-4">
-                          <div>
-                            <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                              {campaignAdId(campaign.id)}
-                            </p>
-                            <p className="font-display font-medium text-foreground">
-                              {campaign.name}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {campaign.objective}
-                            </p>
-                          </div>
-                        </TableCell>
-                        <TableCell className="px-6 py-4">
-                          <StatusBadge status={campaign.status} />
-                        </TableCell>
-                        <TableCell className="px-6 py-4">
-                          <div className="text-sm">
-                            <span className="font-medium text-foreground">
-                              {formatCurrency(campaign.budget)}
+                    paginatedCampaigns.map((campaign) => {
+                      const isSelected = selectedCampaignIds.includes(
+                        campaign.id
+                      )
+                      return (
+                        <TableRow
+                          key={campaign.id}
+                          className="border-border transition-colors hover:bg-accent/50 cursor-pointer"
+                          data-selected={isSelected ? "true" : "false"}
+                          onClick={() => {
+                            setSelectedCampaignIds((prev) =>
+                              prev.includes(campaign.id)
+                                ? prev.filter((id) => id !== campaign.id)
+                                : [...prev, campaign.id]
+                            )
+                          }}
+                        >
+                          <TableCell className="px-6 py-4">
+                            <Checkbox
+                              aria-label={`Select campaign ${campaign.name}`}
+                              checked={isSelected}
+                              onClick={(e) => e.stopPropagation()}
+                              onCheckedChange={(checked) => {
+                                const isChecked = !!checked
+                                setSelectedCampaignIds((prev) => {
+                                  if (isChecked) {
+                                    if (prev.includes(campaign.id)) return prev
+                                    return [...prev, campaign.id]
+                                  }
+                                  return prev.filter((id) => id !== campaign.id)
+                                })
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="relative h-10 w-10 overflow-hidden rounded-md bg-muted flex-shrink-0">
+                                {campaign.image ? (
+                                  <Image
+                                    src={campaign.image}
+                                    alt={campaign.name}
+                                    fill
+                                    className="object-cover"
+                                  />
+                                ) : (
+                                  <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                                    <Megaphone className="h-5 w-5" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                                  {campaignAdId(campaign.id)}
+                                </p>
+                                <p className="truncate font-display text-sm font-medium text-foreground">
+                                  {campaign.name}
+                                </p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="px-6 py-4 text-sm text-muted-foreground">
+                            {(() => {
+                              const primaryChannel = campaign.channelNames?.[0]
+
+                              return (
+                                <span className="text-sm text-foreground">
+                                  {primaryChannel ?? "Channel not set"}
+                                </span>
+                              )
+                            })()}
+                          </TableCell>
+                          <TableCell className="px-6 py-4 text-sm text-muted-foreground">
+                            {(() => {
+                              const imageKey = campaign.image ?? ""
+                              const genre = genreByImage[imageKey]
+
+                              const genreLabel = genre?.name ?? "Genre not set"
+
+                              return (
+                                <span className="text-sm text-foreground">
+                                  {genreLabel}
+                                </span>
+                              )
+                            })()}
+                          </TableCell>
+                          <TableCell className="px-6 py-4">
+                            <CircularQtyProgress
+                              totalQty={campaign.totalQty}
+                              usedQty={campaign.usedQty}
+                              size={46}
+                              strokeWidth={4}
+                            />
+                          </TableCell>
+                          <TableCell className="px-6 py-4">
+                            <StatusBadge status={campaign.status} />
+                          </TableCell>
+                          <TableCell className="px-6 py-4">
+                            {campaign.status !== "draft" ? (
+                              <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-3 py-0.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                                Approved
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center rounded-full bg-muted px-3 py-0.5 text-[11px] font-medium text-muted-foreground dark:text-gray-400">
+                                Pending
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="px-6 py-4">
+                            {(() => {
+                              const unitPrice =
+                                campaign.totalQty > 0
+                                  ? campaign.budget / campaign.totalQty
+                                  : 0
+
+                              return (
+                                <span className="text-sm font-medium text-foreground">
+                                  {formatCurrency(unitPrice)}
+                                </span>
+                              )
+                            })()}
+                          </TableCell>
+                          <TableCell className="px-6 py-4">
+                            <span className="text-sm text-foreground">
+                              {campaign.totalQty}
                             </span>
-                            <span className="text-muted-foreground">
-                              {" "}
-                              / {formatCurrency(campaign.spent)} spent
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="px-6 py-4 text-sm text-muted-foreground">
-                          {formatDate(campaign.startDate)} –{" "}
-                          {formatDate(campaign.endDate)}
-                        </TableCell>
-                        <TableCell className="px-6 py-4 text-sm text-muted-foreground">
-                          {campaign.impressions > 0 ? (
-                            <>
-                              {formatNumber(campaign.impressions)} impr.
-                              {campaign.clicks > 0 && (
-                                <> · {formatNumber(campaign.clicks)} clicks</>
-                              )}
-                            </>
-                          ) : (
-                            "—"
-                          )}
-                        </TableCell>
-                        <TableCell className="px-6 py-4 text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10"
-                          >
-                            View
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                          </TableCell>
+                          <TableCell className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              {(() => {
+                                const group = getStatusGroup(campaign.status)
+                                const isRunning = group === "running"
+                                const isPaused = group === "paused"
+
+                                if (!isRunning && !isPaused) return null
+
+                                const action: "pause" | "resume" = isRunning
+                                  ? "pause"
+                                  : "resume"
+
+                                return (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 w-8 px-0"
+                                    aria-label={
+                                      isRunning
+                                        ? "Pause campaign"
+                                        : "Resume campaign"
+                                    }
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setPendingStatusChange({
+                                        campaignId: campaign.id,
+                                        action,
+                                      })
+                                    }}
+                                  >
+                                    {isRunning ? (
+                                      <Pause className="h-3.5 w-3.5 text-primary" />
+                                    ) : (
+                                      <Play className="h-3.5 w-3.5 text-emerald-600" />
+                                    )}
+                                  </Button>
+                                )
+                              })()}
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      setDetailsCampaignId(campaign.id)
+                                    }
+                                  >
+                                    View
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="text-destructive focus:text-destructive"
+                                    onClick={() =>
+                                      setPendingDeleteId(campaign.id)
+                                    }
+                                  >
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })
                   )}
                 </TableBody>
               </Table>
@@ -1015,17 +1759,520 @@ export function CampaignsContent({
                   </div>
                 </CollapsibleContent>
               </Collapsible>
+
+              <Collapsible>
+                <CollapsibleTrigger className="group flex w-full items-center justify-between py-2.5 text-left text-sm font-medium text-foreground hover:text-foreground">
+                  Approved
+                  <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground group-data-[state=open]:hidden" />
+                  <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground hidden group-data-[state=open]:inline-block" />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="space-y-2 pb-3">
+                    <label className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground">
+                      <Checkbox
+                        checked={approvedFilter === "approved"}
+                        onCheckedChange={(checked) =>
+                          setApprovedFilter(checked ? "approved" : null)
+                        }
+                        className="btn-gelatine"
+                      />
+                      Approved ({approvedCounts.approved ?? 0})
+                    </label>
+                    <label className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground">
+                      <Checkbox
+                        checked={approvedFilter === "pending"}
+                        onCheckedChange={(checked) =>
+                          setApprovedFilter(checked ? "pending" : null)
+                        }
+                        className="btn-gelatine"
+                      />
+                      Pending ({approvedCounts.pending ?? 0})
+                    </label>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+
+              {brandOptions.length > 0 && (
+                <Collapsible>
+                  <CollapsibleTrigger className="group flex w-full items-center justify-between py-2.5 text-left text-sm font-medium text-foreground hover:text-foreground">
+                    Brands
+                    <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground group-data-[state=open]:hidden" />
+                    <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground hidden group-data-[state=open]:inline-block" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="space-y-2 pb-3 max-h-48 overflow-y-auto pr-1">
+                      {brandOptions.map((brand) => (
+                        <label
+                          key={brand}
+                          className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground"
+                        >
+                          <Checkbox
+                            checked={brandFilter.includes(brand)}
+                            onCheckedChange={(checked) =>
+                              setBrandFilter((prev) =>
+                                checked
+                                  ? [...prev, brand]
+                                  : prev.filter((b) => b !== brand)
+                              )
+                            }
+                            className="btn-gelatine"
+                          />
+                          {brand} ({brandCounts[brand] ?? 0})
+                        </label>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              )}
+
+              {channelOptions.length > 0 && (
+                <Collapsible>
+                  <CollapsibleTrigger className="group flex w-full items-center justify-between py-2.5 text-left text-sm font-medium text-foreground hover:text-foreground">
+                    Channel
+                    <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground group-data-[state=open]:hidden" />
+                    <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground hidden group-data-[state=open]:inline-block" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="space-y-2 pb-3 max-h-48 overflow-y-auto pr-1">
+                      {channelOptions.map((channel) => (
+                        <label
+                          key={channel}
+                          className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground"
+                        >
+                          <Checkbox
+                            checked={channelFilter.includes(channel)}
+                            onCheckedChange={(checked) =>
+                              setChannelFilter((prev) =>
+                                checked
+                                  ? [...prev, channel]
+                                  : prev.filter((c) => c !== channel)
+                              )
+                            }
+                            className="btn-gelatine"
+                          />
+                          {channel} ({channelCounts[channel] ?? 0})
+                        </label>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              )}
+
+              {genreOptions.length > 0 && (
+                <Collapsible>
+                  <CollapsibleTrigger className="group flex w-full items-center justify-between py-2.5 text-left text-sm font-medium text-foreground hover:text-foreground">
+                    Genre
+                    <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground group-data-[state=open]:hidden" />
+                    <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground hidden group-data-[state=open]:inline-block" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="space-y-2 pb-3 max-h-48 overflow-y-auto pr-1">
+                      {genreOptions.map((genre) => (
+                        <label
+                          key={genre}
+                          className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground"
+                        >
+                          <Checkbox
+                            checked={genreFilter.includes(genre)}
+                            onCheckedChange={(checked) =>
+                              setGenreFilter((prev) =>
+                                checked
+                                  ? [...prev, genre]
+                                  : prev.filter((g) => g !== genre)
+                              )
+                            }
+                            className="btn-gelatine"
+                          />
+                          {genre} ({genreCounts[genre] ?? 0})
+                        </label>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              )}
             </div>
           </div>
         </aside>
       </div>
+
+      {/* Campaign details drawer */}
+      <Drawer
+        open={!!detailsCampaignId}
+        onOpenChange={(open) => {
+          if (!open) setDetailsCampaignId(null)
+        }}
+      >
+        <DrawerContent className="max-h-[85vh] overflow-hidden rounded-t-2xl border border-border bg-background/95 px-0 pb-0 pt-2 shadow-2xl backdrop-blur supports-[backdrop-filter]:backdrop-blur-xl">
+          {detailsCampaign ? (
+            <div className="flex h-full w-full flex-col px-4 pb-4 pt-2 text-sm sm:px-6 sm:pb-6">
+              {(() => {
+                const imageKey = detailsCampaign.image ?? ""
+                const brand = brandByImage[imageKey]
+                const site = siteByImage[imageKey]
+                const genre = genreByImage[imageKey]
+                const ad = primaryAdByCampaignId[detailsCampaign.id]
+                const primaryChannel = detailsCampaign.channelNames?.[0]
+                const unitPrice =
+                  detailsCampaign.totalQty > 0
+                    ? detailsCampaign.budget / detailsCampaign.totalQty
+                    : 0
+
+                const brandLabel = brand?.title ?? "Brand not set"
+                const siteChannelLabel = site
+                  ? `${site.subtitle ?? site.name}${
+                      primaryChannel ? ` · ${primaryChannel}` : ""
+                    }`
+                  : (primaryChannel ?? "Site / channel not set")
+                const genreLabel = genre?.name ?? "Genre not set"
+                const adLabel = ad
+                  ? `${ad.name} · ${ad.duration ?? "duration not set"}`
+                  : "No ad file linked"
+
+                const statusGroup = getStatusGroup(detailsCampaign.status)
+                const isRunning = statusGroup === "running"
+                const isPaused = statusGroup === "paused"
+                const canToggle = isRunning || isPaused
+                const toggleAction: "pause" | "resume" = isRunning
+                  ? "pause"
+                  : "resume"
+                const toggleLabel = isRunning
+                  ? "Pause Campaign"
+                  : "Play Campaign"
+
+                return (
+                  <div className="flex items-stretch gap-6 py-3">
+                    {/* Left: thumbnail + id + name + status */}
+                    <div className="flex items-start gap-6">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (ad) setSelectedAd(ad)
+                        }}
+                        className="group relative w-40 aspect-[4/3] overflow-hidden rounded-xl bg-muted shadow-sm"
+                      >
+                        {(ad?.image ?? detailsCampaign.image) ? (
+                          <Image
+                            src={ad?.image ?? (detailsCampaign.image as string)}
+                            alt={detailsCampaign.name}
+                            fill
+                            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                            <Megaphone className="h-5 w-5" />
+                          </div>
+                        )}
+                        {ad && (
+                          <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                            <Play className="h-8 w-8 text-white" />
+                          </div>
+                        )}
+                      </button>
+                      <div className="min-w-0 space-y-2">
+                        <p className="font-mono text-xs uppercase tracking-wide text-muted-foreground">
+                          {campaignAdId(detailsCampaign.id)}
+                        </p>
+                        <p className="truncate font-display text-xl font-semibold tracking-tight text-foreground">
+                          {detailsCampaign.name}
+                        </p>
+                        <p className="font-mono text-xs uppercase tracking-wide text-muted-foreground">
+                          Created {formatDateTime(detailsCampaign.createdAt)}
+                        </p>
+                        <div className="mt-1">
+                          <StatusBadge status={detailsCampaign.status} />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Middle: three info columns */}
+                    <div className="grid grid-cols-3 flex-1 items-center gap-8 pl-6 text-xs">
+                      <div className="col-span-1 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                            Brand
+                          </p>
+                          <p className="text-sm font-medium text-foreground">
+                            {brandLabel}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                            Site
+                          </p>
+                          <p className="text-sm font-medium text-foreground">
+                            {siteChannelLabel}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                            Channel
+                          </p>
+                          <p className="text-sm font-medium text-foreground">
+                            {primaryChannel ?? "Not set"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="col-span-1 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                            Genre
+                          </p>
+                          <p className="text-sm font-medium text-foreground">
+                            {genreLabel}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                            Ad
+                          </p>
+                          <p className="text-sm font-medium text-foreground">
+                            {adLabel}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                            Approved
+                          </p>
+                          <p className="text-sm font-medium text-foreground">
+                            {detailsCampaign.status !== "draft" ? "Yes" : "No"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="col-span-1 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                            Price
+                          </p>
+                          <p className="text-sm font-semibold text-foreground">
+                            {formatCurrency(unitPrice)}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                            Spots used
+                          </p>
+                          <p className="text-sm font-medium text-foreground">
+                            {detailsCampaign.usedQty} /{" "}
+                            {detailsCampaign.totalQty}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                            Total
+                          </p>
+                          <p className="text-sm font-medium text-foreground">
+                            {formatCurrency(detailsCampaign.budget)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Chart circle */}
+                    <div className="flex flex-col items-center justify-center px-3 sm:px-4">
+                      <CircularQtyProgress
+                        totalQty={detailsCampaign.totalQty}
+                        usedQty={detailsCampaign.usedQty}
+                        size={100}
+                        strokeWidth={9}
+                        textSize="lg"
+                      />
+                    </div>
+
+                    {/* Right: actions */}
+                    <div className="flex w-[170px] flex-col items-start justify-center gap-3 pl-4 text-xs">
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          if (ad) setSelectedAd(ad)
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="inline-flex w-full items-center justify-start gap-1.5 rounded-full px-3 text-xs font-medium"
+                        disabled={!ad}
+                      >
+                        <FileImage className="h-3.5 w-3.5" />
+                        <span>Preview Ad</span>
+                      </Button>
+                      {canToggle && (
+                        <Button
+                          type="button"
+                          onClick={() =>
+                            setPendingStatusChange({
+                              campaignId: detailsCampaign.id,
+                              action: toggleAction,
+                            })
+                          }
+                          variant="secondary"
+                          size="sm"
+                          className="inline-flex w-full items-center justify-start gap-1.5 rounded-full px-3 text-xs font-medium"
+                        >
+                          {isRunning ? (
+                            <Pause className="h-3.5 w-3.5 text-primary" />
+                          ) : (
+                            <Play className="h-3.5 w-3.5 text-emerald-600" />
+                          )}
+                          <span>{toggleLabel}</span>
+                        </Button>
+                      )}
+                      <Button
+                        type="button"
+                        onClick={() => setPendingDeleteId(detailsCampaign.id)}
+                        variant="destructive"
+                        size="sm"
+                        className="inline-flex w-full items-center justify-start gap-1.5 rounded-full px-3 text-xs font-medium"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        <span>Delete Campaign</span>
+                      </Button>
+                    </div>
+                  </div>
+                )
+              })()}
+            </div>
+          ) : (
+            <div className="p-4 text-sm text-muted-foreground">
+              No campaign selected.
+            </div>
+          )}
+        </DrawerContent>
+      </Drawer>
+
+      {/* Confirm play/pause dialog */}
+      <Dialog
+        open={!!pendingStatusChange}
+        onOpenChange={(open) => {
+          if (!open) setPendingStatusChange(null)
+        }}
+      >
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-semibold">
+              {pendingStatusChange?.action === "pause"
+                ? "Pause campaign?"
+                : "Resume campaign?"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-2 space-y-3 text-sm text-muted-foreground">
+            {pendingCampaign && (
+              <p>
+                {pendingStatusChange?.action === "pause"
+                  ? `This will pause "${pendingCampaign.name}" and stop serving its ads until you resume it.`
+                  : `This will resume "${pendingCampaign.name}" and start serving its ads again.`}
+              </p>
+            )}
+          </div>
+          <div className="mt-5 flex justify-end gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="min-w-[88px]"
+              onClick={() => setPendingStatusChange(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              className={`min-w-[88px] btn-gelatine ${pendingStatusChange?.action === "pause" ? "bg-primary" : "bg-emerald-500 hover:bg-emerald-700 text-white"}`}
+              onClick={handleConfirmStatusChange}
+              disabled={!pendingStatusChange}
+            >
+              {pendingStatusChange?.action === "pause" ? "Pause" : "Play"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm bulk play/pause dialog */}
+      <Dialog
+        open={!!pendingBulkStatusChange}
+        onOpenChange={(open) => {
+          if (!open) setPendingBulkStatusChange(null)
+        }}
+      >
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-semibold">
+              {pendingBulkStatusChange?.action === "pause"
+                ? "Pause selected campaigns?"
+                : "Play selected campaigns?"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-2 space-y-3 text-sm text-muted-foreground">
+            {hasSelection && (
+              <p>
+                {pendingBulkStatusChange?.action === "pause"
+                  ? `This will pause ${selectedCampaignIds.length} selected campaign(s) and stop serving their ads until you resume them.`
+                  : `This will play ${selectedCampaignIds.length} selected campaign(s) and start serving their ads.`}
+              </p>
+            )}
+          </div>
+          <div className="mt-5 flex justify-end gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="min-w-[88px]"
+              onClick={() => setPendingBulkStatusChange(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              className={`min-w-[88px] btn-gelatine ${pendingBulkStatusChange?.action === "pause" ? "bg-primary" : "bg-emerald-500 hover:bg-emerald-700 text-white"}`}
+              onClick={handleConfirmBulkStatusChange}
+              disabled={!pendingBulkStatusChange || !hasSelection}
+            >
+              {pendingBulkStatusChange?.action === "pause" ? "Pause" : "Play"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm delete dialog */}
+      <Dialog
+        open={!!pendingDeleteId}
+        onOpenChange={(open) => {
+          if (!open) setPendingDeleteId(null)
+        }}
+      >
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-semibold text-destructive">
+              Delete campaign?
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-2 space-y-3 text-sm text-muted-foreground">
+            {pendingDeleteCampaign && (
+              <p>
+                {`This will permanently remove "${pendingDeleteCampaign.name}" from your campaigns. This action cannot be undone.`}
+              </p>
+            )}
+          </div>
+          <div className="mt-5 flex justify-end gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="min-w-[88px]"
+              onClick={() => setPendingDeleteId(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              className="min-w-[88px] btn-gelatine"
+              onClick={handleConfirmDelete}
+              disabled={!pendingDeleteId}
+            >
+              Delete
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 
   if (scrollContainer) {
-    return (
-      <div className="flex-1 min-h-0 overflow-y-auto">{inner}</div>
-    )
+    return <div className="flex-1 min-h-0 overflow-y-auto">{inner}</div>
   }
   return <>{inner}</>
 }

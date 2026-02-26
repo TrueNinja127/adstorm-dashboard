@@ -55,7 +55,9 @@ export function AdPreviewVideoPlayer({
   const [showControls, setShowControls] = useState(true)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [controlsHover, setControlsHover] = useState(false)
-  const hideControlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hideControlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  )
 
   const togglePlay = useCallback(() => {
     const video = videoRef.current
@@ -171,7 +173,8 @@ export function AdPreviewVideoPlayer({
   }, [duration, hasEnded])
 
   const scheduleHideControls = useCallback(() => {
-    if (hideControlsTimeoutRef.current) clearTimeout(hideControlsTimeoutRef.current)
+    if (hideControlsTimeoutRef.current)
+      clearTimeout(hideControlsTimeoutRef.current)
     hideControlsTimeoutRef.current = setTimeout(() => {
       if (!controlsHover) setShowControls(false)
     }, 2500)
@@ -204,7 +207,8 @@ export function AdPreviewVideoPlayer({
     if (!hasEnded) scheduleHideControls()
     else cancelHideControls()
     return () => {
-      if (hideControlsTimeoutRef.current) clearTimeout(hideControlsTimeoutRef.current)
+      if (hideControlsTimeoutRef.current)
+        clearTimeout(hideControlsTimeoutRef.current)
     }
   }, [hasEnded, scheduleHideControls, cancelHideControls])
 
@@ -230,7 +234,8 @@ export function AdPreviewVideoPlayer({
       setIsFullscreen(!!document.fullscreenElement)
     }
     document.addEventListener("fullscreenchange", handleFullscreenChange)
-    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange)
+    return () =>
+      document.removeEventListener("fullscreenchange", handleFullscreenChange)
   }, [])
 
   const progressPct = duration > 0 ? (currentTime / duration) * 100 : 0
@@ -271,7 +276,9 @@ export function AdPreviewVideoPlayer({
         {isLoading && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/60 backdrop-blur-sm">
             <div className="h-12 w-12 rounded-full border-2 border-[hsl(var(--primary))]/25 border-t-[hsl(var(--primary))] animate-spin" />
-            <p className="text-sm font-medium text-white/90">Loading video...</p>
+            <p className="text-sm font-medium text-white/90">
+              Loading video...
+            </p>
           </div>
         )}
 
@@ -287,7 +294,10 @@ export function AdPreviewVideoPlayer({
               {hasEnded ? (
                 <RotateCcw className="h-10 w-10 text-white" />
               ) : (
-                <Play className="h-10 w-10 ml-1 text-white" fill="currentColor" />
+                <Play
+                  className="h-10 w-10 ml-1 text-white"
+                  fill="currentColor"
+                />
               )}
             </div>
           </button>
