@@ -173,9 +173,9 @@ export function AdPreviewVideoPlayer({
   const scheduleHideControls = useCallback(() => {
     if (hideControlsTimeoutRef.current) clearTimeout(hideControlsTimeoutRef.current)
     hideControlsTimeoutRef.current = setTimeout(() => {
-      if (isPlaying && !controlsHover) setShowControls(false)
+      if (!controlsHover) setShowControls(false)
     }, 2500)
-  }, [isPlaying, controlsHover])
+  }, [controlsHover])
 
   const cancelHideControls = useCallback(() => {
     if (hideControlsTimeoutRef.current) {
@@ -201,12 +201,12 @@ export function AdPreviewVideoPlayer({
   }, [src, autoPlay])
 
   useEffect(() => {
-    if (isPlaying) scheduleHideControls()
+    if (!hasEnded) scheduleHideControls()
     else cancelHideControls()
     return () => {
       if (hideControlsTimeoutRef.current) clearTimeout(hideControlsTimeoutRef.current)
     }
-  }, [isPlaying, scheduleHideControls, cancelHideControls])
+  }, [hasEnded, scheduleHideControls, cancelHideControls])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -234,7 +234,7 @@ export function AdPreviewVideoPlayer({
   }, [])
 
   const progressPct = duration > 0 ? (currentTime / duration) * 100 : 0
-  const controlsVisible = showControls || !isPlaying || hasEnded
+  const controlsVisible = showControls && !hasEnded
 
   return (
     <div
@@ -247,7 +247,7 @@ export function AdPreviewVideoPlayer({
       onMouseMove={cancelHideControls}
       onMouseLeave={() => {
         setControlsHover(false)
-        if (isPlaying && !hasEnded) scheduleHideControls()
+        if (!hasEnded) scheduleHideControls()
       }}
     >
       {/* Video area — fills entire 16:9 container */}
@@ -294,147 +294,146 @@ export function AdPreviewVideoPlayer({
         )}
       </div>
 
-      {/* Bottom control bar — overlaid on video with gradient */}
-      <div
-        className={cn(
-          "absolute bottom-0 left-0 right-0 flex flex-col bg-[#040A17]/80 transition-opacity duration-300",
-          controlsVisible ? "opacity-100" : "opacity-0 pointer-events-none"
-        )}
-        onMouseEnter={() => setControlsHover(true)}
-        onMouseLeave={() => setControlsHover(false)}
-      >
-        {/* Row 1: Progress bar with times — current (white) left, orange bar, duration (white) right */}
-        <div className="flex flex-col w-full gap-3">
-          <div
-            role="slider"
-            tabIndex={0}
-            aria-label="Seek"
-            aria-valuemin={0}
-            aria-valuemax={duration}
-            aria-valuenow={currentTime}
-            className="group/progress flex flex-1 cursor-pointer touch-none items-center"
-            onClick={handleSeek}
-          >
-            <div className="h-1.5 w-full bg-[#040A17] transition-colors group-hover/progress:bg-[#040A17]">
-              <div
-                className="relative h-full bg-[hsl(var(--primary))] transition-[width]"
-                style={{ width: `${progressPct}%` }}
-              >
-                <div className="absolute right-0 top-1/2 h-3.5 w-3.5 -translate-y-1/2 translate-x-1/2 rounded-full border-2 border-primary bg-[#040A17] shadow-md transition-opacity group-hover/progress:opacity-100 group-hover/progress:scale-100" />
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center w-full justify-between gap-2 px-3">
-            <span className="text-right text-[10px] tabular-nums text-white">
-              {formatTime(currentTime)}
-            </span>
-            <span className="text-left text-[10px] tabular-nums text-white">
-              {formatTime(duration)}
-            </span>
-          </div>
-        </div>
-
-        {/* Row 2: Left (icon + title + meta) | Center (prev, play, next) | Right (volume, fullscreen) */}
-        <div className="flex items-center justify-between gap-4 px-3 pb-3">
-          {/* Left: branding icon + title + share + genre line */}
-          <div className="flex min-w-0 flex-1 items-start gap-3">
-            {/* <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))]">
-              <Megaphone className="h-5 w-5" />
-            </div> */}
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <p className="truncate text-base font-bold text-white">
-                  {title || "Ad preview"}
-                </p>
-                <button
-                  type="button"
-                  className="shrink-0 rounded p-1 text-primary transition-colors hover:bg-white/10"
-                  aria-label="Share"
+      {/* Bottom area: either full controls or minimal progress bar */}
+      {controlsVisible ? (
+        <div
+          className="absolute bottom-0 left-0 right-0 flex flex-col bg-[#040A17]/80"
+          onMouseEnter={() => setControlsHover(true)}
+          onMouseLeave={() => setControlsHover(false)}
+        >
+          {/* Row 1: Progress bar with times — current (white) left, orange bar, duration (white) right */}
+          <div className="flex flex-col w-full gap-2">
+            <div
+              role="slider"
+              tabIndex={0}
+              aria-label="Seek"
+              aria-valuemin={0}
+              aria-valuemax={duration}
+              aria-valuenow={currentTime}
+              className="group/progress flex flex-1 cursor-pointer touch-none items-center"
+              onClick={handleSeek}
+            >
+              <div className="h-1.5 w-full bg-[#040A17] transition-colors group-hover/progress:bg-[#040A17]">
+                <div
+                  className="relative h-full bg-[hsl(var(--primary))] transition-[width]"
+                  style={{ width: `${progressPct}%` }}
                 >
-                  <Share2 className="h-4 w-4" />
-                </button>
+                  <div className="absolute right-0 top-1/2 h-3.5 w-3.5 -translate-y-1/2 translate-x-1/2 rounded-full border-2 border-primary bg-[#040A17] shadow-md transition-opacity group-hover/progress:opacity-100 group-hover/progress:scale-100" />
+                </div>
               </div>
-              <p className="mt-0.5 text-xs text-slate-400">Video ad</p>
+            </div>
+            <div className="flex items-center w-full justify-between gap-2 px-3">
+              <span className="text-right text-[10px] tabular-nums text-white">
+                {formatTime(currentTime)}
+              </span>
+              <span className="text-left text-[10px] tabular-nums text-white">
+                {formatTime(duration)}
+              </span>
             </div>
           </div>
 
-          {/* Center: rewind (white), big orange play, forward (white) */}
-          <div className="flex shrink-0 items-center gap-1">
-            <button
-              type="button"
-              onClick={skipBack}
-              className="flex h-10 w-10 items-center justify-center rounded-full text-white transition-colors hover:bg-white/10"
-              aria-label="Rewind 10 seconds"
-            >
-              <SkipBack className="h-5 w-5" />
-            </button>
-            <button
-              type="button"
-              onClick={togglePlay}
-              className="flex h-14 w-14 items-center justify-center rounded-full bg-[hsl(var(--primary))] text-primary-foreground shadow-lg transition-transform hover:scale-105 active:scale-95"
-              aria-label={isPlaying ? "Pause" : "Play"}
-            >
-              {isPlaying && !hasEnded ? (
-                <Pause className="h-6 w-6" fill="currentColor" />
-              ) : (
-                <Play className="h-6 w-6 ml-0.5" fill="currentColor" />
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={skipForward}
-              className="flex h-10 w-10 items-center justify-center rounded-full text-white transition-colors hover:bg-white/10"
-              aria-label="Forward 10 seconds"
-            >
-              <SkipForward className="h-5 w-5" />
-            </button>
-          </div>
+          {/* Row 2: Left (icon + title + meta) | Center (prev, play, next) | Right (volume, fullscreen) */}
+          <div className="flex items-center justify-between gap-4 px-3 pb-2">
+            {/* Left: branding icon + title + share + genre line */}
+            <div className="flex min-w-0 flex-1 items-start gap-3">
+              {/* <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))]">
+                <Megaphone className="h-5 w-5" />
+              </div> */}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="truncate text-sm font-bold text-white">
+                    {title || "Ad preview"}
+                  </p>
+                </div>
+                <p className="mt-0.5 text-[10px] text-slate-400">Video ad</p>
+              </div>
+            </div>
 
-          {/* Right: volume (white) + slider (orange), captions A, settings, fullscreen — all white icons */}
-          <div className="flex min-w-0 flex-1 items-center justify-end gap-1">
-            <div className="flex items-center gap-2 ">
+            {/* Center: rewind (white), big orange play, forward (white) */}
+            <div className="flex shrink-0 items-center gap-1">
               <button
                 type="button"
-                onClick={toggleMute}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition-colors hover:bg-white/10"
-                aria-label={isMuted ? "Unmute" : "Mute"}
+                onClick={skipBack}
+                className="flex h-9 w-9 items-center justify-center rounded-full text-white transition-colors hover:bg-white/10"
+                aria-label="Rewind 10 seconds"
               >
-                {isMuted || volume === 0 ? (
-                  <VolumeX className="h-4 w-4" />
+                <SkipBack className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={togglePlay}
+                className="flex h-12 w-12 items-center justify-center rounded-full bg-[hsl(var(--primary))] text-primary-foreground shadow-lg transition-transform hover:scale-105 active:scale-95"
+                aria-label={isPlaying ? "Pause" : "Play"}
+              >
+                {isPlaying && !hasEnded ? (
+                  <Pause className="h-5 w-5" fill="currentColor" />
                 ) : (
-                  <Volume2 className="h-4 w-4" />
+                  <Play className="h-5 w-5 ml-0.5" fill="currentColor" />
                 )}
               </button>
-              <div className="w-40">
-                <Slider
-                  value={[isMuted ? 0 : volume]}
-                  max={1}
-                  step={0.05}
-                  onValueChange={handleVolumeChange}
-                  className="cursor-pointer"
-                  thumbClassName="!h-2.5 !w-2.5 !bg-primary"
-                  trackClassName="!h-1 !bg-[#040A17]"
-                />
-              </div>
+              <button
+                type="button"
+                onClick={skipForward}
+                className="flex h-9 w-9 items-center justify-center rounded-full text-white transition-colors hover:bg-white/10"
+                aria-label="Forward 10 seconds"
+              >
+                <SkipForward className="h-4 w-4" />
+              </button>
             </div>
-            <button
-              type="button"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition-colors hover:bg-white/10"
-              aria-label="Settings"
-            >
-              <Settings className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={toggleFullscreen}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition-colors hover:bg-white/10"
-              aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
-            >
-              <Maximize className="h-4 w-4" />
-            </button>
+
+            {/* Right: volume (white) + slider (orange), captions A, settings, fullscreen — all white icons */}
+            <div className="flex min-w-0 flex-1 items-center justify-end gap-1">
+              <div className="flex items-center gap-2 ">
+                <button
+                  type="button"
+                  onClick={toggleMute}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition-colors hover:bg-white/10"
+                  aria-label={isMuted ? "Unmute" : "Mute"}
+                >
+                  {isMuted || volume === 0 ? (
+                    <VolumeX className="h-4 w-4" />
+                  ) : (
+                    <Volume2 className="h-4 w-4" />
+                  )}
+                </button>
+                <div className="w-40">
+                  <Slider
+                    value={[isMuted ? 0 : volume]}
+                    max={1}
+                    step={0.05}
+                    onValueChange={handleVolumeChange}
+                    className="cursor-pointer"
+                    thumbClassName="!h-2.5 !w-2.5 !bg-primary"
+                    trackClassName="!h-1 !bg-[#040A17]"
+                  />
+                </div>
+              </div>
+              <button
+                type="button"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition-colors hover:bg-white/10"
+                aria-label="Settings"
+              >
+                <Settings className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={toggleFullscreen}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition-colors hover:bg-white/10"
+                aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+              >
+                <Maximize className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-1 bg-[#020617]">
+          <div
+            className="h-full bg-[hsl(var(--primary))]"
+            style={{ width: `${progressPct}%` }}
+          />
+        </div>
+      )}
     </div>
   )
 }

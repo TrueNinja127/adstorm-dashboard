@@ -56,6 +56,7 @@ import { cn } from "@/lib/utils"
 import type { Campaign, CampaignStatus } from "@/types/campaigns"
 import Image from "next/image"
 import { mockCampaigns, mockAds, type MockAd } from "@/services"
+import { ChartContainer } from "@/components/ui/chart"
 import {
   Dialog,
   DialogContent,
@@ -65,6 +66,7 @@ import {
 import { AdPreviewVideoPlayer } from "./ad-preview-video-player"
 import { useCreateCampaign } from "@/contexts/create-campaign-context"
 import { format, parseISO, isValid } from "date-fns"
+import { Pie, PieChart, Cell } from "recharts"
 
 interface CampaignsContentProps {
   showHeaderAndFeatured?: boolean
@@ -203,6 +205,13 @@ export function CampaignsContent({
   const [dateRange, setDateRange] = useState<string>("month")
   const [now, setNow] = useState(() => new Date())
   const [selectedAd, setSelectedAd] = useState<MockAd | null>(null)
+  const [statusTooltip, setStatusTooltip] = useState<{
+    x: number
+    y: number
+    key: "running" | "completed" | "paused"
+    label: string
+    value: number
+  } | null>(null)
 
   useEffect(() => {
     const tick = () => setNow(new Date())
@@ -225,12 +234,42 @@ export function CampaignsContent({
   }, [])
 
   const overviewStats = useMemo(() => {
-    const active = mockCampaigns.filter((c) => c.status === "active").length
     const totalSpent = mockCampaigns.reduce((s, c) => s + c.spent, 0)
-    const totalImpressions = mockCampaigns.reduce((s, c) => s + c.impressions, 0)
-    const totalClicks = mockCampaigns.reduce((s, c) => s + c.clicks, 0)
-    return { active, totalSpent, totalImpressions, totalClicks }
+    const totalAdsAired = mockCampaigns.reduce((s, c) => s + c.usedQty, 0)
+    const approvedCampaigns = mockCampaigns.filter((c) => c.status !== "draft").length
+    return { totalSpent, totalAdsAired, approvedCampaigns }
   }, [])
+
+  const statusChartData = useMemo(
+    () => [
+      { key: "running", label: "Running", value: statusCounts.active },
+      { key: "completed", label: "Completed", value: statusCounts.ended },
+      { key: "paused", label: "Paused", value: statusCounts.paused },
+    ],
+    [statusCounts]
+  )
+
+  const statusChartConfig = {
+    running: {
+      label: "Running",
+      color: "#34D399", // emerald
+    },
+    completed: {
+      label: "Completed",
+      color: "hsl(210 10% 80%)", // gray
+    },
+    paused: {
+      label: "Paused",
+      color: "hsl(38 92% 50%)", // orange
+    },
+  } as const
+
+  const runningPercent = useMemo(() => {
+    const total = statusChartData.reduce((sum, item) => sum + item.value, 0)
+    if (!total) return 0
+    const running = statusChartData.find((item) => item.key === "running")?.value ?? 0
+    return Math.round((running / total) * 100)
+  }, [statusChartData])
 
   const topCampaigns = useMemo(
     () =>
@@ -303,44 +342,125 @@ export function CampaignsContent({
             </div>
           </div>
 
-          {/* Row 1: Overview — 4 cards in one line */}
+          {/* Row 1: Overview — 3 KPI cards + status pie chart */}
           <div className="mb-5 animate-fade-in-up delay-75">
-            <div className="mb-3">
-              <h3 className="font-display text-base font-bold text-foreground">Overview</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">Campaign performance at a glance</p>
-            </div>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-              <div className="rounded-2xl border border-border bg-card/95 backdrop-blur-sm p-5 shadow-sm ring-1 ring-black/5 dark:ring-white/5 flex flex-col gap-2">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[hsl(var(--primary))]/12 text-[hsl(var(--primary))]">
-                  <Megaphone className="h-5 w-5" />
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-9">
+              <div className="col-span-2 rounded-2xl bg-card/95 backdrop-blur-sm p-5 shadow-sm dark:ring-white/5 flex justify-between items-end gap-4">
+                <div className="flex flex-col gap-4">
+                <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+                  Total Spent
+                </p>
+                <p className="font-display text-3xl font-bold tabular-nums text-foreground truncate">
+                  {formatCurrency(overviewStats.totalSpent)}
+                </p>
+                <p className="text-xs text-muted-foreground">Total budget used</p>
                 </div>
-                <p className="font-display text-2xl font-bold tabular-nums text-foreground">{overviewStats.active}</p>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Active</p>
-                <p className="text-xs text-muted-foreground">campaigns running</p>
-              </div>
-              <div className="rounded-2xl border border-border bg-card/95 backdrop-blur-sm p-5 shadow-sm ring-1 ring-black/5 dark:ring-white/5 flex flex-col gap-2">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/12 text-emerald-600 dark:text-emerald-400">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[#1b1c20] text-[#666] dark:text-[#999]">
                   <DollarSign className="h-5 w-5" />
                 </div>
-                <p className="font-display text-2xl font-bold tabular-nums text-foreground truncate">{formatCurrency(overviewStats.totalSpent)}</p>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Spent</p>
-                <p className="text-xs text-muted-foreground">total budget used</p>
               </div>
-              <div className="rounded-2xl border border-border bg-card/95 backdrop-blur-sm p-5 shadow-sm ring-1 ring-black/5 dark:ring-white/5 flex flex-col gap-2">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/12 text-blue-600 dark:text-blue-400">
-                  <Eye className="h-5 w-5" />
+              <div className="col-span-2 rounded-2xl bg-card/95 backdrop-blur-sm p-5 shadow-sm dark:ring-white/5 flex justify-between items-end gap-4">
+                <div className="flex flex-col gap-4">
+                <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+                  Ads Aired
+                </p>
+                <p className="font-display text-3xl font-bold tabular-nums text-foreground truncate">
+                  {formatNumber(overviewStats.totalAdsAired)}
+                </p>
+                <p className="text-xs text-muted-foreground">Total advertisements aired</p>
                 </div>
-                <p className="font-display text-2xl font-bold tabular-nums text-foreground">{formatNumber(overviewStats.totalImpressions)}</p>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Impressions</p>
-                <p className="text-xs text-muted-foreground">total views</p>
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[#1b1c20] text-[#666] dark:text-[#999]">
+                  <Tv className="h-5 w-5" />
+                </div>
               </div>
-              <div className="rounded-2xl border border-border bg-card/95 backdrop-blur-sm p-5 shadow-sm ring-1 ring-black/5 dark:ring-white/5 flex flex-col gap-2">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/12 text-violet-600 dark:text-violet-400">
-                  <MousePointer className="h-5 w-5" />
+              <div className="col-span-2 rounded-2xl bg-card/95 backdrop-blur-sm p-5 shadow-sm dark:ring-white/5 flex justify-between items-end gap-4">
+                <div className="flex flex-col gap-4">
+                <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+                  Approved
+                </p>
+                <p className="font-display text-3xl font-bold tabular-nums text-foreground">
+                  {overviewStats.approvedCampaigns}
+                </p>
+                <p className="text-xs text-muted-foreground">Campaigns approved</p>
                 </div>
-                <p className="font-display text-2xl font-bold tabular-nums text-foreground">{formatNumber(overviewStats.totalClicks)}</p>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Clicks</p>
-                <p className="text-xs text-muted-foreground">total interactions</p>
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[#1b1c20] text-[#666] dark:text-[#999]">
+                  <Check className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="col-span-3 rounded-2xl bg-card/95 backdrop-blur-sm p-4 shadow-sm dark:ring-white/5 flex items-end justify-between gap-4">
+                <div className="flex flex-col gap-4">
+                  <p className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+                    Campaign Status
+                  </p>
+                  <p className="font-display text-3xl font-bold text-foreground">
+                    {runningPercent}% 
+                    <span className="text-lg text-muted-foreground font-medium ml-2">running</span>
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Distribution of running, completed, and paused campaigns
+                  </p>
+                </div>
+                <div
+                  className="relative flex h-[120px] w-[120px] items-center justify-center"
+                  onMouseMove={(e) => {
+                    if (!statusTooltip) return
+                    const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect()
+                    const x = e.clientX - rect.left
+                    const y = e.clientY - rect.top
+                    setStatusTooltip((prev) =>
+                      prev ? { ...prev, x, y } : prev
+                    )
+                  }}
+                  onMouseLeave={() => setStatusTooltip(null)}
+                >
+                  <ChartContainer config={statusChartConfig} className="relative z-10 h-full w-full">
+                    <PieChart>
+                      <Pie
+                        data={statusChartData}
+                        dataKey="value"
+                        nameKey="label"
+                        innerRadius={48}
+                        outerRadius={60}
+                        paddingAngle={4}
+                        strokeWidth={5}
+                        onMouseEnter={(_, index: number) => {
+                          const item = statusChartData[index]
+                          if (!item) return
+                          setStatusTooltip((prev) => ({
+                            x: prev?.x ?? 60,
+                            y: prev?.y ?? 60,
+                            key: item.key as "running" | "completed" | "paused",
+                            label: item.label,
+                            value: item.value,
+                          }))
+                        }}
+                        onMouseLeave={() => setStatusTooltip(null)}
+                      >
+                        {statusChartData.map((entry) => (
+                          <Cell key={entry.key} fill={`var(--color-${entry.key})`} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ChartContainer>
+                  <div className="pointer-events-none absolute inset-0 z-0 flex flex-col items-center justify-center">
+                    <span className="font-display text-lg font-bold text-foreground">
+                      {runningPercent}%
+                    </span>
+                    <span className="text-xs text-muted-foreground">Running</span>
+                  </div>
+                  {statusTooltip && (
+                    <div
+                      className="pointer-events-none absolute z-20 rounded-lg px-2.5 py-1.5 text-[11px] shadow-lg text-background"
+                      style={{
+                        left: statusTooltip.x + 8,
+                        top: statusTooltip.y + 8,
+                        backgroundColor: statusChartConfig[statusTooltip.key].color,
+                      }}
+                    >
+                      <div className="font-medium inline">{statusTooltip.label} {statusTooltip.value.toLocaleString()}</div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -368,7 +488,7 @@ export function CampaignsContent({
                   key={ad.id}
                   type="button"
                   onClick={() => setSelectedAd(ad)}
-                  className="group relative cursor-pointer overflow-hidden rounded-2xl border-0 border-transparent hover:border-2 hover:border-primary bg-card/95 shadow-sm ring-1 ring-black/5 dark:ring-white/5 aspect-[8/4] transition-all duration-200 hover:scale-[1.1] hover:ring-[hsl(var(--primary))]/30 hover:shadow-lg origin-center text-left"
+                  className="group relative cursor-pointer overflow-hidden rounded-2xl border-0 border-transparent hover:border-4 hover:border-primary bg-card/95 shadow-sm dark:ring-white/5 aspect-[8/4] transition-all duration-200 hover:scale-[1.1] hover:ring-[hsl(var(--primary))]/30 hover:shadow-lg origin-center text-left"
                 >
                   {ad.image ? (
                     <Image
@@ -440,7 +560,7 @@ export function CampaignsContent({
                   return (
                     <div
                       key={campaign.id}
-                      className="group relative cursor-pointer overflow-hidden rounded-2xl border-0 border-transparent hover:border-2 hover:border-primary bg-card/95 shadow-sm ring-1 ring-black/5 dark:ring-white/5 aspect-[8/4] transition-all duration-200 hover:scale-[1.1] hover:ring-[hsl(var(--primary))]/30 hover:shadow-lg origin-center"
+                      className="group relative cursor-pointer overflow-hidden rounded-2xl border-0 border-transparent hover:border-4 hover:border-primary bg-card/95 shadow-sm dark:ring-white/5 aspect-[8/4] transition-all duration-200 hover:scale-[1.1] hover:ring-[hsl(var(--primary))]/30 hover:shadow-lg origin-center"
                     >
                       {campaign.image ? (
                         <Image
