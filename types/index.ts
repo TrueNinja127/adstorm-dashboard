@@ -3,6 +3,7 @@
  */
 
 export * from "./brands"
+export * from "./campaigns"
 export * from "./channels"
 export * from "./sites"
 export * from "./dashboard"

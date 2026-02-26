@@ -54,7 +54,7 @@ const navItems: NavItem[] = [
       { icon: Tv, label: "Channels & Genres", href: "/channels-genres" },
     ],
   },
-  { icon: Megaphone, label: "Campaigns" },
+  { icon: Megaphone, label: "Campaigns", href: "/campaigns" },
   { icon: FileImage, label: "My Ads" },
   { icon: BarChart3, label: "Analytics" },
   { icon: Wallet, label: "Balance" },
@@ -68,6 +68,7 @@ function pathnameToLabel(pathname: string): string | null {
   if (pathname === "/brands") return "Brands"
   if (pathname === "/sites") return "Sites & Locations"
   if (pathname === "/channels-genres") return "Channels & Genres"
+  if (pathname === "/campaigns") return "Campaigns"
   return null
 }
 
@@ -92,6 +93,7 @@ export function Sidebar() {
         pathname === "/channels-genres"
       )
         setMarketplaceOpen(true)
+      if (pathname === "/campaigns") setMarketplaceOpen(false)
     }
   }, [pathname])
 

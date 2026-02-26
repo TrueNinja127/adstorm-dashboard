@@ -293,7 +293,7 @@ export function UploadAdDialog({ open, onOpenChange }: UploadAdDialogProps) {
 
         <div className="space-y-6 py-4 overflow-y-auto min-h-0">
           {/* Ad Name Input */}
-          <div className="space-y-2.5 animate-fade-in">
+          <div className="space-y-2.5 animate-fade-in px-1">
             <Label
               htmlFor="ad-name"
               className="text-sm font-semibold text-foreground"
@@ -311,7 +311,7 @@ export function UploadAdDialog({ open, onOpenChange }: UploadAdDialogProps) {
           </div>
 
           {/* Video Upload Zone */}
-          <div className="space-y-3">
+          <div className="space-y-3 px-1">
             <Label className="text-sm font-semibold text-foreground">
               Video File
             </Label>
