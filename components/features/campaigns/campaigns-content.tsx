@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import {
   Search,
   Megaphone,
@@ -188,25 +188,38 @@ const genreByImage = mockChannelsAndGenres
     {} as Record<string, (typeof mockChannelsAndGenres)[number]>
   )
 
-/** Circular progress bar showing used Qty % (green = used/delivered, gray = remaining). */
 function CircularQtyProgress({
   totalQty,
   usedQty,
   size = 56,
   strokeWidth = 5,
   textSize = "xs",
+  resetKey,
 }: {
   totalQty: number
   usedQty: number
   size?: number
   strokeWidth?: number
   textSize?: "xs" | "sm" | "md" | "lg" | "xl"
+  resetKey?: string | number
+  animationDurationMs?: number
 }) {
+  const animationDurationMs = 2000
   const usedPct = totalQty > 0 ? Math.round((usedQty / totalQty) * 100) : 0
   const clampedPct = Math.min(100, Math.max(0, usedPct))
+
+  const [animatedPct, setAnimatedPct] = useState(0)
+  useEffect(() => {
+    setAnimatedPct(0)
+    const id = requestAnimationFrame(() => {
+      setAnimatedPct(clampedPct)
+    })
+    return () => cancelAnimationFrame(id)
+  }, [clampedPct, resetKey])
+
   const radius = (size - strokeWidth) / 2
   const circumference = 2 * Math.PI * radius
-  const filledOffset = circumference - (clampedPct / 100) * circumference
+  const filledOffset = circumference - (animatedPct / 100) * circumference
   return (
     <div
       className="relative flex shrink-0 items-center justify-center"
@@ -232,11 +245,30 @@ function CircularQtyProgress({
           strokeDasharray={circumference}
           strokeDashoffset={filledOffset}
           strokeLinecap="round"
-          className="text-emerald-500 dark:text-emerald-400 transition-all duration-500"
+          className="text-emerald-500 dark:text-emerald-400 transition-all"
+          style={{
+            transitionDuration: `${animationDurationMs}ms`,
+            transitionProperty: "stroke-dashoffset",
+          }}
         />
       </svg>
-      <span className={cn("absolute inset-0 flex items-center justify-center font-bold text-foreground tabular-nums", textSize === "xs" ? "text-xs" : textSize === "sm" ? "text-sm" : textSize === "md" ? "text-md" : textSize === "lg" ? "text-lg" : textSize === "xl" ? "text-xl" : "text-xs")}>
-        {clampedPct}%
+      <span
+        className={cn(
+          "absolute inset-0 flex items-center justify-center font-bold text-foreground tabular-nums",
+          textSize === "xs"
+            ? "text-xs"
+            : textSize === "sm"
+              ? "text-sm"
+              : textSize === "md"
+                ? "text-md"
+                : textSize === "lg"
+                  ? "text-lg"
+                  : textSize === "xl"
+                    ? "text-xl"
+                    : "text-xs"
+        )}
+      >
+        {animatedPct}%
       </span>
     </div>
   )
@@ -335,6 +367,16 @@ export function CampaignsContent({
   const [detailsCampaignId, setDetailsCampaignId] = useState<string | null>(
     null
   )
+  const browseAllRef = useRef<HTMLDivElement | null>(null)
+  const gridLongPressRef = useRef<{
+    id: string | null
+    didLongPress: boolean
+    timer: ReturnType<typeof setTimeout> | null
+  }>({
+    id: null,
+    didLongPress: false,
+    timer: null,
+  })
 
   const pendingCampaign = useMemo(
     () =>
@@ -788,7 +830,7 @@ export function CampaignsContent({
                     config={statusChartConfig}
                     className="relative z-10 h-full w-full"
                   >
-                    <PieChart>
+                    <PieChart key={viewMode}>
                       <Pie
                         data={statusChartData}
                         dataKey="value"
@@ -797,6 +839,8 @@ export function CampaignsContent({
                         outerRadius={60}
                         paddingAngle={4}
                         strokeWidth={5}
+                        isAnimationActive
+                        animationDuration={600}
                         onMouseEnter={(_, index: number) => {
                           const item = statusChartData[index]
                           if (!item) return
@@ -890,7 +934,6 @@ export function CampaignsContent({
                       <FileImage className="h-10 w-10 text-muted-foreground" />
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                   <div
                     className="absolute inset-0 bg-black/50 backdrop-blur-md opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none"
                     aria-hidden
@@ -946,6 +989,14 @@ export function CampaignsContent({
                 size="sm"
                 className="btn-gelatine h-8 gap-1.5 text-xs font-semibold text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10"
                 aria-label="View all top campaigns"
+                onClick={() => {
+                  if (browseAllRef.current) {
+                    browseAllRef.current.scrollIntoView({
+                      behavior: "smooth",
+                      block: "start",
+                    })
+                  }
+                }}
               >
                 View all
                 <ArrowRight className="h-3.5 w-3.5" />
@@ -962,6 +1013,7 @@ export function CampaignsContent({
                   return (
                     <div
                       key={campaign.id}
+                      onClick={() => setDetailsCampaignId(campaign.id)}
                       className="group relative cursor-pointer overflow-hidden rounded-2xl border-0 border-transparent hover:border-4 hover:border-primary bg-card/95 shadow-sm dark:ring-white/5 aspect-[8/4] transition-all duration-200 hover:scale-[1.1] hover:ring-[hsl(var(--primary))]/30 hover:shadow-lg origin-center"
                     >
                       {campaign.image ? (
@@ -977,7 +1029,6 @@ export function CampaignsContent({
                           <Megaphone className="h-10 w-10 text-muted-foreground" />
                         </div>
                       )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                       <div
                         className="absolute inset-0 bg-black/50 backdrop-blur-md opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none"
                         aria-hidden
@@ -1005,7 +1056,10 @@ export function CampaignsContent({
           </div>
 
           {/* Browse all campaigns heading */}
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-4 animate-fade-in-up delay-150">
+          <div
+            ref={browseAllRef}
+            className="mb-3 flex flex-wrap items-center justify-between gap-4 animate-fade-in-up delay-150"
+          >
             <h2 className="font-display text-[15px] font-bold text-foreground">
               Browse all campaigns
             </h2>
@@ -1045,7 +1099,10 @@ export function CampaignsContent({
             className="h-10 pl-9 rounded-xl bg-card border-border"
           />
         </div>
-        <div className="flex items-center gap-1 rounded-xl border border-border bg-card p-1">
+        <div
+          key={viewMode}
+          className="flex items-center gap-1 rounded-xl border border-border bg-card p-1"
+        >
           <button
             type="button"
             onClick={() => setViewMode("card")}
@@ -1079,24 +1136,6 @@ export function CampaignsContent({
 
       <div className="flex flex-col gap-4 lg:flex-row">
         <div className="min-w-0 flex-1 order-2 lg:order-1">
-          <div
-            className={cn(
-              "mb-6 flex flex-wrap items-center gap-4 animate-fade-in-up",
-              showHeaderAndFeatured ? "delay-100" : ""
-            )}
-          >
-            <div className="flex items-center gap-2 rounded-xl bg-card px-4 py-2.5">
-              <Megaphone className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium text-foreground">
-                {filteredCampaigns.length === 0
-                  ? "0 campaigns"
-                  : totalPages === 1
-                    ? `${filteredCampaigns.length} campaigns`
-                    : `${(page - 1) * PAGE_SIZE + 1}–${Math.min(page * PAGE_SIZE, filteredCampaigns.length)} of ${filteredCampaigns.length} campaigns`}
-              </span>
-            </div>
-          </div>
-
           {viewMode === "card" && (
             <div
               className={cn(
@@ -1178,12 +1217,63 @@ export function CampaignsContent({
                     <div
                       key={campaign.id}
                       data-selected={isSelected ? "true" : "false"}
+                      onMouseDown={(e) => {
+                        if (e.button !== 0) return
+                        const lp = gridLongPressRef.current
+                        lp.id = campaign.id
+                        lp.didLongPress = false
+                        if (lp.timer) {
+                          clearTimeout(lp.timer)
+                          lp.timer = null
+                        }
+                        lp.timer = setTimeout(() => {
+                          lp.didLongPress = true
+                          setSelectedCampaignIds((prev) => {
+                            const alreadySelected = prev.includes(campaign.id)
+                            if (alreadySelected) {
+                              return prev.filter((id) => id !== campaign.id)
+                            }
+                            return [...prev, campaign.id]
+                          })
+                        }, 400)
+                      }}
+                      onMouseUp={(e) => {
+                        if (e.button !== 0) return
+                        const lp = gridLongPressRef.current
+                        if (lp.timer) {
+                          clearTimeout(lp.timer)
+                          lp.timer = null
+                        }
+                      }}
+                      onMouseLeave={() => {
+                        const lp = gridLongPressRef.current
+                        if (lp.timer) {
+                          clearTimeout(lp.timer)
+                          lp.timer = null
+                        }
+                      }}
                       onClick={() => {
-                        setSelectedCampaignIds((prev) =>
-                          prev.includes(campaign.id)
-                            ? prev.filter((id) => id !== campaign.id)
-                            : [...prev, campaign.id]
-                        )
+                        const lp = gridLongPressRef.current
+                        if (lp.didLongPress && lp.id === campaign.id) {
+                          // consume click after long-press selection
+                          lp.didLongPress = false
+                          lp.id = null
+                          return
+                        }
+
+                        if (hasSelection) {
+                          // selection mode: toggle selection
+                          setSelectedCampaignIds((prev) => {
+                            const alreadySelected = prev.includes(campaign.id)
+                            if (alreadySelected) {
+                              return prev.filter((id) => id !== campaign.id)
+                            }
+                            return [...prev, campaign.id]
+                          })
+                        } else {
+                          // no selection yet: open details drawer
+                          setDetailsCampaignId(campaign.id)
+                        }
                       }}
                       className="group flex flex-col cursor-pointer overflow-hidden rounded-2xl border border-border bg-card/95 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-xl hover:shadow-black/20"
                     >
@@ -1210,6 +1300,13 @@ export function CampaignsContent({
                             <Checkbox
                               aria-label={`Select campaign ${campaign.name}`}
                               checked={isSelected}
+                              className={cn(
+                                "transition-opacity",
+                                isSelected
+                                  ? "opacity-100"
+                                  : "opacity-0 pointer-events-none"
+                              )}
+                              onMouseDown={(e) => e.stopPropagation()}
                               onClick={(e) => e.stopPropagation()}
                               onCheckedChange={(checked) => {
                                 const isChecked = !!checked
@@ -1259,6 +1356,7 @@ export function CampaignsContent({
                             usedQty={campaign.usedQty}
                             size={46}
                             strokeWidth={4}
+                            resetKey={viewMode}
                           />
                         </div>
 
@@ -1311,12 +1409,13 @@ export function CampaignsContent({
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-8 w-8"
+                                  className="h-8 w-8 btn-gelatine"
                                   aria-label={
                                     isRunning
                                       ? "Pause campaign"
                                       : "Resume campaign"
                                   }
+                                  onMouseDown={(e) => e.stopPropagation()}
                                   onClick={(e) => {
                                     e.stopPropagation()
                                     setPendingStatusChange({
@@ -1333,17 +1432,6 @@ export function CampaignsContent({
                                 </Button>
                               )
                             })()}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="btn-gelatine h-8 px-3 text-xs font-semibold text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/10"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                setDetailsCampaignId(campaign.id)
-                              }}
-                            >
-                              View
-                            </Button>
                           </div>
                         </div>
                       </div>
@@ -1548,6 +1636,7 @@ export function CampaignsContent({
                               usedQty={campaign.usedQty}
                               size={46}
                               strokeWidth={4}
+                              resetKey={viewMode}
                             />
                           </TableCell>
                           <TableCell className="px-6 py-4">
@@ -1583,7 +1672,10 @@ export function CampaignsContent({
                               {campaign.totalQty}
                             </span>
                           </TableCell>
-                          <TableCell className="px-6 py-4 text-right">
+                          <TableCell
+                            className="px-6 py-4 text-right"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <div className="flex items-center justify-end gap-2">
                               {(() => {
                                 const group = getStatusGroup(campaign.status)
@@ -1600,7 +1692,7 @@ export function CampaignsContent({
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="h-8 w-8 px-0"
+                                    className="h-8 w-8 px-0 btn-gelatine"
                                     aria-label={
                                       isRunning
                                         ? "Pause campaign"
@@ -1627,7 +1719,7 @@ export function CampaignsContent({
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-8 w-8"
+                                    className="h-8 w-8 btn-gelatine"
                                     onClick={(e) => e.stopPropagation()}
                                   >
                                     <MoreHorizontal className="h-4 w-4" />
@@ -1910,7 +2002,20 @@ export function CampaignsContent({
                 const brand = brandByImage[imageKey]
                 const site = siteByImage[imageKey]
                 const genre = genreByImage[imageKey]
-                const ad = primaryAdByCampaignId[detailsCampaign.id]
+                const linkedAd = primaryAdByCampaignId[detailsCampaign.id]
+                const ad: MockAd | null =
+                  linkedAd ??
+                  (detailsCampaign.image || detailsCampaign.name
+                    ? ({
+                        id: `campaign-${detailsCampaign.id}`,
+                        campaignId: detailsCampaign.id,
+                        name: detailsCampaign.name,
+                        image: (detailsCampaign.image ??
+                          undefined) as MockAd["image"],
+                        video: FALLBACK_VIDEO,
+                        duration: "Preview",
+                      } as MockAd)
+                    : null)
                 const primaryChannel = detailsCampaign.channelNames?.[0]
                 const unitPrice =
                   detailsCampaign.totalQty > 0
@@ -1926,7 +2031,9 @@ export function CampaignsContent({
                 const genreLabel = genre?.name ?? "Genre not set"
                 const adLabel = ad
                   ? `${ad.name} · ${ad.duration ?? "duration not set"}`
-                  : "No ad file linked"
+                  : detailsCampaign.image || detailsCampaign.name
+                    ? `${detailsCampaign.name} · preview`
+                    : "No ad file linked"
 
                 const statusGroup = getStatusGroup(detailsCampaign.status)
                 const isRunning = statusGroup === "running"
@@ -1936,8 +2043,8 @@ export function CampaignsContent({
                   ? "pause"
                   : "resume"
                 const toggleLabel = isRunning
-                  ? "Pause Campaign"
-                  : "Play Campaign"
+                  ? "Pause"
+                  : "Play"
 
                 return (
                   <div className="flex items-stretch gap-6 py-3">
@@ -2079,20 +2186,7 @@ export function CampaignsContent({
                     </div>
 
                     {/* Right: actions */}
-                    <div className="flex w-[170px] flex-col items-start justify-center gap-3 pl-4 text-xs">
-                      <Button
-                        type="button"
-                        onClick={() => {
-                          if (ad) setSelectedAd(ad)
-                        }}
-                        variant="outline"
-                        size="sm"
-                        className="inline-flex w-full items-center justify-start gap-1.5 rounded-full px-3 text-xs font-medium"
-                        disabled={!ad}
-                      >
-                        <FileImage className="h-3.5 w-3.5" />
-                        <span>Preview Ad</span>
-                      </Button>
+                    <div className="flex flex-col items-start justify-center gap-3 pl-4 text-xs">
                       {canToggle && (
                         <Button
                           type="button"
@@ -2103,13 +2197,12 @@ export function CampaignsContent({
                             })
                           }
                           variant="secondary"
-                          size="sm"
-                          className="inline-flex w-full items-center justify-start gap-1.5 rounded-full px-3 text-xs font-medium"
+                          className={cn("inline-flex btn-gelatine w-full items-center justify-start gap-1.5 text-sm font-medium py-4 text-white", isRunning ? "bg-primary hover:bg-primary/90" : "bg-emerald-500 hover:bg-emerald-700 text-white")}
                         >
                           {isRunning ? (
-                            <Pause className="h-3.5 w-3.5 text-primary" />
+                            <Pause className="h-3.5 w-3.5" />
                           ) : (
-                            <Play className="h-3.5 w-3.5 text-emerald-600" />
+                            <Play className="h-3.5 w-3.5" />
                           )}
                           <span>{toggleLabel}</span>
                         </Button>
@@ -2118,11 +2211,10 @@ export function CampaignsContent({
                         type="button"
                         onClick={() => setPendingDeleteId(detailsCampaign.id)}
                         variant="destructive"
-                        size="sm"
-                        className="inline-flex w-full items-center justify-start gap-1.5 rounded-full px-3 text-xs font-medium"
+                        className="inline-flex btn-gelatine w-full items-center justify-start gap-1.5 text-sm font-medium text-white"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
-                        <span>Delete Campaign</span>
+                        <span>Delete</span>
                       </Button>
                     </div>
                   </div>
