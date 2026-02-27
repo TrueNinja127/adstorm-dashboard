@@ -71,18 +71,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerDescription,
-} from "@/components/ui/drawer"
 import { AdPreviewVideoPlayer } from "./ad-preview-video-player"
 import { useCreateCampaign } from "@/contexts/create-campaign-context"
 import { format, parseISO, isValid } from "date-fns"
 import { Pie, PieChart, Cell } from "recharts"
 import { useToast } from "@/hooks/use-toast"
+import { CircularQtyProgress } from "./circular-qty-progress"
+import { StatusBadge, getStatusGroup, type StatusGroup } from "./status-badge"
+import { CampaignStatusDialog } from "./campaign-status-dialog"
+import { CampaignBulkStatusDialog } from "./campaign-bulk-status-dialog"
+import { CampaignDeleteDialog } from "./campaign-delete-dialog"
+import { CampaignDetailsDrawer } from "./campaign-details-drawer"
 
 interface CampaignsContentProps {
   showHeaderAndFeatured?: boolean
@@ -90,7 +89,6 @@ interface CampaignsContentProps {
 }
 
 type ViewMode = "card" | "list"
-type StatusGroup = "running" | "completed" | "paused"
 
 /** Fallback sample video when ad has no video URL. */
 const FALLBACK_VIDEO = "https://www.w3schools.com/html/mov_bbb.mp4"
@@ -128,20 +126,6 @@ function formatDate(iso: string): string {
     return isValid(d) ? format(d, "MMM d, yyyy") : iso
   } catch {
     return iso
-  }
-}
-
-function getStatusGroup(status: CampaignStatus): StatusGroup {
-  switch (status) {
-    case "active":
-    case "scheduled":
-      return "running"
-    case "ended":
-      return "completed"
-    case "paused":
-    case "draft":
-    default:
-      return "paused"
   }
 }
 
@@ -188,144 +172,9 @@ const genreByImage = mockChannelsAndGenres
     {} as Record<string, (typeof mockChannelsAndGenres)[number]>
   )
 
-function CircularQtyProgress({
-  totalQty,
-  usedQty,
-  size = 56,
-  strokeWidth = 5,
-  textSize = "xs",
-  resetKey,
-}: {
-  totalQty: number
-  usedQty: number
-  size?: number
-  strokeWidth?: number
-  textSize?: "xs" | "sm" | "md" | "lg" | "xl"
-  resetKey?: string | number
-  animationDurationMs?: number
-}) {
-  const animationDurationMs = 2000
-  const usedPct = totalQty > 0 ? Math.round((usedQty / totalQty) * 100) : 0
-  const clampedPct = Math.min(100, Math.max(0, usedPct))
-
-  const [animatedPct, setAnimatedPct] = useState(0)
-  useEffect(() => {
-    setAnimatedPct(0)
-    const id = requestAnimationFrame(() => {
-      setAnimatedPct(clampedPct)
-    })
-    return () => cancelAnimationFrame(id)
-  }, [clampedPct, resetKey])
-
-  const radius = (size - strokeWidth) / 2
-  const circumference = 2 * Math.PI * radius
-  const filledOffset = circumference - (animatedPct / 100) * circumference
-  return (
-    <div
-      className="relative flex shrink-0 items-center justify-center"
-      style={{ width: size, height: size }}
-    >
-      <svg width={size} height={size} className="-rotate-90" aria-hidden>
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={strokeWidth}
-          className="text-muted/30"
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={strokeWidth}
-          strokeDasharray={circumference}
-          strokeDashoffset={filledOffset}
-          strokeLinecap="round"
-          className="text-emerald-500 dark:text-emerald-400 transition-all"
-          style={{
-            transitionDuration: `${animationDurationMs}ms`,
-            transitionProperty: "stroke-dashoffset",
-          }}
-        />
-      </svg>
-      <span
-        className={cn(
-          "absolute inset-0 flex items-center justify-center font-bold text-foreground tabular-nums",
-          textSize === "xs"
-            ? "text-xs"
-            : textSize === "sm"
-              ? "text-sm"
-              : textSize === "md"
-                ? "text-md"
-                : textSize === "lg"
-                  ? "text-lg"
-                  : textSize === "xl"
-                    ? "text-xl"
-                    : "text-xs"
-        )}
-      >
-        {animatedPct}%
-      </span>
-    </div>
-  )
-}
-
 function campaignAdId(campaignId: string): string {
   const num = campaignId.replace(/\D/g, "") || "0"
   return `#ADS${num.padStart(6, "0")}`
-}
-
-function StatusBadge({ status }: { status: CampaignStatus }) {
-  const group = getStatusGroup(status)
-  const variants: Record<
-    StatusGroup,
-    { label: string; className: string; dotClassName: string }
-  > = {
-    running: {
-      label: "Running",
-      className: "text-emerald-600 dark:text-emerald-400",
-      dotClassName: "bg-emerald-500",
-    },
-    completed: {
-      label: "Completed",
-      className: "text-muted-foreground",
-      dotClassName: "bg-[#666]",
-    },
-    paused: {
-      label: "Paused",
-      className: "text-amber-600 dark:text-amber-400",
-      dotClassName: "bg-primary",
-    },
-  }
-  const { label, className, dotClassName } = variants[group]
-  const isRunning = group === "running"
-  return (
-    <div
-      className={cn("inline-flex items-center text-xs font-medium", className)}
-    >
-      <span className="relative mr-2 flex h-2 w-2 items-center justify-center">
-        {isRunning && (
-          <span
-            className={cn(
-              "absolute inline-flex h-2.5 w-2.5 rounded-full opacity-40 animate-ping",
-              dotClassName
-            )}
-          />
-        )}
-        <span
-          className={cn(
-            "relative inline-flex h-2 w-2 rounded-full",
-            dotClassName
-          )}
-        />
-      </span>
-      {label}
-    </div>
-  )
 }
 
 export function CampaignsContent({
@@ -670,6 +519,10 @@ export function CampaignsContent({
     const campaign = campaigns.find((c) => c.id === pendingDeleteId)
 
     setCampaigns((prev) => prev.filter((c) => c.id !== pendingDeleteId))
+
+    setDetailsCampaignId((currentId) =>
+      currentId === pendingDeleteId ? null : currentId
+    )
 
     if (campaign) {
       toast({
@@ -1988,378 +1841,44 @@ export function CampaignsContent({
       </div>
 
       {/* Campaign details drawer */}
-      <Drawer
+      <CampaignDetailsDrawer
         open={!!detailsCampaignId}
+        campaign={detailsCampaign}
         onOpenChange={(open) => {
           if (!open) setDetailsCampaignId(null)
         }}
-      >
-        <DrawerContent className="max-h-[85vh] overflow-hidden rounded-t-2xl border border-border bg-background/95 px-0 pb-0 pt-2 shadow-2xl backdrop-blur supports-[backdrop-filter]:backdrop-blur-xl">
-          {detailsCampaign ? (
-            <div className="flex h-full w-full flex-col px-4 pb-4 pt-2 text-sm sm:px-6 sm:pb-6">
-              {(() => {
-                const imageKey = detailsCampaign.image ?? ""
-                const brand = brandByImage[imageKey]
-                const site = siteByImage[imageKey]
-                const genre = genreByImage[imageKey]
-                const linkedAd = primaryAdByCampaignId[detailsCampaign.id]
-                const ad: MockAd | null =
-                  linkedAd ??
-                  (detailsCampaign.image || detailsCampaign.name
-                    ? ({
-                        id: `campaign-${detailsCampaign.id}`,
-                        campaignId: detailsCampaign.id,
-                        name: detailsCampaign.name,
-                        image: (detailsCampaign.image ??
-                          undefined) as MockAd["image"],
-                        video: FALLBACK_VIDEO,
-                        duration: "Preview",
-                      } as MockAd)
-                    : null)
-                const primaryChannel = detailsCampaign.channelNames?.[0]
-                const unitPrice =
-                  detailsCampaign.totalQty > 0
-                    ? detailsCampaign.budget / detailsCampaign.totalQty
-                    : 0
-
-                const brandLabel = brand?.title ?? "Brand not set"
-                const siteChannelLabel = site
-                  ? `${site.subtitle ?? site.name}${
-                      primaryChannel ? ` · ${primaryChannel}` : ""
-                    }`
-                  : (primaryChannel ?? "Site / channel not set")
-                const genreLabel = genre?.name ?? "Genre not set"
-                const adLabel = ad
-                  ? `${ad.name} · ${ad.duration ?? "duration not set"}`
-                  : detailsCampaign.image || detailsCampaign.name
-                    ? `${detailsCampaign.name} · preview`
-                    : "No ad file linked"
-
-                const statusGroup = getStatusGroup(detailsCampaign.status)
-                const isRunning = statusGroup === "running"
-                const isPaused = statusGroup === "paused"
-                const canToggle = isRunning || isPaused
-                const toggleAction: "pause" | "resume" = isRunning
-                  ? "pause"
-                  : "resume"
-                const toggleLabel = isRunning
-                  ? "Pause"
-                  : "Play"
-
-                return (
-                  <div className="flex items-stretch gap-6 py-3">
-                    {/* Left: thumbnail + id + name + status */}
-                    <div className="flex items-start gap-6">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (ad) setSelectedAd(ad)
-                        }}
-                        className="group relative w-40 aspect-[4/3] overflow-hidden rounded-xl bg-muted shadow-sm"
-                      >
-                        {(ad?.image ?? detailsCampaign.image) ? (
-                          <Image
-                            src={ad?.image ?? (detailsCampaign.image as string)}
-                            alt={detailsCampaign.name}
-                            fill
-                            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-                            <Megaphone className="h-5 w-5" />
-                          </div>
-                        )}
-                        {ad && (
-                          <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                            <Play className="h-8 w-8 text-white" />
-                          </div>
-                        )}
-                      </button>
-                      <div className="min-w-0 space-y-2">
-                        <p className="font-mono text-xs uppercase tracking-wide text-muted-foreground">
-                          {campaignAdId(detailsCampaign.id)}
-                        </p>
-                        <p className="truncate font-display text-xl font-semibold tracking-tight text-foreground">
-                          {detailsCampaign.name}
-                        </p>
-                        <p className="font-mono text-xs uppercase tracking-wide text-muted-foreground">
-                          Created {formatDateTime(detailsCampaign.createdAt)}
-                        </p>
-                        <div className="mt-1">
-                          <StatusBadge status={detailsCampaign.status} />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Middle: three info columns */}
-                    <div className="grid grid-cols-3 flex-1 items-center gap-8 pl-6 text-xs">
-                      <div className="col-span-1 space-y-3">
-                        <div className="flex items-center gap-2">
-                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                            Brand
-                          </p>
-                          <p className="text-sm font-medium text-foreground">
-                            {brandLabel}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                            Site
-                          </p>
-                          <p className="text-sm font-medium text-foreground">
-                            {siteChannelLabel}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                            Channel
-                          </p>
-                          <p className="text-sm font-medium text-foreground">
-                            {primaryChannel ?? "Not set"}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="col-span-1 space-y-3">
-                        <div className="flex items-center gap-2">
-                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                            Genre
-                          </p>
-                          <p className="text-sm font-medium text-foreground">
-                            {genreLabel}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                            Ad
-                          </p>
-                          <p className="text-sm font-medium text-foreground">
-                            {adLabel}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                            Approved
-                          </p>
-                          <p className="text-sm font-medium text-foreground">
-                            {detailsCampaign.status !== "draft" ? "Yes" : "No"}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="col-span-1 space-y-3">
-                        <div className="flex items-center gap-2">
-                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                            Price
-                          </p>
-                          <p className="text-sm font-semibold text-foreground">
-                            {formatCurrency(unitPrice)}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                            Spots used
-                          </p>
-                          <p className="text-sm font-medium text-foreground">
-                            {detailsCampaign.usedQty} /{" "}
-                            {detailsCampaign.totalQty}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                            Total
-                          </p>
-                          <p className="text-sm font-medium text-foreground">
-                            {formatCurrency(detailsCampaign.budget)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Chart circle */}
-                    <div className="flex flex-col items-center justify-center px-3 sm:px-4">
-                      <CircularQtyProgress
-                        totalQty={detailsCampaign.totalQty}
-                        usedQty={detailsCampaign.usedQty}
-                        size={100}
-                        strokeWidth={9}
-                        textSize="lg"
-                      />
-                    </div>
-
-                    {/* Right: actions */}
-                    <div className="flex flex-col items-start justify-center gap-3 pl-4 text-xs">
-                      {canToggle && (
-                        <Button
-                          type="button"
-                          onClick={() =>
-                            setPendingStatusChange({
-                              campaignId: detailsCampaign.id,
-                              action: toggleAction,
-                            })
-                          }
-                          variant="secondary"
-                          className={cn("inline-flex btn-gelatine w-full items-center justify-start gap-1.5 text-sm font-medium py-4 text-white", isRunning ? "bg-primary hover:bg-primary/90" : "bg-emerald-500 hover:bg-emerald-700 text-white")}
-                        >
-                          {isRunning ? (
-                            <Pause className="h-3.5 w-3.5" />
-                          ) : (
-                            <Play className="h-3.5 w-3.5" />
-                          )}
-                          <span>{toggleLabel}</span>
-                        </Button>
-                      )}
-                      <Button
-                        type="button"
-                        onClick={() => setPendingDeleteId(detailsCampaign.id)}
-                        variant="destructive"
-                        className="inline-flex btn-gelatine w-full items-center justify-start gap-1.5 text-sm font-medium text-white"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                        <span>Delete</span>
-                      </Button>
-                    </div>
-                  </div>
-                )
-              })()}
-            </div>
-          ) : (
-            <div className="p-4 text-sm text-muted-foreground">
-              No campaign selected.
-            </div>
-          )}
-        </DrawerContent>
-      </Drawer>
+        onRequestStatusChange={(campaignId, action) =>
+          setPendingStatusChange({ campaignId, action })
+        }
+        onRequestDelete={(campaignId) => setPendingDeleteId(campaignId)}
+        onPreviewAd={(ad) => setSelectedAd(ad)}
+      />
 
       {/* Confirm play/pause dialog */}
-      <Dialog
+      <CampaignStatusDialog
         open={!!pendingStatusChange}
-        onOpenChange={(open) => {
-          if (!open) setPendingStatusChange(null)
-        }}
-      >
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="text-sm font-semibold">
-              {pendingStatusChange?.action === "pause"
-                ? "Pause campaign?"
-                : "Resume campaign?"}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="mt-2 space-y-3 text-sm text-muted-foreground">
-            {pendingCampaign && (
-              <p>
-                {pendingStatusChange?.action === "pause"
-                  ? `This will pause "${pendingCampaign.name}" and stop serving its ads until you resume it.`
-                  : `This will resume "${pendingCampaign.name}" and start serving its ads again.`}
-              </p>
-            )}
-          </div>
-          <div className="mt-5 flex justify-end gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="min-w-[88px]"
-              onClick={() => setPendingStatusChange(null)}
-            >
-              Cancel
-            </Button>
-            <Button
-              size="sm"
-              className={`min-w-[88px] btn-gelatine ${pendingStatusChange?.action === "pause" ? "bg-primary" : "bg-emerald-500 hover:bg-emerald-700 text-white"}`}
-              onClick={handleConfirmStatusChange}
-              disabled={!pendingStatusChange}
-            >
-              {pendingStatusChange?.action === "pause" ? "Pause" : "Play"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        action={pendingStatusChange?.action ?? null}
+        campaign={pendingCampaign}
+        onCancel={() => setPendingStatusChange(null)}
+        onConfirm={handleConfirmStatusChange}
+      />
 
       {/* Confirm bulk play/pause dialog */}
-      <Dialog
+      <CampaignBulkStatusDialog
         open={!!pendingBulkStatusChange}
-        onOpenChange={(open) => {
-          if (!open) setPendingBulkStatusChange(null)
-        }}
-      >
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="text-sm font-semibold">
-              {pendingBulkStatusChange?.action === "pause"
-                ? "Pause selected campaigns?"
-                : "Play selected campaigns?"}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="mt-2 space-y-3 text-sm text-muted-foreground">
-            {hasSelection && (
-              <p>
-                {pendingBulkStatusChange?.action === "pause"
-                  ? `This will pause ${selectedCampaignIds.length} selected campaign(s) and stop serving their ads until you resume them.`
-                  : `This will play ${selectedCampaignIds.length} selected campaign(s) and start serving their ads.`}
-              </p>
-            )}
-          </div>
-          <div className="mt-5 flex justify-end gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="min-w-[88px]"
-              onClick={() => setPendingBulkStatusChange(null)}
-            >
-              Cancel
-            </Button>
-            <Button
-              size="sm"
-              className={`min-w-[88px] btn-gelatine ${pendingBulkStatusChange?.action === "pause" ? "bg-primary" : "bg-emerald-500 hover:bg-emerald-700 text-white"}`}
-              onClick={handleConfirmBulkStatusChange}
-              disabled={!pendingBulkStatusChange || !hasSelection}
-            >
-              {pendingBulkStatusChange?.action === "pause" ? "Pause" : "Play"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        action={pendingBulkStatusChange?.action ?? null}
+        selectedCount={selectedCampaignIds.length}
+        onCancel={() => setPendingBulkStatusChange(null)}
+        onConfirm={handleConfirmBulkStatusChange}
+      />
 
       {/* Confirm delete dialog */}
-      <Dialog
+      <CampaignDeleteDialog
         open={!!pendingDeleteId}
-        onOpenChange={(open) => {
-          if (!open) setPendingDeleteId(null)
-        }}
-      >
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="text-sm font-semibold text-destructive">
-              Delete campaign?
-            </DialogTitle>
-          </DialogHeader>
-          <div className="mt-2 space-y-3 text-sm text-muted-foreground">
-            {pendingDeleteCampaign && (
-              <p>
-                {`This will permanently remove "${pendingDeleteCampaign.name}" from your campaigns. This action cannot be undone.`}
-              </p>
-            )}
-          </div>
-          <div className="mt-5 flex justify-end gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="min-w-[88px]"
-              onClick={() => setPendingDeleteId(null)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              className="min-w-[88px] btn-gelatine"
-              onClick={handleConfirmDelete}
-              disabled={!pendingDeleteId}
-            >
-              Delete
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        campaignName={pendingDeleteCampaign?.name ?? null}
+        onCancel={() => setPendingDeleteId(null)}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   )
 
