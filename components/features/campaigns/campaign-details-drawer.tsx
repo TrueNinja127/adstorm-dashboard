@@ -3,10 +3,7 @@
 import Image from "next/image"
 
 import { Button } from "@/components/ui/button"
-import {
-  Drawer,
-  DrawerContent,
-} from "@/components/ui/drawer"
+import { Drawer, DrawerContent } from "@/components/ui/drawer"
 import { cn } from "@/lib/utils"
 import type { Campaign } from "@/types/campaigns"
 import {
@@ -93,7 +90,10 @@ interface CampaignDetailsDrawerProps {
   open: boolean
   campaign: Campaign | null
   onOpenChange: (open: boolean) => void
-  onRequestStatusChange: (campaignId: string, action: "pause" | "resume") => void
+  onRequestStatusChange: (
+    campaignId: string,
+    action: "pause" | "resume"
+  ) => void
   onRequestDelete: (campaignId: string) => void
   onPreviewAd: (ad: MockAd) => void
 }
@@ -128,7 +128,10 @@ export function CampaignDetailsDrawer({
 
 interface InnerDetailsProps {
   campaign: Campaign
-  onRequestStatusChange: (campaignId: string, action: "pause" | "resume") => void
+  onRequestStatusChange: (
+    campaignId: string,
+    action: "pause" | "resume"
+  ) => void
   onRequestDelete: (campaignId: string) => void
   onPreviewAd: (ad: MockAd) => void
 }
@@ -233,7 +236,9 @@ function InnerDetails({
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Brand
               </p>
-              <p className="text-sm font-medium text-foreground">{brandLabel}</p>
+              <p className="text-sm font-medium text-foreground">
+                {brandLabel}
+              </p>
             </div>
             <div className="flex items-center gap-2">
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -349,4 +354,3 @@ function InnerDetails({
     </div>
   )
 }
-

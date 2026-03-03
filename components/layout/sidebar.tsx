@@ -55,7 +55,7 @@ const navItems: NavItem[] = [
     ],
   },
   { icon: Megaphone, label: "Campaigns", href: "/campaigns" },
-  { icon: FileImage, label: "My Ads" },
+  { icon: FileImage, label: "My Ads", href: "/my-ads" },
   { icon: BarChart3, label: "Analytics" },
   { icon: Wallet, label: "Balance" },
   { icon: Receipt, label: "Billing" },
@@ -69,6 +69,7 @@ function pathnameToLabel(pathname: string): string | null {
   if (pathname === "/sites") return "Sites & Locations"
   if (pathname === "/channels-genres") return "Channels & Genres"
   if (pathname === "/campaigns") return "Campaigns"
+  if (pathname === "/my-ads") return "My Ads"
   return null
 }
 

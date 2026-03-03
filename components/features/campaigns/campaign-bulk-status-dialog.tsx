@@ -1,6 +1,11 @@
 "use client"
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 
 interface CampaignBulkStatusDialogProps {
@@ -54,7 +59,9 @@ export function CampaignBulkStatusDialog({
           <Button
             size="sm"
             className={`min-w-[88px] btn-gelatine ${
-              isPause ? "bg-primary" : "bg-emerald-500 hover:bg-emerald-700 text-white"
+              isPause
+                ? "bg-primary"
+                : "bg-emerald-500 hover:bg-emerald-700 text-white"
             }`}
             onClick={onConfirm}
             disabled={!action || selectedCount === 0}
@@ -66,4 +73,3 @@ export function CampaignBulkStatusDialog({
     </Dialog>
   )
 }
-

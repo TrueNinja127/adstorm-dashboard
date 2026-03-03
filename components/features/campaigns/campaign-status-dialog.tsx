@@ -1,6 +1,11 @@
 "use client"
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import type { Campaign } from "@/types/campaigns"
 
@@ -55,7 +60,9 @@ export function CampaignStatusDialog({
           <Button
             size="sm"
             className={`min-w-[88px] btn-gelatine ${
-              isPause ? "bg-primary" : "bg-emerald-500 hover:bg-emerald-700 text-white"
+              isPause
+                ? "bg-primary"
+                : "bg-emerald-500 hover:bg-emerald-700 text-white"
             }`}
             onClick={onConfirm}
             disabled={!action}
@@ -67,4 +74,3 @@ export function CampaignStatusDialog({
     </Dialog>
   )
 }
-

@@ -1,6 +1,11 @@
 "use client"
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 
 interface CampaignDeleteDialogProps {
@@ -59,4 +64,3 @@ export function CampaignDeleteDialog({
     </Dialog>
   )
 }
-

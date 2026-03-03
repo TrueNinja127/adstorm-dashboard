@@ -7,16 +7,17 @@ export const MOCK_ACCOUNT_BALANCE = 12450
 export interface MockAd {
   id: string
   name: string
+  /** Primary campaign for backwards compatibility. */
   campaignId: string
+  /** All campaigns this creative is used in. */
+  campaignIds?: string[]
   status: "active" | "paused" | "pending"
   duration?: string
-  /** Preview image URL for the ad creative. */
   image?: string
-  /** Optional video URL for preview/playback in dialog. */
   video?: string
+  uploadedAt?: string
 }
 
-/** Sample video URL for ad preview (short clip). */
 const SAMPLE_VIDEO = "https://www.w3schools.com/html/mov_bbb.mp4"
 
 export const mockAds: MockAd[] = [
@@ -24,10 +25,11 @@ export const mockAds: MockAd[] = [
     id: "a1",
     name: "Summer 30s Spot",
     campaignId: "c1",
+    campaignIds: ["c1", "c2", "c3", "c4"],
     status: "active",
     duration: "30s",
-    image:
-      "https://images.unsplash.com/photo-1518770660439-4636190af475?w=200&h=200&fit=crop",
+    uploadedAt: "2026-02-10",
+    image: "/images/ads/ad-doctor.jpg",
     video: SAMPLE_VIDEO,
   },
   {
@@ -36,6 +38,7 @@ export const mockAds: MockAd[] = [
     campaignId: "c1",
     status: "active",
     duration: "15s",
+    uploadedAt: "2026-02-12",
     image:
       "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=200&h=200&fit=crop",
     video:
@@ -47,6 +50,7 @@ export const mockAds: MockAd[] = [
     campaignId: "c2",
     status: "pending",
     duration: "—",
+    uploadedAt: "2026-02-18",
     image:
       "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=200&h=200&fit=crop",
     video: SAMPLE_VIDEO,
@@ -57,6 +61,7 @@ export const mockAds: MockAd[] = [
     campaignId: "c3",
     status: "paused",
     duration: "60s",
+    uploadedAt: "2026-02-05",
     image:
       "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=200&h=200&fit=crop",
     video: SAMPLE_VIDEO,
@@ -67,6 +72,7 @@ export const mockAds: MockAd[] = [
     campaignId: "c6",
     status: "active",
     duration: "20s",
+    uploadedAt: "2026-02-20",
     image:
       "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=200&h=200&fit=crop",
     video: SAMPLE_VIDEO,
@@ -77,8 +83,54 @@ export const mockAds: MockAd[] = [
     campaignId: "c5",
     status: "pending",
     duration: "10s",
+    uploadedAt: "2026-02-22",
     image:
       "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=200&h=200&fit=crop",
+    video: SAMPLE_VIDEO,
+  },
+  {
+    id: "a7",
+    name: "Summer 15s Cutdown",
+    campaignId: "c1",
+    status: "active",
+    duration: "15s",
+    uploadedAt: "2026-02-24",
+    // Reuse same creative file as a1 to simulate shared asset
+    image: "/images/ads/ad-doctor.jpg",
+    video: SAMPLE_VIDEO,
+  },
+  {
+    id: "a8",
+    name: "Retail Push Variant A",
+    campaignId: "c2",
+    status: "active",
+    duration: "20s",
+    uploadedAt: "2026-02-23",
+    image:
+      "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=200&h=200&fit=crop",
+    video: SAMPLE_VIDEO,
+  },
+  {
+    id: "a9",
+    name: "Retail Push Variant B",
+    campaignId: "c2",
+    status: "paused",
+    duration: "30s",
+    uploadedAt: "2026-02-25",
+    // Same creative file as Variant A, different campaign usage
+    image:
+      "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=200&h=200&fit=crop",
+    video: SAMPLE_VIDEO,
+  },
+  {
+    id: "a10",
+    name: "Holiday Reuse Spot",
+    campaignId: "c4",
+    status: "active",
+    duration: "30s",
+    uploadedAt: "2026-02-26",
+    // Shares the doctor creative with summer campaign
+    image: "/images/ads/ad-doctor.jpg",
     video: SAMPLE_VIDEO,
   },
 ]

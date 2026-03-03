@@ -73,4 +73,3 @@ export function StatusBadge({ status }: StatusBadgeProps) {
     </div>
   )
 }
-
