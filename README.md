@@ -1,85 +1,94 @@
 # ADStorm Dashboard
 
-ADStorm is a modern advertising management dashboard for planning campaigns,
-exploring media inventory, and reviewing ad performance. The project is a
-front-end demo powered by mock data, so it can be run locally without API keys
-or external services.
+Professional advertising management platform for launching campaigns, exploring media inventory, and optimizing ad performance.
+
+> **Note:** This is a front-end UI prototype. All data is mock-driven and requires no API keys or backend services.
 
 ## Features
 
-- Performance overview with campaign metrics and revenue charts
-- Marketplace pages for brands, sites, locations, channels, and genres
-- Campaign management with search, filters, bulk actions, and detailed previews
-- 10-step campaign creation flow with direct, automatic, and AI-assisted paths
-- Ad library with filtering, previews, downloads, and deletion
-- Light, dark, and system modes with multiple color themes
-- Responsive sidebar, global search, notifications, cart, and assistant UI
+| Area | Capabilities |
+| --- | --- |
+| **Dashboard** | Campaign metrics, sparklines, revenue charts, and marketplace category cards |
+| **Marketplace** | Brands, sites & locations (US map), channels & genres with animated carousels |
+| **Campaigns** | Grid/list views, search, pagination, bulk actions, status updates, and previews |
+| **Create campaign** | 10-step wizard with Direct, Automatic, and AI-assisted targeting flows |
+| **My Ads** | Ad library with search, filters, preview, download, and delete |
+| **Theming** | Light / dark / system modes plus multiple color themes |
+| **Shell** | Sidebar navigation, global search, notifications, cart, and assistant UI |
 
 ## Tech stack
 
-- [Next.js 16](https://nextjs.org/) with the App Router
-- [React 19](https://react.dev/) and TypeScript
-- [Tailwind CSS](https://tailwindcss.com/) and Radix UI primitives
-- [Recharts](https://recharts.org/) for data visualization
-- GSAP, Embla Carousel, and dotLottie for motion and interactive content
-- React Hook Form and Zod for forms and validation
+- **Framework:** [Next.js 16](https://nextjs.org/) (App Router) · [React 19](https://react.dev/) · TypeScript
+- **UI:** [Tailwind CSS](https://tailwindcss.com/) · [Radix UI](https://www.radix-ui.com/) / shadcn-style primitives · [Lucide](https://lucide.dev/)
+- **Forms & data:** React Hook Form · Zod · [Recharts](https://recharts.org/)
+- **Motion & media:** GSAP · Embla Carousel · dotLottie · `@mirawision/usa-map-react`
+- **Tooling:** pnpm · ESLint · Prettier · Turbopack (dev)
 
 ## Getting started
 
 ### Prerequisites
 
-- Node.js
+- [Node.js](https://nodejs.org/) 18+
 - [pnpm](https://pnpm.io/)
 
-### Installation
+### Install & run
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000).
 
-No environment variables are required. The application currently uses local
-mock data and in-memory state.
+No `.env` file is required. The app uses local mock data and in-memory client state.
 
-## Available scripts
+### Scripts
 
-```bash
-pnpm dev      # Start the development server with Turbopack
-pnpm build    # Create a production build
-pnpm start    # Start the production server
-pnpm lint     # Run ESLint
-pnpm format   # Format the project with Prettier
-```
+| Command | Description |
+| --- | --- |
+| `pnpm dev` | Start the development server (Turbopack) |
+| `pnpm build` | Create a production build |
+| `pnpm start` | Serve the production build |
+| `pnpm lint` | Run ESLint |
+| `pnpm format` | Format the project with Prettier |
 
 ## Routes
 
-- `/` — Dashboard overview
-- `/brands` — Brand marketplace
-- `/sites` — Sites and locations
-- `/channels-genres` — Channels and genres
-- `/campaigns` — Campaign management
-- `/my-ads` — Ad library
+| Path | Page |
+| --- | --- |
+| `/` | Dashboard overview |
+| `/brands` | Brand marketplace |
+| `/sites` | Sites & locations |
+| `/channels-genres` | Channels & genres |
+| `/campaigns` | Campaign management |
+| `/my-ads` | Ad library |
+
+Sidebar items such as Analytics, Balance, Billing, and Settings are placeholders and do not have routes yet.
 
 ## Project structure
 
 ```text
-app/                  Next.js routes and global styles
+app/                     # Routes, layouts, and global styles
 components/
-  features/           Feature-specific components
-  layout/             Application shell and shared dialogs
-  ui/                 Reusable UI primitives
-contexts/             Client-side state providers
-hooks/                Shared React hooks
-lib/                  Utilities
-public/               Static images, videos, and animations
-services/mock/         Mock application data
+  carousel/              # Hero carousel
+  features/              # Domain UI (brands, sites, channels, campaigns, ads, dashboard)
+  layout/                # App shell (sidebar, header, dialogs, chatbot)
+  theme/                 # Theme providers and toggle
+  ui/                    # Shared UI primitives
+contexts/                # Client-side state (cart, color theme, …)
+hooks/                   # Shared React hooks
+lib/                     # Utilities and constants
+public/                  # Static assets (images, video, Lottie)
+services/
+  mock/                  # Mock data and service layer
+types/                   # Shared domain types
 ```
+
+For architecture conventions, see [`docs/PROJECT_STRUCTURE.md`](docs/PROJECT_STRUCTURE.md).
 
 ## Current scope
 
-ADStorm is currently a UI prototype. Data changes are stored in client-side
-state and reset when the page reloads; the color theme preference is persisted
-in local storage. Sidebar entries without corresponding routes are placeholders
-for future functionality.
+- Data is mock/in-memory; mutations (cart, campaign status, ad deletion, etc.) reset on reload
+- Color theme preference is persisted in `localStorage`
+- TypeScript build errors are currently ignored via `next.config.mjs` (`typescript.ignoreBuildErrors`)
+- Remote images are loaded from `images.unsplash.com` (allowlisted in Next.js config)
