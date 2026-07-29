@@ -89,8 +89,6 @@ services/
 types/                # Shared domain types
 ```
 
-See [`docs/PROJECT_STRUCTURE.md`](docs/PROJECT_STRUCTURE.md) for architecture conventions.
-
 ## Conventions
 
 - Import through the `@/*` path alias and barrel exports, for example `@/components/layout`, `@/services`, `@/types`
