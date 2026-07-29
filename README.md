@@ -101,4 +101,3 @@ types/                # Shared domain types
 - Data is mock and in-memory, so cart contents, campaign status changes, and ad deletions reset on reload
 - Only the selected color theme persists, via `localStorage`
 - `next.config.mjs` sets `typescript.ignoreBuildErrors`, so `pnpm build` can succeed with type errors
-- Remote images are limited to `images.unsplash.com` by the Next.js image allowlist
