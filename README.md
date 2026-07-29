@@ -102,4 +102,3 @@ types/                # Shared domain types
 - Only the selected color theme persists, via `localStorage`
 - `next.config.mjs` sets `typescript.ignoreBuildErrors`, so `pnpm build` can succeed with type errors
 - Remote images are limited to `images.unsplash.com` by the Next.js image allowlist
-- `components/dashboard/` and `styles/globals.css` are legacy leftovers and are not used by the app
