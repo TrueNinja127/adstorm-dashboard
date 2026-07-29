@@ -99,4 +99,3 @@ types/                # Shared domain types
 ## Known limitations
 
 - Data is mock and in-memory, so cart contents, campaign status changes, and ad deletions reset on reload
-- Only the selected color theme persists, via `localStorage`
