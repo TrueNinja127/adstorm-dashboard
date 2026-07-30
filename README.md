@@ -97,5 +97,3 @@ types/                # Shared domain types
 - Prettier settings: no semicolons, double quotes, two-space indentation
 
 ## Known limitations
-
-- Data is mock and in-memory, so cart contents, campaign status changes, and ad deletions reset on reload
