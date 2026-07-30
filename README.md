@@ -95,5 +95,3 @@ types/                # Shared domain types
 - Components consume data from `@/services` rather than importing mock files directly
 - `components/ui/` holds presentation primitives only, with no business logic
 - Prettier settings: no semicolons, double quotes, two-space indentation
-
-## Known limitations
