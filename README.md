@@ -88,10 +88,3 @@ services/
   mock/               # Mock data: brands, campaigns, channels, revenue, sites
 types/                # Shared domain types
 ```
-
-## Conventions
-
-- Import through the `@/*` path alias and barrel exports, for example `@/components/layout`, `@/services`, `@/types`
-- Components consume data from `@/services` rather than importing mock files directly
-- `components/ui/` holds presentation primitives only, with no business logic
-- Prettier settings: no semicolons, double quotes, two-space indentation
